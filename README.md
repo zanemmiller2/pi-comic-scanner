@@ -116,7 +116,16 @@ Raspberry Pi comic book barcode scanner and lookup
    ![](readme_images/raspiconfigreboot.png)
 
 # 6. Test scanner with a sample program
-1. Download 
+1.  Download the example [qde2120_ex1_serial_scan.py](https://github.com/zanemmiller2/pi-comic-scanner/blob/59ec5604171b4c444cbe6549371fa168d4c4c61d/examples/qde2120_ex1_serial_scan.py) program. 
+2. Run the example program from the command line:
+   > python qde2120_ex1_serial_scan.py
+
+   ![](/Users/zanemiller/pi-comic-scanner/readme_images/run_example.png)
+3. Test it out by scanning some barcodes
+![](/Users/zanemiller/pi-comic-scanner/readme_images/scan_barcode_example.png)
+
+
+
 
 
 
