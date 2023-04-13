@@ -7,13 +7,7 @@
 #
 # This example demonstrates how to get the scanner connected and will output
 # and barcode it sees.
-# 
-# NOTE: you must put the module into COM mode by scanning the PORVIC barcode 
-# in the datasheet. This will put the module in the correct mode to receive 
-# and transmit serial.
 #
-# This package has been developed on a Raspberry Pi 4. Connect the DE2120 Barcode
-# Scanner Breakout directly to your Pi using a USB-C cable
 #  
 # Do you like this library? Help support SparkFun. Buy a board!
 #
@@ -47,6 +41,10 @@ import sys
 
 
 def run_example():
+    """
+    Example program to scan and print barcode
+    :return:
+    """
     print("\nSparkFun DE2120 Barcode Scanner Breakout Example 1")
     my_scanner = de2120_barcode_scanner.DE2120BarcodeScanner()
 
