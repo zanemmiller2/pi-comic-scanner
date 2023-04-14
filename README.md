@@ -14,6 +14,8 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
   * [F. **Configure the Raspberry Pi Serial Interface**](#f-configure-the-raspberry-pi-serial-interface)
   * [G. **Test scanner with a sample program**](#g-test-scanner-with-a-sample-program)
   * [H. **Connecting Barcode Reader HAT to a Mac**](#h-connecting-barcode-reader-hat-to-a-mac)
+  * [I. **Enabling scanner to read 5 digit add on codes**](#i-enabling-scanner-to-read-5-digit-add-on-codes)
+* [5. Known Issues](#5-known-issues)
 <!-- TOC -->
 
 # 1. **What You Need**
@@ -36,7 +38,7 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
 
 # 3. **Notes**
 
-- I'm using the [Barcode HAT for Raspberry Pi](https://shop.sb-components.co.uk/products/barcode-hat-for-raspberry-pi) from SB Components but found their documentation lacking which is why you'll see links referenced to SparkFun's documentation on a similar DE2120 Barcode Scanner. 
+- I'm using the [Barcode HAT for Raspberry Pi](https://shop.sb-components.co.uk/products/barcode-hat-for-raspberry-pi) from SB Components but found their documentation lacking which is why you'll see links referenced to SparkFun's documentation on a similar DE2120 Barcode Scanner.
 
 # 4. **Set-Up Instructions**
 
@@ -194,7 +196,24 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
    5. This will be the serial port you use in step 3 above.
 5. [**Test scanner with a sample program**](#g-test-scanner-with-a-sample-program)
    * You might have to unplug the scanner and plug it back in. 
-   
+
+## I. **Enabling scanner to read 5 digit add on codes**
+* NOTE: For reasons I'm unclear on at this time, in order to get the barcode reader to pickup the 5 digit add on code present with Marvel Comics, I had to enable to following settings:
+1. **Enable 1D and 2D Symbologies**
+![](readme_images/enable_1d_symbologies.png)
+![](readme_images/enable_2d_symbologies.png)
+2. **Enable 2-Digit and 5-Digit Add-On Codes**
+![](readme_images/enable_2digit_add_on.png)
+![](readme_images/enable_5digit_add_on.png)
+3. **Enable Add-on Code Required**
+![](readme_images/addon_required.png)
+
+# 5. **Known Issues**
+1. I've been experiencing what appears to be a race condition with the de2120_barcode_scanner.py's send_command() function which appears to be tracing back to the serial.serialposix.py read() function. The "if not read: break" within the try statement is where I've narrowed it down to...see below:
+![](/Users/zanemiller/pi-comic-scanner/readme_images/serialposix_read_problem.png)
+   * For now I bypass this by always returning True from de2120_barcode_scanner.is_connected() and de2120_barcode_scanner.send_command() functions:
+   ![](readme_images/is_connected_bypass.png)
+   ![](readme_images/send_command_bypass.png)
 
 
 
