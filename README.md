@@ -16,7 +16,7 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
 <!-- TOC -->
 
 # 1. **What You Need**
-_______________________________________________________________________________
+
 1. Raspberry Pi 3 (If you can find one! I happened to have a few lying around.)
 2. [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
    * Raspberry Pi Imager is an app available from Raspberry Pi on MacOS, Linux, and Windows () that allows you to quickly install Raspberry Pi OS and other operating systems to a microSD card.
@@ -26,7 +26,7 @@ _______________________________________________________________________________
 6. [Python DE2120_Py package](https://pypi.org/project/de2120-barcode-scanner/)
 
 # 2. **Resources**
-_______________________________________________________________________________
+
 1. [2D Barcode Scanner Settings Manual](https://cdn.sparkfun.com/assets/b/5/0/e/e/DY_Scan_Setting_Manual-DE2120___19.4.6___.pdf)
 2. [DE2120 Barcode Scanner Python Package](https://pypi.org/project/de2120-barcode-scanner/)
 3. [DE2120 Barcode Scanner API Reference](https://de2120-py.readthedocs.io/en/latest/apiref.html)
@@ -34,11 +34,11 @@ _______________________________________________________________________________
 5. [sparkfun/DE2120_Py GitHub Repository](https://github.com/sparkfun/DE2120_Py)
 
 # 3. **Notes**
-_______________________________________________________________________________
+
 - I'm using the [Barcode HAT for Raspberry Pi](https://shop.sb-components.co.uk/products/barcode-hat-for-raspberry-pi) from SB Components but found their documentation lacking which is why you'll see links referenced to SparkFun's documentation on a similar DE2120 Barcode Scanner. 
 
 # 4. **Set-Up Instructions**
-_______________________________________________________________________________
+
 ## A. **Set Up Raspberry Pi**
    1. **Open Raspberry Pi Imager** 
    ![](readme_images/open_rpi_imager.png)
