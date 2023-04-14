@@ -13,6 +13,7 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
   * [E. **Configure the Scanner**](#e-configure-the-scanner)
   * [F. **Configure the Raspberry Pi Serial Interface**](#f-configure-the-raspberry-pi-serial-interface)
   * [G. **Test scanner with a sample program**](#g-test-scanner-with-a-sample-program)
+  * [H. **Connecting Barcode Reader HAT to a Mac**](#h-connecting-barcode-reader-hat-to-a-mac)
 <!-- TOC -->
 
 # 1. **What You Need**
@@ -169,6 +170,31 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
    ![](readme_images/run_example.png)
 3. **Test it out by scanning some barcodes**
    ![](readme_images/scan_barcode_example.png)
+
+## H. **Connecting Barcode Reader HAT to a Mac**
+1. **Connect the Barcode Reader HAT's mini USB port to your computers USB port**
+2. **Set the barcode reader to USB virtual serial communication mode**
+   ![](readme_images/usb_com_barcode.png)
+3. **Update the DE2120 Barcode Scanner module to read from the appropriate USB serial port**
+   ```shell
+   sudo nano /usr/local/lib/python3.9/dist-packages/de2120_barcode_scanner.py
+   ```
+   1. On line 178 replace "/dev/ttyACM0, 115200" with "/dev/[YOUR_USB_SERIAL_PORT], 9600" 
+      * In my case the usb serial port is cu.usbmodem141101
+   ![](readme_images/update_serial_source.png)
+   ![](readme_images/update_serial_final.png)
+   2. Write and Exit
+4. **I found the USB Serial Port using [Cool Term](http://freeware.the-meiers.org)**
+   * CoolTerm is a simple serial port terminal application (no terminal emulation) that is geared towards hobbyists and professionals with a need to exchange data with hardware connected to serial ports such as servo controllers, robotic kits, GPS receivers, microcontrollers, etc.
+   1. With the Barcode Reader connected and turned on, open Cool Term
+   2. Open "Options"
+   3. Select "Serial Port Options"
+   4. In the "Port" drop down menu you should see a list of available ports. In my case, usbmodem141101 is the name of the connected Barcode Reader.
+   ![](readme_images/coolterm_port.png)
+   5. This will be the serial port you use in step 3 above.
+5. [**Test scanner with a sample program**](#g-test-scanner-with-a-sample-program)
+   * You might have to unplug the scanner and plug it back in. 
+   
 
 
 
