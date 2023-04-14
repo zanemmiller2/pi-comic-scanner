@@ -7,7 +7,7 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
 # Purpose:
 With an accumulating comic book collection, I currently pay ~$3/month for an app (CLZ Comics) to manage my catalog of comics. I have a handful of hard to find Raspberry Pi's sitting around the house and wanted to put some of them to use while I look for a new job. I recently put one of them to use as an integrated Smart Home Controller Touchscreen Kiosk. With the Barcode Scanner/Raspberry Pi, the goal is to develop accompnaying software that can (1) read in barcodes from comic books;  (2) use the barcoded isbn to look up the comic book and prefill a database entity form for review;  (3) and then commit the entries to local database server hosted on my linux server. From there I will be able to develop an interactive UI that I can integrate with my smart home controller and touch screen. 
 
-
+# Table of Contents
 <!-- TOC -->
 * [1. **What You Need**](#1-what-you-need)
 * [2. **Resources**](#2-resources)
