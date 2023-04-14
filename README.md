@@ -179,6 +179,7 @@ With an accumulating comic book collection, I currently pay ~$3/month for an app
    ![](readme_images/scan_barcode_example.png)
 
 ## H. **Connecting Barcode Reader HAT to a Mac**
+* I'm setting it up this way, or at least giving myself the option, so I can develop the software on either the laptop or the Raspberry Pi.
 1. **Connect the Barcode Reader HAT's mini USB port to your computers USB port**
 2. **Set the barcode reader to USB virtual serial communication mode**
    ![](readme_images/usb_com_barcode.png)
@@ -200,7 +201,7 @@ With an accumulating comic book collection, I currently pay ~$3/month for an app
    ![](readme_images/coolterm_port.png)
    5. This will be the serial port you use in step 3 above.
 5. [**Test scanner with a sample program**](#g-test-scanner-with-a-sample-program)
-   * You might have to unplug the scanner and plug it back in. 
+   * You might have to unplug the scanner and plug it back in.
    
 
 
