@@ -166,9 +166,9 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
    ```shell
    python qde2120_ex1_serial_scan.py
    ```
-   ![](/Users/zanemiller/pi-comic-scanner/readme_images/run_example.png)
+   ![](readme_images/run_example.png)
 3. **Test it out by scanning some barcodes**
-   ![](/Users/zanemiller/pi-comic-scanner/readme_images/scan_barcode_example.png)
+   ![](readme_images/scan_barcode_example.png)
 
 
 
