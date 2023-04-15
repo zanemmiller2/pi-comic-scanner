@@ -1,13 +1,9 @@
 import MySQLdb
 import os
-from dotenv import load_dotenv, find_dotenv
-from database.db_credentials import host, user, passwd, db
-# Load our environment variables from the .env file in the root of our project.
-#load_dotenv(find_dotenv())
+from code.database.db_credentials import host, user, passwd, db
+
 
 # Set the variables in our application with those environment variables
-
-
 
 def connect_to_database(host=host, user=user, passwd=passwd, db=db):
     """
@@ -31,7 +27,8 @@ def execute_query(db_connection=None, query=None, query_params=()):
 
     if db_connection is None:
         print(
-            "No connection to the database found! Have you called connect_to_database() first?")
+            "No connection to the database found! Have you called connect_to_database() first?"
+        )
         return None
 
     if query is None or len(query.strip()) == 0:
@@ -41,15 +38,6 @@ def execute_query(db_connection=None, query=None, query_params=()):
     print("Executing %s with %s" % (query, query_params))
     # Create a cursor to execute query. Why? Because apparently they optimize execution by retaining a reference according to PEP0249
     cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
-
-    '''
-    params = tuple()
-    #create a tuple of paramters to send with the query
-    for q in query_params:
-        params = params + (q)
-    '''
-    # TODO: Sanitize the query before executing it!!!
-    parameters = ()
     parameters = query_params
     cursor.execute(query, parameters)
     # this will actually commit any changes to the database. without this no

@@ -7,11 +7,15 @@ Description:
 """
 
 from __future__ import print_function
+
+import datetime
 from typing import List
 import de2120_barcode_scanner
 import serial
 import sys
 import time
+import database.db_connector as db
+
 
 class InvalidConnectionException(Exception):
     """Raised the program cant connect to the serial port"""
@@ -33,27 +37,31 @@ class Scanner:
         """
         self._serial_port = serial.Serial("/dev/cu.usbmodem141101", 115200, timeout=1)
         self.serial_scanner = de2120_barcode_scanner.DE2120BarcodeScanner(self._serial_port)
-        self._connection_status = False
+        self._scanner_connection_status = False
         self.scanned_barcodes_list = []
+        self.db_cursor = None
 
         # try to connect to serial port
         try:
-            self.__connect()
+            self.__connect_scanner()
         except InvalidConnectionException:
             print(
                 "\nThe Barcode Scanner module isn't connected correctly to the system. Please check wiring",
                 file=sys.stderr
             )
 
-    def __connect(self):
+    def __connect_scanner(self):
         """
         Creates a connection to the supplied serial port and saves the status
         as self._connection_status.
         """
 
-        self._connection_status = self.serial_scanner.begin()
-        if not self._connection_status:
+        self._scanner_connection_status = self.serial_scanner.begin()
+        if not self._scanner_connection_status:
             raise InvalidConnectionException
+
+    def __connect_db(self):
+        self.db_connection = db.connect_to_database()
 
     def scan_barcodes_marvel(self):
         """
@@ -64,10 +72,10 @@ class Scanner:
         """
 
         # check scanner connection status and try to reconnect if not connected
-        if not self._connection_status:
+        if not self._scanner_connection_status:
             print("\nBarcode Scanner not connected. Trying to reconnect...")
             try:
-                self.__connect()
+                self.__connect_scanner()
             except InvalidConnectionException:
                 print(
                     "\nThe Barcode Scanner module isn't connected correctly to the system. Please check wiring",
@@ -114,11 +122,21 @@ class Scanner:
         save = input(f"\nWould you like to upload the following barcodes {self.scanned_barcodes_list} (y/n)?: ")
 
         if save.upper() == "Y":
-            # save to file
-            pass
+            print(f"\nUploading {self.scanned_barcodes_list} to database.")
+            self.__upload_upcs_to_db()
         else:
             print("\nOk...deleting entry")
             self.scanned_barcodes_list = []
+
+    def __upload_upcs_to_db(self):
+        self.db_cursor = db.connect_to_database()
+        query = "INSERT INTO comic_books.scanned_upc_codes(upc_code, date_uploaded) VALUES (%s, %s);"
+        time_now = datetime.datetime.now()
+        date = str(time_now.year) + '-' + str(time_now.month) + '-' + str(time_now.day)
+        for upc in self.scanned_barcodes_list:
+            db.execute_query(self.db_cursor, query, (upc, date))
+
+        self.db_cursor.close()
 
     def __print_list_barcodes(self):
         """ Prints a formatted list of barcodes with line numbers """
@@ -147,7 +165,7 @@ class Scanner:
             if input(
                     f"\nDelete these barcodes (y/n) "
                     f"{[self.scanned_barcodes_list[x] for x in delete_indexes]}?: "
-                    ).upper() == 'Y':
+            ).upper() == 'Y':
 
                 list_after_delete = []
                 delete_indexes = set(delete_indexes)
