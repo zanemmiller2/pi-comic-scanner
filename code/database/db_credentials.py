@@ -3,6 +3,6 @@
 
 # For Local Development
 host = '10.0.0.238'
-user = 'zanemiller'
-passwd = '230Leafwoodct!'
+user = ''
+passwd = ''
 db = 'comic_books'

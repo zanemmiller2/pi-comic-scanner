@@ -9,11 +9,13 @@ Description:
 from __future__ import print_function
 
 import datetime
-from typing import List
-import de2120_barcode_scanner
-import serial
 import sys
 import time
+from typing import List
+
+import de2120_barcode_scanner
+import serial
+
 import database.db_connector as db
 
 
@@ -49,19 +51,6 @@ class Scanner:
                 "\nThe Barcode Scanner module isn't connected correctly to the system. Please check wiring",
                 file=sys.stderr
             )
-
-    def __connect_scanner(self):
-        """
-        Creates a connection to the supplied serial port and saves the status
-        as self._connection_status.
-        """
-
-        self._scanner_connection_status = self.serial_scanner.begin()
-        if not self._scanner_connection_status:
-            raise InvalidConnectionException
-
-    def __connect_db(self):
-        self.db_connection = db.connect_to_database()
 
     def scan_barcodes_marvel(self):
         """
@@ -128,15 +117,32 @@ class Scanner:
             print("\nOk...deleting entry")
             self.scanned_barcodes_list = []
 
+    def __connect_scanner(self):
+        """
+        Creates a connection to the supplied serial port and saves the status
+        as self._connection_status.
+        """
+        self._scanner_connection_status = self.serial_scanner.begin()
+        if not self._scanner_connection_status:
+            raise InvalidConnectionException
+
     def __upload_upcs_to_db(self):
+        """
+        Uploads the list of scanned barcodes to scanned_upc_codes buffer table in comic_books db
+        """
+
         self.db_cursor = db.connect_to_database()
+
         query = "INSERT INTO comic_books.scanned_upc_codes(upc_code, date_uploaded) VALUES (%s, %s);"
         time_now = datetime.datetime.now()
         date = str(time_now.year) + '-' + str(time_now.month) + '-' + str(time_now.day)
+
+        # uploads each upc code to db
         for upc in self.scanned_barcodes_list:
             db.execute_query(self.db_cursor, query, (upc, date))
 
-        self.db_cursor.close()
+        self.db_cursor.commit()  # commits the changes to the database
+        self.db_cursor.close()  # closes the database connection cursor
 
     def __print_list_barcodes(self):
         """ Prints a formatted list of barcodes with line numbers """

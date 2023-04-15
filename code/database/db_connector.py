@@ -1,5 +1,5 @@
 import MySQLdb
-import os
+
 from code.database.db_credentials import host, user, passwd, db
 
 
@@ -42,5 +42,4 @@ def execute_query(db_connection=None, query=None, query_params=()):
     cursor.execute(query, parameters)
     # this will actually commit any changes to the database. without this no
     # changes will be committed!
-    db_connection.commit()
     return cursor
