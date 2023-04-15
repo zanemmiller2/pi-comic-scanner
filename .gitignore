@@ -5,4 +5,4 @@
 *.iml
 out
 gen
-!/code/database/db_credentials.py
+!pi-comic-scanner/code/database/db_credentials.py
