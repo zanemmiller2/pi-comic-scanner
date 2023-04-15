@@ -134,9 +134,10 @@ With an accumulating comic book collection, I currently pay ~$3/month for an app
    * You can find additional documentation on the DE2120 Scanner and its functionality here:
    * https://cdn.sparkfun.com/assets/b/5/0/e/e/DY_Scan_Setting_Manual-DE2120___19.4.6___.pdf
    ![](readme_images/restore_defaults_barcode.png)
-2. **We're going to use the Barcode HAT with the TTL/RS232 serial communication interface.**
+2. **We're going to use the Barcode HAT with the TTL/RS232 serial communication
+   interface.**
    ![](readme_images/ttl_rs232.png)
-3. **And set the baud rate to 9600**
+3. **And set the baud rate to 9600**  
    ![](readme_images/baudrate.png)
 
 ## F. **Configure the Raspberry Pi Serial Interface**
