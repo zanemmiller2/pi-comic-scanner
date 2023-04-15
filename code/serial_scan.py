@@ -30,7 +30,7 @@ class Scanner:
     scanning barcodes, and saving scanned barcodes to file
     """
 
-    MARVEL_BARCODE_LENGTH_WITH_5DIGIT = 18
+    MARVEL_BARCODE_LENGTH_WITH_5DIGIT = 18  # max length of marvel barcode with 5 digit add on
 
     def __init__(self):
         """
@@ -51,6 +51,7 @@ class Scanner:
                 "\nThe Barcode Scanner module isn't connected correctly to the system. Please check wiring",
                 file=sys.stderr
             )
+            exit(-1)
 
     def scan_barcodes_marvel(self):
         """
@@ -70,6 +71,7 @@ class Scanner:
                     "\nThe Barcode Scanner module isn't connected correctly to the system. Please check wiring",
                     file=sys.stderr
                 )
+                exit(-1)
 
         # Begin Scanning
         print("Scanner ready! Begin scanning...")
@@ -133,16 +135,15 @@ class Scanner:
 
         self.db_cursor = db.connect_to_database()
 
-        query = "INSERT INTO comic_books.scanned_upc_codes(upc_code, date_uploaded) VALUES (%s, %s);"
         time_now = datetime.datetime.now()
-        date = str(time_now.year) + '-' + str(time_now.month) + '-' + str(time_now.day)
+        formatted_date = str(time_now.year) + '-' + str(time_now.month) + '-' + str(time_now.day)
 
         # uploads each upc code to db
         for upc in self.scanned_barcodes_list:
-            db.execute_query(self.db_cursor, query, (upc, date))
+            db.execute_query(self.db_cursor, (upc, formatted_date))
 
         self.db_cursor.commit()  # commits the changes to the database
-        self.db_cursor.close()  # closes the database connection cursor
+        self.db_cursor.close()  # closes the database connection
 
     def __print_list_barcodes(self):
         """ Prints a formatted list of barcodes with line numbers """
@@ -152,17 +153,20 @@ class Scanner:
             print(f"\n({str(line_no) + ')':<7}{barcode}")
             line_no += 1
 
-    def __delete_barcode_from_buffer_list(self):
+    def __delete_barcode_from_buffer_list(self) -> List[str]:
         """
         Displays a list of barcodes scans and asks the user if there are any
         they would like to delete. If there are line items to delete, function
         removes barcodes and return new list.
         :return: List of barcodes after deleting any
         """
-        num_barcodes = len(self.scanned_barcodes_list)
 
+        num_barcodes = self._get_num_barcodes()
+
+        # display the barcodes the user just scanned
         self.__print_list_barcodes()
 
+        # get a list of indexes of the upc codes the user wants to delete
         delete_indexes = self.__get_lines_to_delete()
 
         # if there is anything to delete
@@ -171,8 +175,9 @@ class Scanner:
             if input(
                     f"\nDelete these barcodes (y/n) "
                     f"{[self.scanned_barcodes_list[x] for x in delete_indexes]}?: "
-            ).upper() == 'Y':
+                    ).upper() == 'Y':
 
+                # temp list for storing the upcs the user DOES NOT want to delete
                 list_after_delete = []
                 delete_indexes = set(delete_indexes)
 
@@ -180,9 +185,9 @@ class Scanner:
                     if i not in delete_indexes:
                         list_after_delete.append(self.scanned_barcodes_list[i])
 
+                # still upcs left after delete
                 if list_after_delete:
                     return [x for x in list_after_delete]
-
                 # deleted everything
                 else:
                     return []
@@ -197,9 +202,11 @@ class Scanner:
         """
         Gets the list of indexes user wants to delete. Return list of integer
         indexes or empty list if none
-        :return:
+        :return: a list of integer indexes (0-indexed) the user wants to delete from the upload queue
         """
-        num_barcodes = len(self.scanned_barcodes_list)
+
+        num_barcodes = self._get_num_barcodes()
+        # set of line numbers used
         lines = set(x for x in range(1, num_barcodes + 1))
 
         while True:
@@ -213,11 +220,11 @@ class Scanner:
             if which_line.upper() == 'Q':
                 print("\nOk...not deleting any lines")
                 return []
-
             else:
                 # convert the input line numbers to a list
                 which_line = which_line.split()
                 valid_lines = True
+
                 # verify the line numbers in the list are valid
                 for line_no in which_line:
                     if int(line_no) not in lines:
@@ -229,6 +236,13 @@ class Scanner:
                         return []
                     else:
                         return [int(x) - 1 for x in which_line]
+
+    def _get_num_barcodes(self) -> int:
+        """
+        Counts the number of upc codes in scanned_barcodes_list buffer
+        :return: an integer representing the number of upcs in list
+        """
+        return len(self.scanned_barcodes_list)
 
 
 if __name__ == '__main__':
