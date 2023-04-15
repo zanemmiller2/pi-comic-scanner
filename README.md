@@ -1,6 +1,13 @@
 # pi-comic-scanner
-Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberry Pi 3 with a 32 GB microSD card running Raspberry Pi OS (64-bit) and an attached RPI Barcode Reader HAT.
+Author: Zane Miller
+Email: millerzanem@gmail.com
 
+Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberry Pi 3 with a 32 GB microSD card running Raspberry Pi OS (64-bit) and an attached RPI Barcode Reader HAT. 
+
+# Purpose:
+With an accumulating comic book collection, I currently pay ~$3/month for an app (CLZ Comics) to manage my catalog of comics. I have a handful of hard to find Raspberry Pi's sitting around the house and wanted to put some of them to use while I look for a new job. I recently put one of them to use as an integrated Smart Home Controller Touchscreen Kiosk. With the Barcode Scanner/Raspberry Pi, the goal is to develop accompnaying software that can (1) read in barcodes from comic books;  (2) use the barcoded isbn to look up the comic book and prefill a database entity form for review;  (3) and then commit the entries to local database server hosted on my linux server. From there I will be able to develop an interactive UI that I can integrate with my smart home controller and touch screen. 
+
+# Table of Contents
 <!-- TOC -->
 * [1. **What You Need**](#1-what-you-need)
 * [2. **Resources**](#2-resources)
@@ -174,6 +181,7 @@ Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberr
    ![](readme_images/scan_barcode_example.png)
 
 ## H. **Connecting Barcode Reader HAT to a Mac**
+* I'm setting it up this way, or at least giving myself the option, so I can develop the software on either the laptop or the Raspberry Pi.
 1. **Connect the Barcode Reader HAT's mini USB port to your computers USB port**
 2. **Set the barcode reader to USB virtual serial communication mode**
    ![](readme_images/usb_com_barcode.png)
