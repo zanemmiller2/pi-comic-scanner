@@ -37,3 +37,12 @@ def upload_upc_to_buffer(db_connection=None, query_params=(str, str)):
     cursor.execute(query, query_params)
 
     return cursor
+
+
+def backup_db():
+    pass
+
+
+def remove_buffer_duplicates():
+    """ Cleans up the scanned_upc_codes table by removing duplicates """
+    pass

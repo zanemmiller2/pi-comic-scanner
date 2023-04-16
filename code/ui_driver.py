@@ -6,7 +6,7 @@ Date: 04/15/2023
 Description: Command Line interface driver
 """
 
-from serial_scan import *
+from scanner_driver import *
 
 SCANNER_INPUT_MODE = '1'
 KEYBOARD_INPUT_MODE = '2'
@@ -54,7 +54,7 @@ class UI:
                 "\n\t(Q) Quit"
             )
 
-        menu_res = input().strip()
+        menu_res = input(">>> ").strip()
 
         if menu_res.isnumeric():
             if int(menu_res) < 1 or int(menu_res) > num_menu_options:
@@ -90,9 +90,8 @@ class UI:
                 f"\n\t({KEYBOARD_INPUT_MODE}) Keyboard Entry"
                 f"\n\t({MENU_NAV_MODE}) Return to Navigation Menu"
                 f"\n\t({QUIT_INPUT_MODE}) Quit"
-                f"\n> "
             )
-            self.input_method = input().strip()
+            self.input_method = input(">>> ").strip()
 
             # Scanner
             if self.input_method == SCANNER_INPUT_MODE:
@@ -156,7 +155,7 @@ class UI:
         """
         if self.entry_cursor.get_num_barcodes() > 0:
             print("Would you like to upload the scanned barcodes to the database (y/n)? ")
-            db_upload_res = input().strip()
+            db_upload_res = input(">>> ").strip()
 
             if db_upload_res == 'N' or db_upload_res == 'n':
                 self.get_menu_nav()
@@ -172,6 +171,9 @@ class UI:
             print("No barcodes to upload.")
             self.get_menu_nav()
 
+    ####################################################
+    #                   UTILITIES
+    ####################################################
     @staticmethod
     def exit_program():
         """

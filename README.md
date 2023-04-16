@@ -23,6 +23,7 @@ With an accumulating comic book collection, I currently pay ~$3/month for an app
   * [H. **Connecting Barcode Reader HAT to a Mac**](#h-connecting-barcode-reader-hat-to-a-mac)
   * [I. **Enabling scanner to read 5 digit add on codes**](#i-enabling-scanner-to-read-5-digit-add-on-codes)
 * [5. Known Issues](#5-known-issues)
+* [6. Configurations](#6-configurations)
 <!-- TOC -->
 
 # 1. **What You Need**
@@ -215,14 +216,30 @@ With an accumulating comic book collection, I currently pay ~$3/month for an app
 ![](readme_images/enable_2digit_add_on.png)
 ![](readme_images/enable_5digit_add_on.png)
 3. **Enable Add-on Code Required**
-![](readme_images/addon_required.png)
+   ![](readme_images/addon_required.png)
 
 # 5. **Known Issues**
-1. I've been experiencing what appears to be a race condition with the de2120_barcode_scanner.py's send_command() function which appears to be tracing back to the serial.serialposix.py read() function. The "if not read: break" within the try statement is where I've narrowed it down to...see below:
-![](/Users/zanemiller/pi-comic-scanner/readme_images/serialposix_read_problem.png)
-   * For now I bypass this by always returning True from de2120_barcode_scanner.is_connected() and de2120_barcode_scanner.send_command() functions:
-   ![](readme_images/is_connected_bypass.png)
-   ![](readme_images/send_command_bypass.png)
+
+1. I've been experiencing what appears to be a race condition with the
+   de2120_barcode_scanner.py's send_command() function which appears to be
+   tracing back to the serial.serialposix.py read() function. The "if not read:
+   break" within the try statement is where I've narrowed it down to...see
+   below:
+   ![](/Users/zanemiller/pi-comic-scanner/readme_images/serialposix_read_problem.png)
+    * For now I bypass this by always returning True from
+      de2120_barcode_scanner.is_connected() and
+      de2120_barcode_scanner.send_command() functions:
+      ![](readme_images/is_connected_bypass.png)
+      ![](readme_images/send_command_bypass.png)
+
+# 6. **Configurations**
+
+1. Database:
+    1. Automated backup dump to cronjob at 4am every Saturday morning
+       ```bash
+       0 4 * * 6 /usr/bin/mysqldump --routines -u [DB_USERNAME] -p '[DB_PASSWORD]' [DB_NAME] > ${HOME}/[PATH]/[FILE_NAME.sql]
+       ```
+   
 
 
 
