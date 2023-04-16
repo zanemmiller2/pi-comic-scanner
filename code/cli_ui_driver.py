@@ -1,3 +1,11 @@
+"""
+Author: Zane Miller
+Adapted From: https://github.com/sparkfun/DE2120_Py/blob/main/examples/de2120_ex1_serial_scan.py
+Email: millerzanem@gmail.com
+Date: 04/15/2023
+Description: Command Line interface driver
+"""
+
 from serial_scan import *
 
 SCANNER_INPUT_MODE = '1'
@@ -63,16 +71,17 @@ if __name__ == '__main__':
     #       Upload to DB
     # ---------------------------------
     db_upload_res = ""
-
+    """
     # Print the list of barcodes
     # Ask the user if they want to upload the barcodes to the database
     # If they do:
-    # User enter database credentials via command line
-    # Validate credentials
-    # Confirm upload
-    # Comit
+        # User enter database credentials via command line
+        # Validate credentials
+        # Confirm upload
+        # Commit
     # If they do not:
-    # Confirm
-    # exit
+        # Confirm
+        # exit
+    """
 
     print(entry_cursor.scanned_barcodes_list)

@@ -3,7 +3,7 @@ Author: Zane Miller
 Adapted From: https://github.com/sparkfun/DE2120_Py/blob/main/examples/de2120_ex1_serial_scan.py
 Email: millerzanem@gmail.com
 Date: 04/13/2023
-Description:
+Description: Class drivers for scanning by different methods
 """
 
 from __future__ import print_function
