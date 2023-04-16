@@ -1,14 +1,16 @@
 import MySQLdb
 
-from code.database.db_credentials import host, user, passwd, db
-
 
 # Set the variables in our application with those environment variables
 
-def connect_to_database(host=host, user=user, passwd=passwd, db=db):
+def connect_to_database():
     """
     connects to a database and returns a database objects
     """
+    host = input("DB Host: ")
+    user = input("DB User: ")
+    passwd = input("DB Password: ")
+    db = input("DB Name: ")
     db_connection = MySQLdb.connect(host, user, passwd, db)
     return db_connection
 

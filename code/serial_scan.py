@@ -9,9 +9,7 @@ Description:
 from __future__ import print_function
 
 import datetime
-import sys
 import time
-from typing import List
 
 import de2120_barcode_scanner
 import serial
@@ -24,109 +22,134 @@ class InvalidConnectionException(Exception):
     pass
 
 
+BARCODE_CODE = "MAV18"
+KEYBOARD_ENTRY_MODE = 'KYBD'
+SCANNER_ENTRY_MODE = 'SCNR'
+IDLE_SCANNER_TIMEOUT = 10
+MAV18_LENGTH = 17
+MAV18_LENGTH_SCANNED = 18
+
+
 class Scanner:
     """
-    Scanner object to handle connecting to scanner serial port,
-    scanning barcodes, and saving scanned barcodes to file
+    Parent Scanner class inherited by MarvelBarcodeScanner and KeyboardBarcodeEntry subclasses.
+    Handles most of the middleware between entry modes and review for upload to db.
     """
 
-    MARVEL_BARCODE_LENGTH_WITH_5DIGIT = 18  # max length of marvel barcode with 5 digit add on
-
     def __init__(self):
-        """
-        Scanner object with hard_port, connection_status, DE2120BarcodeScanner
-        serial_scanner object, and a list of scanned barcodes
-        """
-        self._serial_port = serial.Serial("/dev/cu.usbmodem141101", 115200, timeout=1)
-        self.serial_scanner = de2120_barcode_scanner.DE2120BarcodeScanner(self._serial_port)
-        self._scanner_connection_status = False
         self.scanned_barcodes_list = []
         self.db_cursor = None
+        self.db_connection_status = False
+        self.entry_mode = None
 
-        # try to connect to serial port
-        try:
-            self.__connect_scanner()
-        except InvalidConnectionException:
-            print(
-                "\nThe Barcode Scanner module isn't connected correctly to the system. Please check wiring",
-                file=sys.stderr
-            )
-            exit(-1)
-
-    def scan_barcodes_marvel(self):
+    def enter_marvel_barcodes(self):
         """
-        Reads marvel barcodes (UPC-A with a 5-digit add_on code) from
-        serial_scanner with a 5 digit add on code. The first 3 digits of the
-        add-on code represent the issue number, the 4th digit represents the
-        cover variant and the 5th digit represents the print variant.
+        Generic function definition
         """
+        pass
 
-        # check scanner connection status and try to reconnect if not connected
-        if not self._scanner_connection_status:
-            print("\nBarcode Scanner not connected. Trying to reconnect...")
-            try:
-                self.__connect_scanner()
-            except InvalidConnectionException:
-                print(
-                    "\nThe Barcode Scanner module isn't connected correctly to the system. Please check wiring",
-                    file=sys.stderr
-                )
-                exit(-1)
-
-        # Begin Scanning
-        print("Scanner ready! Begin scanning...")
-        while True:
-            # clear buffer before trying to read again
-            barcode_buffer = self.serial_scanner.read_barcode()
-            barcode_length = len(str(barcode_buffer))
-
-            # check if a barcode was scanned
-            if barcode_buffer:
-                # check if the scanned barcode includes the 5 digit add on
-                if barcode_length == self.MARVEL_BARCODE_LENGTH_WITH_5DIGIT:
-                    print("\nCode found: " + str(barcode_buffer))
-                    self.scanned_barcodes_list.append("MAV18-" + str(barcode_buffer))
-
-                # otherwise prompt to try again
-                else:
-                    print("\nCould not scan the 5-digit add on code. Try again...")
-
-                # ask the user if they have more to scan
-                user_res = input("\nWould you like to scan more? (y/n): ")
-                if user_res.lower() == 'n':
-                    print("\nDone Scanning!")
-                    break
-
-                print("\nScan!")
-
-            time.sleep(0.02)
+    ######################################################################
+    #                       REVIEW BARCODES
+    ######################################################################
 
     def review_barcodes(self):
         """
-        Prompts user to review lines submitted for upload
+        Reviews the latest entry and asks the user if they want to make any modifications.
         """
-        delete = input("\nWould you like to remove any barcodes from the list (y/n)? : ")
 
-        if delete.upper() == 'Y':
-            self.scanned_barcodes_list = self.__delete_barcode_from_buffer_list()
+        if self.get_num_barcodes() == 0:
+            print("Nothing to review...\n")
+            return
 
-        save = input(f"\nWould you like to upload the following barcodes {self.scanned_barcodes_list} (y/n)?: ")
+        self._print_list_barcodes()
+        num_barcodes = self.get_num_barcodes()
+        lines = {x + 1 for x in range(num_barcodes)}
+        edit_response = self.get_edit_response(lines)
 
-        if save.upper() == "Y":
-            print(f"\nUploading {self.scanned_barcodes_list} to database.")
-            self.__upload_upcs_to_db()
-        else:
-            print("\nOk...deleting entry")
-            self.scanned_barcodes_list = []
+        # DO YOU WANT TO MAKE ANY CHANGES
+        while str(edit_response).upper() != "N" and num_barcodes > 0:
+            edit_index = int(edit_response)
+            edit_index -= 1
+            edit_barcode = self.scanned_barcodes_list[edit_index]
+            edit_result = False
 
-    def __connect_scanner(self):
+            while edit_result is False:
+                print(f'(D)elete, (E)dit, or (C)ancel ({edit_barcode}): ')
+                edit_action_response = input()
+
+                # DELETE
+                if edit_action_response.upper() == "D":
+                    edit_result = self._delete_entry(edit_barcode, edit_index)
+
+                # MODIFY ENTRY
+                elif edit_action_response.upper() == "E":
+                    edit_result = self._edit_entry(edit_barcode, edit_index)
+
+                # CANCEL SELECTION
+                elif edit_action_response.upper() == "C":
+                    edit_result = True
+
+                else:
+                    print("Invalid Entry: Try Again...\n")
+                    edit_result = False
+
+            self._print_list_barcodes()
+            num_barcodes = self.get_num_barcodes()
+            lines = {x + 1 for x in range(num_barcodes)}
+            edit_response = self.get_edit_response(lines)
+
+    def _delete_entry(self, barcode: str, del_index: int) -> bool:
+        print(f"Are you sure you want to delete {barcode} (y/n) ")
+        delete_confirm = input()
+
+        if delete_confirm.upper() == "Y":
+            del self.scanned_barcodes_list[del_index]
+            print(f"Deleted {barcode}\n")
+            return True
+
+        return False
+
+    def _edit_entry(self, barcode: str, edit_index: int) -> bool:
+        print(f"Are you sure you want to edit {barcode} (y/n) ")
+        edit_confirm = input()
+
+        if edit_confirm.upper() == 'Y':
+            edited_barcode = input("Enter the updated barcode:\n")
+            if len(edited_barcode) == MAV18_LENGTH:
+                self.scanned_barcodes_list[edit_index] = str(edited_barcode)
+                return True
+            else:
+                print(
+                    f"MAV18 Barcode {edited_barcode} of length"
+                    f" {len(edited_barcode)} is invalid (needs to be 17 digits)"
+                )
+                return False
+
+        return False
+
+    def get_edit_response(self, lines):
         """
-        Creates a connection to the supplied serial port and saves the status
-        as self._connection_status.
+        Gets the edit response from the user and verifies that it is valid before returning the response
         """
-        self._scanner_connection_status = self.serial_scanner.begin()
-        if not self._scanner_connection_status:
-            raise InvalidConnectionException
+        res = input(
+            "Which line would you like to edit? "
+            "(enter a line number or (N) to save and continue): "
+        )
+
+        if res == 'N' or res == 'n':
+            return 'N'
+
+        if res.isnumeric():
+            if int(res) in lines:
+                return res
+            else:
+                print("Invalid line number...out of range")
+
+        return self.get_edit_response(lines)
+
+    ######################################################################
+    #                       DATABASE INTERACTIONS
+    ######################################################################
 
     def __upload_upcs_to_db(self):
         """
@@ -145,108 +168,177 @@ class Scanner:
         self.db_cursor.commit()  # commits the changes to the database
         self.db_cursor.close()  # closes the database connection
 
-    def __print_list_barcodes(self):
-        """ Prints a formatted list of barcodes with line numbers """
-        line_no = 1
+    ######################################################################
+    #               GETTERS AND SETTERS (PARENT)
+    ######################################################################
 
-        for barcode in self.scanned_barcodes_list:
-            print(f"\n({str(line_no) + ')':<7}{barcode}")
-            line_no += 1
-
-    def __delete_barcode_from_buffer_list(self) -> List[str]:
-        """
-        Displays a list of barcodes scans and asks the user if there are any
-        they would like to delete. If there are line items to delete, function
-        removes barcodes and return new list.
-        :return: List of barcodes after deleting any
-        """
-
-        num_barcodes = self._get_num_barcodes()
-
-        # display the barcodes the user just scanned
-        self.__print_list_barcodes()
-
-        # get a list of indexes of the upc codes the user wants to delete
-        delete_indexes = self.__get_lines_to_delete()
-
-        # if there is anything to delete
-        if delete_indexes:
-            # confirm again they want to delete the following line items
-            if input(
-                    f"\nDelete these barcodes (y/n) "
-                    f"{[self.scanned_barcodes_list[x] for x in delete_indexes]}?: "
-                    ).upper() == 'Y':
-
-                # temp list for storing the upcs the user DOES NOT want to delete
-                list_after_delete = []
-                delete_indexes = set(delete_indexes)
-
-                for i in range(num_barcodes):
-                    if i not in delete_indexes:
-                        list_after_delete.append(self.scanned_barcodes_list[i])
-
-                # still upcs left after delete
-                if list_after_delete:
-                    return [x for x in list_after_delete]
-                # deleted everything
-                else:
-                    return []
-            # Try again
-            else:
-                return self.__delete_barcode_from_buffer_list()
-
-        # nothing to delete
-        return self.scanned_barcodes_list
-
-    def __get_lines_to_delete(self) -> List[int]:
-        """
-        Gets the list of indexes user wants to delete. Return list of integer
-        indexes or empty list if none
-        :return: a list of integer indexes (0-indexed) the user wants to delete from the upload queue
-        """
-
-        num_barcodes = self._get_num_barcodes()
-        # set of line numbers used
-        lines = set(x for x in range(1, num_barcodes + 1))
-
-        while True:
-            # Ask the user which line(s) they want to delete
-            which_line = input(
-                "\nWhich line number (or space separated list "
-                "of line numbers) would you like to delete "
-                "(q to cancel)? : "
-            ).strip()
-
-            if which_line.upper() == 'Q':
-                print("\nOk...not deleting any lines")
-                return []
-            else:
-                # convert the input line numbers to a list
-                which_line = which_line.split()
-                valid_lines = True
-
-                # verify the line numbers in the list are valid
-                for line_no in which_line:
-                    if int(line_no) not in lines:
-                        print(f"\n{line_no} invalid line number...")
-                        valid_lines = False
-
-                if valid_lines is True:
-                    if not which_line:
-                        return []
-                    else:
-                        return [int(x) - 1 for x in which_line]
-
-    def _get_num_barcodes(self) -> int:
+    def get_num_barcodes(self) -> int:
         """
         Counts the number of upc codes in scanned_barcodes_list buffer
         :return: an integer representing the number of upcs in list
         """
         return len(self.scanned_barcodes_list)
 
+    def get_entry_method(self):
+        """
+        DOCSTRING
+        :return:
+        """
+        return self.entry_mode
+
+    ######################################################################
+    #                   UTILITIES (PARENT)
+    ######################################################################
+
+    def _print_list_barcodes(self):
+        """ Prints a formatted list of barcodes with line numbers """
+        line_no = 1
+
+        for barcode in self.scanned_barcodes_list:
+            print(f"({str(line_no) + ')':<5}{barcode}")
+            line_no += 1
+
+    @staticmethod
+    def format_marvel_barcode(mav18_barcode: str) -> str:
+        """
+        Appends the MAV18- code to a mav18_barcode
+        :param mav18_barcode:
+        :return:
+        """
+        return "MAV18-" + mav18_barcode
+
+
+class ScannerBarcodeEntry(Scanner):
+    """
+    Scanner object to handle connecting to scanner serial port,
+    scanning barcodes, and saving scanned barcodes to file
+    """
+
+    def __init__(self, device_driver: str, baud_rate: int = 115200, timeout: int = 1):
+        """
+        Scanner object with hard_port, connection_status, DE2120BarcodeScanner
+        serial_scanner object, and a list of scanned barcodes
+        """
+        self.entry_mode = SCANNER_ENTRY_MODE
+        self.device_driver = device_driver
+        self.baud_rate = baud_rate
+        self.timeout = timeout
+
+        self._serial_port = serial.Serial("/dev/cu.usbmodem141101", 115200, timeout=1)
+        self.serial_scanner = de2120_barcode_scanner.DE2120BarcodeScanner(self._serial_port)
+        self._scanner_connection_status = False
+        super().__init__()
+
+        # try to connect to serial port
+        try:
+            self._connect_scanner()
+        except InvalidConnectionException:
+            exit(-1)
+
+    def _connect_scanner(self):
+        """
+        Creates a connection to the supplied serial port and saves the status
+        as self._connection_status.
+        """
+        self._scanner_connection_status = self.serial_scanner.begin()
+
+        if not self._scanner_connection_status:
+            raise InvalidConnectionException
+
+        print("Scanner ready! Begin scanning...")
+
+    def enter_marvel_barcodes(self):
+        """
+        Reads marvel barcodes (UPC-A with a 5-digit add_on code) from
+        serial_scanner with a 5 digit add on code. The first 3 digits of the
+        add-on code represent the issue number, the 4th digit represents the
+        cover variant and the 5th digit represents the print variant.
+        """
+
+        if self._scanner_connection_status:
+            user_continue_res = ""
+
+            while user_continue_res.upper() != 'Q':
+
+                print("Enter barcode with 5-digit add-on: ")
+                marvel_barcode = False
+                idle_time = time.time()
+
+                # continue scanning or wait
+                while marvel_barcode is False and user_continue_res.upper() != "Q":
+                    # clear buffer before trying to read again
+                    marvel_barcode = self.serial_scanner.read_barcode()
+
+                    if not marvel_barcode and time.time() - idle_time >= IDLE_SCANNER_TIMEOUT:
+                        user_continue_res = input(
+                            "IDLE...What would you like to do?"
+                            "\n\t(s) to continue scanning"
+                            "\n\t(q) to save and continue:\n"
+                        )
+
+                        if user_continue_res.upper() == 'S':
+                            break
+
+                # check if a barcode was scanned
+                if marvel_barcode:
+                    marvel_barcode_length = len(str(marvel_barcode))
+
+                    # check if the scanned barcode includes the 5 digit add on
+                    # scanned barcode has an extra byte appended to the end
+                    if marvel_barcode_length == MAV18_LENGTH_SCANNED:
+                        formatted_marvel_barcode = self.format_marvel_barcode(str(marvel_barcode[:MAV18_LENGTH]))
+                        print(f"Scanned {formatted_marvel_barcode}")
+                        self.scanned_barcodes_list.append(formatted_marvel_barcode)
+
+                    # otherwise prompt to try again
+                    else:
+                        print(
+                            f"Barcode {marvel_barcode[:marvel_barcode_length - 1]} of length {marvel_barcode_length} is invalid (needs to be 18 digits)"
+                        )
+
+                time.sleep(0.02)
+
+        else:
+            raise InvalidConnectionException
+
+
+class KeyboardBarcodeEntry(Scanner):
+    """Keyboard entry mode that inherits from Scanner parent class"""
+
+    def __init__(self):
+
+        super().__init__()
+        self.entry_mode = KEYBOARD_ENTRY_MODE
+
+    def enter_marvel_barcodes(self):
+        """
+        Reads marvel barcodes (UPC-A with a 5-digit add_on code) from
+        user keyboard input with a 5 digit add on code. The first 3 digits of the
+        add-on code represent the issue number, the 4th digit represents the
+        cover variant and the 5th digit represents the print variant.
+        """
+
+        marvel_barcode = ""
+        while marvel_barcode.upper() != "Q":
+            marvel_barcode = input("Enter barcode with 5-digit add-on: ")
+
+            if len(marvel_barcode) == MAV18_LENGTH:
+                print("\nScanned " + str(marvel_barcode))
+                formatted_marvel_barcode = self.format_marvel_barcode(marvel_barcode)
+                self.scanned_barcodes_list.append(formatted_marvel_barcode)
+
+            else:
+                print(
+                    f"MAV18 Barcode {marvel_barcode} of length "
+                    f"{len(marvel_barcode)} is invalid (needs to be 17 digits)"
+                )
+
 
 if __name__ == '__main__':
-    my_scanner = Scanner()
-    my_scanner.scan_barcodes_marvel()
-    my_scanner.review_barcodes()
+    my_scanner = ScannerBarcodeEntry("/dev/cu.usbmodem141101")
+    my_scanner.enter_marvel_barcodes()
     print(my_scanner.scanned_barcodes_list)
+
+    # my_keyboard_scanner = KeyboardBarcodeEntry()
+    # my_keyboard_scanner.enter_marvel_barcodes()
+    # print(my_keyboard_scanner.scanned_barcodes_list)
