@@ -127,9 +127,10 @@ class Scanner:
 
         return False
 
-    def get_edit_response(self, lines):
+    def get_edit_response(self, lines) -> str:
         """
-        Gets the edit response from the user and verifies that it is valid before returning the response
+        Asks the user which line item they want to edit.
+        :return: string response from user if line item is N or line is valid integer line number
         """
         res = input(
             "Which line would you like to edit? "
@@ -151,21 +152,53 @@ class Scanner:
     #                       DATABASE INTERACTIONS
     ######################################################################
 
-    def __upload_upcs_to_db(self):
+    def upload_db(self):
         """
-        Uploads the list of scanned barcodes to scanned_upc_codes buffer table in comic_books db
+        asks the user if they wish to continue with uploading scanned upcs to database buffer
+        :return: true if upcs uploaded, false otherwise
+        """
+        # ask the user if they want to upload the list of barcodes to the database
+        self._print_list_barcodes()
+        upload_confirm = input(
+            "These are the barcodes you scanned. Would you like the upload these barcodes (y/n)? "
+        ).strip()
+
+        if upload_confirm == 'N' or upload_confirm == 'n':
+            return False
+        elif upload_confirm == 'Y' or upload_confirm == 'y':
+            self._upload_upcs_to_db()
+
+    def _upload_upcs_to_db(self):
+        """
+        Uploads the list of scanned barcodes to scanned_upc_codes buffer table in comic_books db,
+        commits (if confirm_commit is true) and then closes connection.
+        :return: returns True if the upcs were uploaded to the db, false otherwise.
         """
 
+        print("Uploading to db...")
+
+        # Connect to the database -- will ask for user credentials
         self.db_cursor = db.connect_to_database()
 
-        time_now = datetime.datetime.now()
-        formatted_date = str(time_now.year) + '-' + str(time_now.month) + '-' + str(time_now.day)
+        formatted_date = self.get_formatted_YYYY_MM_DD_string()
 
         # uploads each upc code to db
         for upc in self.scanned_barcodes_list:
-            db.execute_query(self.db_cursor, (upc, formatted_date))
+            db.upload_upc_to_buffer(self.db_cursor, (upc, formatted_date))
 
-        self.db_cursor.commit()  # commits the changes to the database
+        confirm_commit = input("Would you like to commit the changes to the DB (y/n)? ").strip()
+
+        # Upload to db
+        if confirm_commit == 'Y' or confirm_commit == 'y':
+            self.db_cursor.commit()  # commits the changes to the database
+            print("Changes committed to database")
+            self.scanned_barcodes_list = []
+
+        # dont upload to db
+        else:
+            print("Changes not committed to database")
+
+        # close connection
         self.db_cursor.close()  # closes the database connection
 
     ######################################################################
@@ -197,6 +230,16 @@ class Scanner:
         for barcode in self.scanned_barcodes_list:
             print(f"({str(line_no) + ')':<5}{barcode}")
             line_no += 1
+
+    @staticmethod
+    def get_formatted_YYYY_MM_DD_string() -> str:
+        """
+        Returns the current time as a string in YYYY-MM-DD format
+        :return: current time as string "YYYY-MM-DD"
+        """
+        # get current time in YYYY-MM-DD format
+        time_now = datetime.datetime.now()
+        return str(time_now.year) + '-' + str(time_now.month) + '-' + str(time_now.day)
 
     @staticmethod
     def format_marvel_barcode(mav18_barcode: str) -> str:
@@ -287,8 +330,11 @@ class ScannerBarcodeEntry(Scanner):
                     # scanned barcode has an extra byte appended to the end
                     if marvel_barcode_length == MAV18_LENGTH_SCANNED:
                         formatted_marvel_barcode = self.format_marvel_barcode(str(marvel_barcode[:MAV18_LENGTH]))
-                        print(f"Scanned {formatted_marvel_barcode}")
-                        self.scanned_barcodes_list.append(formatted_marvel_barcode)
+                        if formatted_marvel_barcode not in self.scanned_barcodes_list:
+                            print(f"Scanned {formatted_marvel_barcode}")
+                            self.scanned_barcodes_list.append(formatted_marvel_barcode)
+                        else:
+                            print(f"{formatted_marvel_barcode} already scanned.")
 
                     # otherwise prompt to try again
                     else:
@@ -323,10 +369,12 @@ class KeyboardBarcodeEntry(Scanner):
             marvel_barcode = input("Enter barcode with 5-digit add-on: ")
 
             if len(marvel_barcode) == MAV18_LENGTH:
-                print("\nScanned " + str(marvel_barcode))
                 formatted_marvel_barcode = self.format_marvel_barcode(marvel_barcode)
-                self.scanned_barcodes_list.append(formatted_marvel_barcode)
-
+                if formatted_marvel_barcode not in self.scanned_barcodes_list:
+                    print(f"\nScanned {formatted_marvel_barcode}")
+                    self.scanned_barcodes_list.append(formatted_marvel_barcode)
+                else:
+                    print(f"{formatted_marvel_barcode} already scanned.")
             else:
                 print(
                     f"MAV18 Barcode {marvel_barcode} of length "
