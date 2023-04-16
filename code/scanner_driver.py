@@ -14,7 +14,7 @@ import time
 import de2120_barcode_scanner
 import serial
 
-import database.db_connector as db
+import database.db_driver as db
 
 
 class InvalidConnectionException(Exception):
@@ -36,11 +36,10 @@ class Scanner:
     Handles most of the middleware between entry modes and review for upload to db.
     """
 
-    def __init__(self):
+    def __init__(self, db_cursor):
         self.scanned_barcodes_list = []
-        self.db_cursor = None
-        self.db_connection_status = False
         self.entry_mode = None
+        self._db_cursor = db_cursor
 
     def enter_marvel_barcodes(self):
         """
@@ -157,10 +156,10 @@ class Scanner:
         asks the user if they wish to continue with uploading scanned upcs to database buffer
         :return: true if upcs uploaded, false otherwise
         """
-        # ask the user if they want to upload the list of barcodes to the database
+        # ask the user if they want to upload the list of _barcodes to the database
         self._print_list_barcodes()
         upload_confirm = input(
-            "These are the barcodes you scanned. Would you like the upload these barcodes (y/n)? "
+            "These are the _barcodes you scanned. Would you like the upload these _barcodes (y/n)? "
         ).strip()
 
         if upload_confirm == 'N' or upload_confirm == 'n':
@@ -170,36 +169,30 @@ class Scanner:
 
     def _upload_upcs_to_db(self):
         """
-        Uploads the list of scanned barcodes to scanned_upc_codes buffer table in comic_books db,
+        Uploads the list of scanned _barcodes to scanned_upc_codes buffer table in comic_books db,
         commits (if confirm_commit is true) and then closes connection.
         :return: returns True if the upcs were uploaded to the db, false otherwise.
         """
 
         print("Uploading to db...")
 
-        # Connect to the database -- will ask for user credentials
-        self.db_cursor = db.connect_to_database()
-
         formatted_date = self.get_formatted_YYYY_MM_DD_string()
 
         # uploads each upc code to db
         for upc in self.scanned_barcodes_list:
-            db.upload_upc_to_buffer(self.db_cursor, (upc, formatted_date))
+            db.upload_upc_to_buffer(self._db_cursor, (upc, formatted_date))
 
         confirm_commit = input("Would you like to commit the changes to the DB (y/n)? ").strip()
 
         # Upload to db
         if confirm_commit == 'Y' or confirm_commit == 'y':
-            self.db_cursor.commit()  # commits the changes to the database
+            self._db_cursor.commit()  # commits the changes to the database
             print("Changes committed to database")
             self.scanned_barcodes_list = []
 
         # dont upload to db
         else:
             print("Changes not committed to database")
-
-        # close connection
-        self.db_cursor.close()  # closes the database connection
 
     ######################################################################
     #               GETTERS AND SETTERS (PARENT)
@@ -224,7 +217,7 @@ class Scanner:
     ######################################################################
 
     def _print_list_barcodes(self):
-        """ Prints a formatted list of barcodes with line numbers """
+        """ Prints a formatted list of _barcodes with line numbers """
         line_no = 1
 
         for barcode in self.scanned_barcodes_list:
@@ -254,14 +247,15 @@ class Scanner:
 class ScannerBarcodeEntry(Scanner):
     """
     Scanner object to handle connecting to scanner serial port,
-    scanning barcodes, and saving scanned barcodes to file
+    scanning _barcodes, and saving scanned _barcodes to file
     """
 
-    def __init__(self, device_driver: str, baud_rate: int = 115200, timeout: int = 1):
+    def __init__(self, db_cursor, device_driver: str, baud_rate: int = 115200, timeout: int = 1):
         """
         Scanner object with hard_port, connection_status, DE2120BarcodeScanner
-        serial_scanner object, and a list of scanned barcodes
+        serial_scanner object, and a list of scanned _barcodes
         """
+        super().__init__(db_cursor)
         self.entry_mode = SCANNER_ENTRY_MODE
         self.device_driver = device_driver
         self.baud_rate = baud_rate
@@ -270,7 +264,7 @@ class ScannerBarcodeEntry(Scanner):
         self._serial_port = serial.Serial("/dev/cu.usbmodem141101", 115200, timeout=1)
         self.serial_scanner = de2120_barcode_scanner.DE2120BarcodeScanner(self._serial_port)
         self._scanner_connection_status = False
-        super().__init__()
+
 
         # try to connect to serial port
         try:
@@ -292,7 +286,7 @@ class ScannerBarcodeEntry(Scanner):
 
     def enter_marvel_barcodes(self):
         """
-        Reads marvel barcodes (UPC-A with a 5-digit add_on code) from
+        Reads marvel _barcodes (UPC-A with a 5-digit add_on code) from
         serial_scanner with a 5 digit add on code. The first 3 digits of the
         add-on code represent the issue number, the 4th digit represents the
         cover variant and the 5th digit represents the print variant.
@@ -351,14 +345,14 @@ class ScannerBarcodeEntry(Scanner):
 class KeyboardBarcodeEntry(Scanner):
     """Keyboard entry mode that inherits from Scanner parent class"""
 
-    def __init__(self):
+    def __init__(self, db_cursor):
 
-        super().__init__()
+        super().__init__(db_cursor)
         self.entry_mode = KEYBOARD_ENTRY_MODE
 
     def enter_marvel_barcodes(self):
         """
-        Reads marvel barcodes (UPC-A with a 5-digit add_on code) from
+        Reads marvel _barcodes (UPC-A with a 5-digit add_on code) from
         user keyboard input with a 5 digit add on code. The first 3 digits of the
         add-on code represent the issue number, the 4th digit represents the
         cover variant and the 5th digit represents the print variant.
@@ -381,12 +375,3 @@ class KeyboardBarcodeEntry(Scanner):
                     f"{len(marvel_barcode)} is invalid (needs to be 17 digits)"
                 )
 
-
-if __name__ == '__main__':
-    my_scanner = ScannerBarcodeEntry("/dev/cu.usbmodem141101")
-    my_scanner.enter_marvel_barcodes()
-    print(my_scanner.scanned_barcodes_list)
-
-    # my_keyboard_scanner = KeyboardBarcodeEntry()
-    # my_keyboard_scanner.enter_marvel_barcodes()
-    # print(my_keyboard_scanner.scanned_barcodes_list)

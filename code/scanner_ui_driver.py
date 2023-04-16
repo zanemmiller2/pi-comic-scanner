@@ -14,7 +14,7 @@ QUIT_INPUT_MODE = '3'
 MENU_NAV_MODE = '4'
 
 
-class UI:
+class ScannerUI:
     """ UI Driver class that handles menu navigation and control functions """
 
     def __init__(self):
@@ -24,6 +24,7 @@ class UI:
         """
         self.input_method = None
         self.entry_cursor = None
+        self.db_cursor = db.connect_to_database()
 
     ####################################################
     #               NAVIGATION MENU
@@ -81,11 +82,11 @@ class UI:
     ####################################################
     def ask_scan_mode(self):
         """
-        Asks the user what mode they would like to enter barcodes
+        Asks the user what mode they would like to enter _barcodes
         """
         while self.input_method != SCANNER_INPUT_MODE and self.input_method != KEYBOARD_INPUT_MODE and self.input_method != QUIT_INPUT_MODE:
             print(
-                f"How would you like to upload barcodes?"
+                f"How would you like to upload _barcodes?"
                 f"\n\t({SCANNER_INPUT_MODE}) Barcode Scanner"
                 f"\n\t({KEYBOARD_INPUT_MODE}) Keyboard Entry"
                 f"\n\t({MENU_NAV_MODE}) Return to Navigation Menu"
@@ -95,11 +96,11 @@ class UI:
 
             # Scanner
             if self.input_method == SCANNER_INPUT_MODE:
-                self.entry_cursor = ScannerBarcodeEntry(device_driver="/dev/cu.usbmodem141101")
+                self.entry_cursor = ScannerBarcodeEntry(self.db_cursor, device_driver="/dev/cu.usbmodem141101")
 
             # Keyboard
             elif self.input_method == KEYBOARD_INPUT_MODE:
-                self.entry_cursor = KeyboardBarcodeEntry()
+                self.entry_cursor = KeyboardBarcodeEntry(self.db_cursor)
 
             # Quit
             elif self.input_method == QUIT_INPUT_MODE:
@@ -122,7 +123,7 @@ class UI:
     ####################################################
     def ask_review(self):
         """
-        Asks the user if they would like to review the barcodes they scanned in
+        Asks the user if they would like to review the _barcodes they scanned in
         """
         review_res = ""
         while review_res.upper() != "N" and self.entry_cursor.get_num_barcodes() > 0:
@@ -154,7 +155,7 @@ class UI:
         Asks the user if they want to upload comics to database.
         """
         if self.entry_cursor.get_num_barcodes() > 0:
-            print("Would you like to upload the scanned barcodes to the database (y/n)? ")
+            print("Would you like to upload the scanned _barcodes to the database (y/n)? ")
             db_upload_res = input(">>> ").strip()
 
             if db_upload_res == 'N' or db_upload_res == 'n':
@@ -168,21 +169,21 @@ class UI:
                 self.ask_db_upload()
 
         else:
-            print("No barcodes to upload.")
+            print("No _barcodes to upload.")
             self.get_menu_nav()
 
     ####################################################
     #                   UTILITIES
     ####################################################
-    @staticmethod
-    def exit_program():
+    def exit_program(self):
         """
         Prints exit message and quits
         """
+        self.db_cursor.close()
         print("Exiting...")
         exit(1)
 
 
 if __name__ == '__main__':
-    ui = UI()
+    ui = ScannerUI()
     ui.get_menu_nav()

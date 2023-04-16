@@ -39,8 +39,27 @@ def upload_upc_to_buffer(db_connection=None, query_params=(str, str)):
     return cursor
 
 
-def backup_db():
-    pass
+def get_upcs_from_buffer(db_connection=None):
+    """
+    Selects all entries from scanned_upc_codes from comic_books database
+    :param db_connection: db.connection() object
+    :return: db cursor
+    """
+    if db_connection is None:
+        print(
+            "No connection to the database found! Have you called connect_to_database() first?"
+        )
+        return None
+
+    query = "SELECT upc_code, date_uploaded FROM scanned_upc_codes;"
+
+    print("Executing %s" % query)
+    # Create a cursor to execute query.
+    # Why? Because apparently they optimize execution by retaining a reference according to PEP0249
+    cursor = db_connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute(query)
+
+    return cursor.fetchall()
 
 
 def remove_buffer_duplicates():
