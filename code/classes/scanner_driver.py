@@ -14,8 +14,6 @@ import time
 import de2120_barcode_scanner
 import serial
 
-import database.db_driver as db
-
 
 class InvalidConnectionException(Exception):
     """Raised the program cant connect to the serial port"""
@@ -36,10 +34,10 @@ class Scanner:
     Handles most of the middleware between entry modes and review for upload to db.
     """
 
-    def __init__(self, db_cursor):
+    def __init__(self, scanner_db):
         self.scanned_barcodes_list = []
         self.entry_mode = None
-        self._db_cursor = db_cursor
+        self.db = scanner_db
 
     def enter_marvel_barcodes(self):
         """
@@ -170,7 +168,7 @@ class Scanner:
     def _upload_upcs_to_db(self):
         """
         Uploads the list of scanned _barcodes to scanned_upc_codes buffer table in comic_books db,
-        commits (if confirm_commit is true) and then closes connection.
+        commits to db.
         :return: returns True if the upcs were uploaded to the db, false otherwise.
         """
 
@@ -180,13 +178,14 @@ class Scanner:
 
         # uploads each upc code to db
         for upc in self.scanned_barcodes_list:
-            db.upload_upc_to_buffer(self._db_cursor, (upc, formatted_date))
+            query_params = (upc, formatted_date)
+            self.db.upload_upc_to_buffer(query_params)
 
         confirm_commit = input("Would you like to commit the changes to the DB (y/n)? ").strip()
 
         # Upload to db
         if confirm_commit == 'Y' or confirm_commit == 'y':
-            self._db_cursor.commit()  # commits the changes to the database
+            self.db.cursor.commit()  # commits the changes to the database
             print("Changes committed to database")
             self.scanned_barcodes_list = []
 
@@ -250,12 +249,12 @@ class ScannerBarcodeEntry(Scanner):
     scanning _barcodes, and saving scanned _barcodes to file
     """
 
-    def __init__(self, db_cursor, device_driver: str, baud_rate: int = 115200, timeout: int = 1):
+    def __init__(self, scanner_db, device_driver: str, baud_rate: int = 115200, timeout: int = 1):
         """
         Scanner object with hard_port, connection_status, DE2120BarcodeScanner
         serial_scanner object, and a list of scanned _barcodes
         """
-        super().__init__(db_cursor)
+        super().__init__(scanner_db)
         self.entry_mode = SCANNER_ENTRY_MODE
         self.device_driver = device_driver
         self.baud_rate = baud_rate
@@ -264,7 +263,6 @@ class ScannerBarcodeEntry(Scanner):
         self._serial_port = serial.Serial("/dev/cu.usbmodem141101", 115200, timeout=1)
         self.serial_scanner = de2120_barcode_scanner.DE2120BarcodeScanner(self._serial_port)
         self._scanner_connection_status = False
-
 
         # try to connect to serial port
         try:
@@ -345,9 +343,9 @@ class ScannerBarcodeEntry(Scanner):
 class KeyboardBarcodeEntry(Scanner):
     """Keyboard entry mode that inherits from Scanner parent class"""
 
-    def __init__(self, db_cursor):
+    def __init__(self, scanner_db):
 
-        super().__init__(db_cursor)
+        super().__init__(scanner_db)
         self.entry_mode = KEYBOARD_ENTRY_MODE
 
     def enter_marvel_barcodes(self):
@@ -374,4 +372,3 @@ class KeyboardBarcodeEntry(Scanner):
                     f"MAV18 Barcode {marvel_barcode} of length "
                     f"{len(marvel_barcode)} is invalid (needs to be 17 digits)"
                 )
-

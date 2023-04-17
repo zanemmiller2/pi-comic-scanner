@@ -6,7 +6,8 @@ Date: 04/15/2023
 Description: Command Line interface driver
 """
 
-from scanner_driver import *
+from code.classes.scanner_driver import *
+from code.database.db_driver import DB
 
 SCANNER_INPUT_MODE = '1'
 KEYBOARD_INPUT_MODE = '2'
@@ -19,12 +20,12 @@ class ScannerUI:
 
     def __init__(self):
         """
-        UI Object with input method (scanner, keyboard, etc) and an serial port
-        entry_cursor if scanner mode active
+        UI Object with input method (scanner, keyboard, etc) and a serial port
+        scanner if scanner mode active
         """
         self.input_method = None
-        self.entry_cursor = None
-        self.db_cursor = db.connect_to_database()
+        self.scanner = None  # Defined in ask_scan_mode (dependent on input method)
+        self.db = DB()  # DB object will be passed to *Scanner class
 
     ####################################################
     #               NAVIGATION MENU
@@ -35,10 +36,10 @@ class ScannerUI:
         :return: Returns menu option if valid otherwise asks again.
         """
 
-        if self.entry_cursor is None:
+        if self.scanner is None:
             self.ask_scan_mode()
 
-        if self.entry_cursor.get_num_barcodes() > 0:
+        if self.scanner.get_num_barcodes() > 0:
             num_menu_options = 3
             print(
                 "What would you like to do?"
@@ -72,7 +73,6 @@ class ScannerUI:
         elif menu_res == "Q" or menu_res == 'q':
             self.exit_program()
 
-
         else:
             print("Invalid option...")
             return self.get_menu_nav()
@@ -96,15 +96,15 @@ class ScannerUI:
 
             # Scanner
             if self.input_method == SCANNER_INPUT_MODE:
-                self.entry_cursor = ScannerBarcodeEntry(self.db_cursor, device_driver="/dev/cu.usbmodem141101")
+                self.scanner = ScannerBarcodeEntry(self.db, device_driver="/dev/cu.usbmodem141101")
 
             # Keyboard
             elif self.input_method == KEYBOARD_INPUT_MODE:
-                self.entry_cursor = KeyboardBarcodeEntry(self.db_cursor)
+                self.scanner = KeyboardBarcodeEntry(self.db)
 
             # Quit
             elif self.input_method == QUIT_INPUT_MODE:
-                self.entry_cursor = None
+                self.scanner = None
                 self.exit_program()
 
             # Go to Navigation Menu
@@ -115,7 +115,7 @@ class ScannerUI:
             else:
                 print("Invalid Entry")
 
-        self.entry_cursor.enter_marvel_barcodes()
+        self.scanner.enter_marvel_barcodes()
         self.get_menu_nav()
 
     ####################################################
@@ -126,12 +126,12 @@ class ScannerUI:
         Asks the user if they would like to review the _barcodes they scanned in
         """
         review_res = ""
-        while review_res.upper() != "N" and self.entry_cursor.get_num_barcodes() > 0:
+        while review_res.upper() != "N" and self.scanner.get_num_barcodes() > 0:
             review_res = input("Would you like to review your entries (y/n)?: ")
 
             # Review
             if review_res.upper() == "Y":
-                self.entry_cursor.review_barcodes()
+                self.scanner.review_barcodes()
                 self.get_menu_nav()
 
             # Return to Navigation Menu
@@ -143,7 +143,7 @@ class ScannerUI:
                 print("Invalid entry...")
 
         # Nothing to review - Exit()
-        if self.entry_cursor.get_num_barcodes() == 0:
+        if self.scanner.get_num_barcodes() == 0:
             print("Nothing left to review...")
             self.exit_program()
 
@@ -154,14 +154,14 @@ class ScannerUI:
         """
         Asks the user if they want to upload comics to database.
         """
-        if self.entry_cursor.get_num_barcodes() > 0:
+        if self.scanner.get_num_barcodes() > 0:
             print("Would you like to upload the scanned _barcodes to the database (y/n)? ")
             db_upload_res = input(">>> ").strip()
 
             if db_upload_res == 'N' or db_upload_res == 'n':
                 self.get_menu_nav()
             elif db_upload_res == 'Y' or db_upload_res == 'y':
-                self.entry_cursor.upload_db()
+                self.scanner.upload_db()
                 self.get_menu_nav()
 
             else:
@@ -179,7 +179,7 @@ class ScannerUI:
         """
         Prints exit message and quits
         """
-        self.db_cursor.close()
+        self.db.close_db()
         print("Exiting...")
         exit(1)
 

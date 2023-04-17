@@ -5,8 +5,9 @@ Email: millerzanem@gmail.com
 Date: 04/15/2023
 Description: Command Line interface driver
 """
-from database import db_driver as db
-from lookup_driver import Lookup
+
+from code.classes.lookup_driver import Lookup
+from code.database.db_driver import DB
 
 
 class LookupUI:
@@ -14,11 +15,11 @@ class LookupUI:
 
     def __init__(self):
         """
-        UI Object with input method (scanner, keyboard, etc) and an serial port
-        entry_cursor if scanner mode active
+        LookupUI Object with db and lookup object
+        scanner if scanner mode active
         """
-        self.db_cursor = db.connect_to_database()
-        self.lookup_cursor = Lookup(self.db_cursor)
+        self.db = DB()  # DB object controller passed to Lookup class
+        self.lookup = Lookup(self.db)
 
     ####################################################
     #               NAVIGATION MENU
@@ -29,7 +30,7 @@ class LookupUI:
         :return: Returns menu option if valid otherwise asks again.
         """
 
-        if self.lookup_cursor.get_num_barcodes() == 0:
+        if self.lookup.get_num_barcodes() == 0:
             num_menu_options = 1
             print(
                 "What would you like to do?"
@@ -53,13 +54,12 @@ class LookupUI:
                 return self.get_menu_nav()
 
             if menu_res == '1':
-                self.lookup_cursor.get_barcodes_from_db()
+                self.lookup.get_barcodes_from_db()
             elif menu_res == '2':
-                self.lookup_cursor.lookup_marvel_by_upc()
+                self.lookup.lookup_marvel_by_upc()
 
         elif menu_res == "Q" or menu_res == 'q':
             self.exit_program()
-
 
         else:
             print("Invalid option...")
@@ -72,7 +72,7 @@ class LookupUI:
         """
         Prints exit message and quits
         """
-        self.db_cursor.close()
+        self.db.close_db()
         print("Exiting...")
         exit(1)
 

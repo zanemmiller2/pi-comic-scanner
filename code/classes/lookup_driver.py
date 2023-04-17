@@ -2,7 +2,7 @@
 Author: Zane Miller
 Email: millerzanem@gmail.com
 Date: 04/16/2023
-Description: Driver class for looking up scanned _barcodes
+Description: Driver class for looking up scanned_barcodes
 """
 import hashlib
 import time
@@ -11,30 +11,30 @@ import requests
 
 import keys.private_keys
 import keys.pub_keys
-from database import db_driver as db
 
-COMICS_URL = "http://gateway.marvel.com/v1/public/comics"
-CHARACTERS_URL = "http://gateway.marvel.com/v1/public/characters"
-CREATORS_URL = "http://gateway.marvel.com/v1/public/creators"
-EVENTS_URL = "http://gateway.marvel.com/v1/public/events"
-SERIES_URL = "http://gateway.marvel.com/v1/public/series"
-STORIES_URL = "http://gateway.marvel.com/v1/public/stories"
+COMICS_URL = "https://gateway.marvel.com/v1/public/comics"
+CHARACTERS_URL = "https://gateway.marvel.com/v1/public/characters"
+CREATORS_URL = "https://gateway.marvel.com/v1/public/creators"
+EVENTS_URL = "https://gateway.marvel.com/v1/public/events"
+SERIES_URL = "https://gateway.marvel.com/v1/public/series"
+STORIES_URL = "https://gateway.marvel.com/v1/public/stories"
 
 
 class Lookup:
     """ Lookup object responsible for looking up _barcodes in scanned upc buffer """
 
-    def __init__(self, db_cursor):
+    def __init__(self, lookup_db):
+        """ Object represents a lookup object with a dictionary of barcodes, comic books and a db connection """
         self._barcodes = {}
         self.comic_books = {}
-        self._db_cursor = db_cursor
+        self.db = lookup_db
 
     ######################################################################
     #                       HTTPS INTERACTIONS
     ######################################################################
     def lookup_marvel_by_upc(self):
         """
-        Sends the http request to /comics&upc= endpoint and store respose as comic_books object
+        Sends the http request to /comics&upc= endpoint and store response as comic_books object
         """
         hash_str, timestamp = self._get_marvel_api_hash()
 
@@ -70,7 +70,8 @@ class Lookup:
         Queries the database for any _barcodes in the scanned_upc_codes table.
         """
 
-        res_data = db.get_upcs_from_buffer(self._db_cursor)
+        res_data = self.db.get_upcs_from_buffer()
+
         for upc in res_data:
             upc_prefix = upc['upc_code'][:5]
             upc_code = upc['upc_code'][6:]
@@ -149,10 +150,3 @@ class Lookup:
         else:
             print("Invalid entry...")
             return self.reconcile_duplicate_upc(og_date, conflict_date)
-
-
-if __name__ == '__main__':
-    lup = Lookup()
-
-    # lup.lookup_by_upc("75960609724101711")
-    lup.get_barcodes_from_db()
