@@ -19,7 +19,11 @@ class LookupUI:
         scanner if scanner mode active
         """
         self.db = DB()  # DB object controller passed to Lookup class
-        self.lookup = Lookup(self.db)
+        self.lookup = Lookup(self.db)  # lookup controller
+
+        self.queuedComicBooks = set()  # set of upc codes from scanned_upc_codes table
+        self.lookupComicBooks = {}  # (lookupComicBooks[i] = {cb: ComicBook(), committed: False})
+        self.committedComicBooks = {}  # (committedComicBooks[i] = {lookupComicBooks[i][cb]}
 
     ####################################################
     #               NAVIGATION MENU
