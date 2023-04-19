@@ -7,7 +7,6 @@ class DB:
     """
     DB Object that represents a connection and cursor for the provided database and credentials
     """
-
     def __init__(self):
         """
         Represents a DB object with username, hostname, password, database name, cursor, and connection
@@ -25,15 +24,36 @@ class DB:
         self._connection = self._connect_to_database()
         self.cursor = self._connection.cursor(MySQLdb.cursors.DictCursor)
 
-    def _connect_to_database(self):
+    ####################################################################################################################
+    #
+    #                                       GET FROM DATABASE
+    #
+    ####################################################################################################################
+    def get_upcs_from_buffer(self):
         """
-        manages connecting to the database
-        :return: the MySQLdb.connect() object
+        Selects all entries from scanned_upc_codes from comic_books database
+        :return: db cursor
         """
-        db_connection = MySQLdb.connect(self._host, self._user, self._passwd, self._db)
-        print("DB CONNECTED...")
-        return db_connection
+        if self._connection is None:
+            print(
+                "No connection to the database found! Have you called connect_to_database() first?"
+            )
+            return None
 
+        query = "SELECT upc_code, date_uploaded FROM scanned_upc_codes;"
+
+        print("Executing %s" % query)
+        # Create a cursor to execute query.
+        # Why? Because apparently they optimize execution by retaining a reference according to PEP0249
+        self.cursor.execute(query)
+
+        return self.cursor.fetchall()
+
+    ####################################################################################################################
+    #
+    #                                       UPLOAD TO DATABASE
+    #
+    ####################################################################################################################
     def upload_upc_to_buffer(self, query_params=(str, str)):
         """
         Uploads a tuple of strings (upc and YYYY-MM-DD) to the scanned_upc_codes table in the comic_books database
@@ -55,26 +75,6 @@ class DB:
         self.cursor.execute(query, query_params)
 
         return self.cursor
-
-    def get_upcs_from_buffer(self):
-        """
-        Selects all entries from scanned_upc_codes from comic_books database
-        :return: db cursor
-        """
-        if self._connection is None:
-            print(
-                "No connection to the database found! Have you called connect_to_database() first?"
-            )
-            return None
-
-        query = "SELECT upc_code, date_uploaded FROM scanned_upc_codes;"
-
-        print("Executing %s" % query)
-        # Create a cursor to execute query.
-        # Why? Because apparently they optimize execution by retaining a reference according to PEP0249
-        self.cursor.execute(query)
-
-        return self.cursor.fetchall()
 
     def upload_new_comic_book(self, params: tuple):
         """
@@ -186,6 +186,9 @@ class DB:
         self.cursor.execute(query, params)
         self._connection.commit()
 
+    ##########################################################
+    #  GENERIC UTILITY FOR Events, Series, Variant Comics
+    ##########################################################
     def upload_new_record_by_table(self, table_name: str, entity_id: str, entity_title: str, entity_uri: str):
         """
         Uploads a new record to comic_books.table_name (Events, Series, or "Variant (Comics)
@@ -199,6 +202,62 @@ class DB:
         query = f"INSERT INTO {table_name} (id, title, resourceURI) " \
                 f"SELECT %s, %s, %s WHERE NOT EXISTS (SELECT * FROM {table_name} WHERE id=%s);"
         params = (entity_id, entity_title, entity_uri, entity_id)
+
+        print("Executing %s with %s" % (query, params))
+
+        self.cursor.execute(query, params)
+        self._connection.commit()
+
+    ####################################################################################################################
+    #
+    #                                       ADD NEW COMICS_HAS_RELATIONSHIPS
+    #
+    ####################################################################################################################
+
+    def upload_new_comics_has_creators_record(self, comic_id: int, creator_id: int, creator_role: str):
+        """
+        Creates a new Comics_has_Creators record if the comic_id and character_id aren't already related with the
+        creator_role
+        :param comic_id: The unique ID of the comic resource.
+        :param creator_id: The unique ID of the creator resource.
+        :param creator_role: The role of the creator in the parent entity.
+        """
+
+        query = "INSERT INTO Comics_has_Creators (comicId, creatorId, creatorRole) SELECT %s, %s, %s WHERE NOT EXISTS " \
+                "(SELECT * FROM Comics_has_Creators WHERE comicId=%s AND creatorId=%s AND creatorRole=%s);"
+        params = (comic_id, creator_id, creator_role, comic_id, creator_id, creator_role)
+
+        print("Executing %s with %s" % (query, params))
+
+        self.cursor.execute(query, params)
+        self._connection.commit()
+
+    def upload_new_comics_has_images_record(self, comic_id: int, image_path: str):
+        """
+        Creates a new Comics_has_Creators record if the comic_id and image_path aren't already related
+        :param comic_id: The unique ID of the comic resource.
+        :param image_path: The full path of the image resource
+        """
+
+        query = "INSERT INTO Comics_has_Images (comicId, imagePath) SELECT %s, %s WHERE NOT EXISTS " \
+                "(SELECT * FROM Comics_has_Images WHERE comicId=%s AND imagePath=%s);"
+        params = (comic_id, image_path, comic_id, image_path)
+
+        print("Executing %s with %s" % (query, params))
+
+        self.cursor.execute(query, params)
+        self._connection.commit()
+
+    def upload_new_comics_has_urls_record(self, comic_id: int, url: str):
+        """
+        Creates a new Comics_has_Stories record if the comic_id and story_id aren't already related
+        :param comic_id: The unique ID of the comic resource.
+        :param url: A full URL (including scheme, domain, and path) related to the comic.
+        """
+
+        query = "INSERT INTO Comics_has_URLs (comicId, url) SELECT %s, %s WHERE NOT EXISTS " \
+                "(SELECT * FROM Comics_has_URLs WHERE comicId=%s AND url=%s);"
+        params = (comic_id, url, comic_id, url)
 
         print("Executing %s with %s" % (query, params))
 
@@ -221,24 +280,6 @@ class DB:
         self.cursor.execute(query, params)
         self._connection.commit()
 
-    def upload_new_comics_has_creators_record(self, comic_id: int, creator_id: int, creator_role: str):
-        """
-        Creates a new Comics_has_Creators record if the comic_id and character_id aren't already related with the
-        creator_role
-        :param comic_id: The unique ID of the comic resource.
-        :param creator_id: The unique ID of the creator resource.
-        :param creator_role: The role of the creator in the parent entity.
-        """
-
-        query = "INSERT INTO Comics_has_Creators (comicId, creatorId, creatorRole) SELECT %s, %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_Creators WHERE comicId=%s AND creatorId=%s AND creatorRole=%s);"
-        params = (comic_id, creator_id, creator_role, comic_id, creator_id, creator_role)
-
-        print("Executing %s with %s" % (query, params))
-
-        self.cursor.execute(query, params)
-        self._connection.commit()
-
     def upload_new_comics_has_events_record(self, comic_id: int, event_id: int):
         """
         Creates a new Comics_has_Events record if the comic_id and event_id aren't already related
@@ -249,22 +290,6 @@ class DB:
         query = "INSERT INTO Comics_has_Events (comicId, eventId) SELECT %s, %s WHERE NOT EXISTS " \
                 "(SELECT * FROM Comics_has_Events WHERE comicId=%s AND eventId=%s);"
         params = (comic_id, event_id, comic_id, event_id)
-
-        print("Executing %s with %s" % (query, params))
-
-        self.cursor.execute(query, params)
-        self._connection.commit()
-
-    def upload_new_comics_has_images_record(self, comic_id: int, image_path: str):
-        """
-        Creates a new Comics_has_Creators record if the comic_id and image_path aren't already related
-        :param comic_id: The unique ID of the comic resource.
-        :param image_path: The full path of the image resource
-        """
-
-        query = "INSERT INTO Comics_has_Images (comicId, imagePath) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_Images WHERE comicId=%s AND imagePath=%s);"
-        params = (comic_id, image_path, comic_id, image_path)
 
         print("Executing %s with %s" % (query, params))
 
@@ -303,21 +328,11 @@ class DB:
         self.cursor.execute(query, params)
         self._connection.commit()
 
-    def upload_new_comics_has_urls_record(self, comic_id: int, url: str):
-        """
-        Creates a new Comics_has_Stories record if the comic_id and story_id aren't already related
-        :param comic_id: The unique ID of the comic resource.
-        :param url: A full URL (including scheme, domain, and path) related to the comic.
-        """
-
-        query = "INSERT INTO Comics_has_URLs (comicId, url) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_URLs WHERE comicId=%s AND url=%s);"
-        params = (comic_id, url, comic_id, url)
-
-        print("Executing %s with %s" % (query, params))
-
-        self.cursor.execute(query, params)
-        self._connection.commit()
+    ####################################################################################################################
+    #
+    #                                       DATABASE MANAGEMENT
+    #
+    ####################################################################################################################
 
     def close_db(self):
         """
@@ -330,3 +345,12 @@ class DB:
         Commits changes to database
         """
         self._connection.commit()
+
+    def _connect_to_database(self):
+        """
+        manages connecting to the database
+        :return: the MySQLdb.connect() object
+        """
+        db_connection = MySQLdb.connect(self._host, self._user, self._passwd, self._db)
+        print("DB CONNECTED...")
+        return db_connection
