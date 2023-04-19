@@ -179,7 +179,7 @@ class ScannerUI:
         """
         Prints exit message and quits
         """
-        self.db.close_db()
+        self.db.close_cursor()
         print("Exiting...")
         exit(1)
 

@@ -21,53 +21,55 @@ class LookupUI:
         self.db = DB()  # DB object controller passed to Lookup class
         self.lookup = Lookup(self.db)  # lookup controller
 
-        self.queuedComicBooks = set()  # set of upc codes from scanned_upc_codes table
-        self.lookupComicBooks = {}  # (lookupComicBooks[i] = {cb: ComicBook(), committed: False})
-        self.committedComicBooks = {}  # (committedComicBooks[i] = {lookupComicBooks[i][cb]}
-
     ####################################################
     #               NAVIGATION MENU
     ####################################################
-    def get_menu_nav(self) -> int:
+
+    def start_menu(self):
         """
-        Asks the user which menu they would like to return to.
-        :return: Returns menu option if valid otherwise asks again.
+        Initial start up menu asks user if they want to get the barcodes from the database to lookup
         """
+        start_res = input("Would you like to begin looking up barcodes (y/n)? ")
 
-        if self.lookup.get_num_barcodes() == 0:
-            num_menu_options = 1
-            print(
-                "What would you like to do?"
-                "\n\t(1) Pull Barcodes from scanned_upc_codes table"
-                "\n\t(Q) Quit"
-            )
-        else:
-            num_menu_options = 2
-            print(
-                "What would you like to do?"
-                "\n\t(1) Pull Barcodes from scanned_upc_codes table"
-                "\n\t(2) Lookup Barcodes (API)"
-                "\n\t(Q) Quit"
-            )
+        if start_res == 'y' or start_res == 'Y':
+            self.lookup.get_barcodes_from_db()
 
-        menu_res = input(">>> ").strip()
+            if self.lookup.get_num_queued_barcodes() == 0:
+                print("NOTHING TO LOOKUP...GOODBYE")
+                self.exit_program()
+            else:
+                self.process_barcodes()
 
-        if menu_res.isnumeric():
-            if int(menu_res) < 1 or int(menu_res) > num_menu_options:
-                print("Invalid option...")
-                return self.get_menu_nav()
-
-            if menu_res == '1':
-                self.lookup.get_barcodes_from_db()
-            elif menu_res == '2':
-                self.lookup.lookup_marvel_by_upc()
-
-        elif menu_res == "Q" or menu_res == 'q':
+        elif start_res == 'n' or start_res == 'N':
+            print("NOTHING FOR ME TO DO THEN...GOODBYE")
             self.exit_program()
 
         else:
-            print("Invalid option...")
-            return self.get_menu_nav()
+            print("INVALID RESPONSE...RETURNING TO THE START MENU")
+            self.start_menu()
+
+    def process_barcodes(self):
+        """
+        Processes barcodes
+        """
+        print("SUCCESSFULLY GOT BARCODES FROM scanned_upc_codes")
+        self.lookup.print_queued_barcodes()
+
+        # 1) Lookup each barcode and save as ComicBook Object
+        print("Creating ComicBook() for each barcode")
+        for barcode in self.lookup.queued_barcodes:
+            self.lookup.lookup_marvel_by_upc(barcode)
+
+        # 2) Upload each ComicBook() to database
+        print("Uploading ComicBook()s to database")
+        for barcode in self.lookup.lookedUp_barcodes:
+            self.lookup.upload_comic_book(barcode)
+
+        print("UPLOADED THE FOLLOWING COMIC BOOKS")
+        self.lookup.print_committed_barcodes()
+
+        print("CLEANING UP COMMITTED COMICS FROM scanned_upc_codes")
+        self.lookup.remove_committed_from_buffer_db()
 
     ####################################################
     #                   UTILITIES
@@ -76,11 +78,13 @@ class LookupUI:
         """
         Prints exit message and quits
         """
-        self.db.close_db()
-        print("Exiting...")
+        self.lookup.quit_program()
+        print("CLOSING LOOKUP UI DB CURSOR...")
+        self.db.close_cursor()
+        print("QUITTING LOOKUP UI PROGRAM...")
         exit(1)
 
 
 if __name__ == '__main__':
     lookup_ui = LookupUI()
-    lookup_ui.get_menu_nav()
+    lookup_ui.start_menu()

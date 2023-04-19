@@ -157,7 +157,7 @@ class Scanner:
         # ask the user if they want to upload the list of _barcodes to the database
         self._print_list_barcodes()
         upload_confirm = input(
-            "These are the _barcodes you scanned. Would you like the upload these _barcodes (y/n)? "
+            "These are the barcodes you scanned. Would you like the upload these barcodes (y/n)? "
         ).strip()
 
         if upload_confirm == 'N' or upload_confirm == 'n':
@@ -180,18 +180,6 @@ class Scanner:
         for upc in self.scanned_barcodes_list:
             query_params = (upc, formatted_date)
             self.db.upload_upc_to_buffer(query_params)
-
-        confirm_commit = input("Would you like to commit the changes to the DB (y/n)? ").strip()
-
-        # Upload to db
-        if confirm_commit == 'Y' or confirm_commit == 'y':
-            self.db.commit()  # commits the changes to the database
-            print("Changes committed to database")
-            self.scanned_barcodes_list = []
-
-        # dont upload to db
-        else:
-            print("Changes not committed to database")
 
     ######################################################################
     #               GETTERS AND SETTERS (PARENT)

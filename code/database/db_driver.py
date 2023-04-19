@@ -73,8 +73,7 @@ class DB:
         # Create a cursor to execute query. Why? Because apparently they optimize execution by retaining a reference according to PEP0249
 
         self.cursor.execute(query, query_params)
-
-        return self.cursor
+        self._commit_to_db()
 
     def upload_new_comic_book(self, params: tuple):
         """
@@ -95,7 +94,7 @@ class DB:
 
         self.cursor.execute(query, params)
 
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_image_record(self, full_image_path: str):
         """
@@ -109,7 +108,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_url_record(self, url_type: str, url_path: str):
         """
@@ -147,7 +146,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_character_record(self, character_id: int, character_name: str, character_uri: str):
         """
@@ -165,7 +164,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_story_record(self, story_id: int, story_title: str, story_uri: str, story_type: str):
         """
@@ -184,11 +183,11 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
-    ##########################################################
+    ################################################################
     #  GENERIC UTILITY FOR Events, Series, Variant Comics
-    ##########################################################
+    ################################################################
     def upload_new_record_by_table(self, table_name: str, entity_id: str, entity_title: str, entity_uri: str):
         """
         Uploads a new record to comic_books.table_name (Events, Series, or "Variant (Comics)
@@ -206,7 +205,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     ####################################################################################################################
     #
@@ -230,7 +229,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_comics_has_images_record(self, comic_id: int, image_path: str):
         """
@@ -246,7 +245,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_comics_has_urls_record(self, comic_id: int, url: str):
         """
@@ -262,7 +261,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_comics_has_characters_record(self, comic_id: int, character_id: int):
         """
@@ -278,7 +277,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_comics_has_events_record(self, comic_id: int, event_id: int):
         """
@@ -294,7 +293,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_comics_has_stories_record(self, comic_id: int, story_id: int):
         """
@@ -310,7 +309,7 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
 
     def upload_new_comics_has_variants_record(self, comic_id: int, variant_id: int):
         """
@@ -326,7 +325,26 @@ class DB:
         print("Executing %s with %s" % (query, params))
 
         self.cursor.execute(query, params)
-        self._connection.commit()
+        self._commit_to_db()
+
+    ####################################################################################################################
+    #
+    #                                           DELETE RECORDS
+    #
+    ####################################################################################################################
+    def delete_from_scanned_upc_codes_table(self, upc_code: str):
+        """
+        Deletes records from the scanned_upc_codes table based on the upc_code provided.
+        :param upc_code: full upc_code string including prefix
+        """
+
+        query = "DELETE FROM scanned_upc_codes WHERE upc_code=%s;"
+        params = (upc_code,)
+
+        print("Executing %s with %s" % (query, params))
+
+        self.cursor.execute(query, params)
+        self._commit_to_db()
 
     ####################################################################################################################
     #
@@ -334,13 +352,13 @@ class DB:
     #
     ####################################################################################################################
 
-    def close_db(self):
+    def close_cursor(self):
         """
         Closes the db connection
         """
         self.cursor.close()
 
-    def commit_to_db(self):
+    def _commit_to_db(self):
         """
         Commits changes to database
         """
@@ -352,5 +370,9 @@ class DB:
         :return: the MySQLdb.connect() object
         """
         db_connection = MySQLdb.connect(self._host, self._user, self._passwd, self._db)
-        print("DB CONNECTED...")
-        return db_connection
+        if db_connection:
+            print("DB CONNECTED...")
+            return db_connection
+        else:
+            print("DB NOT CONNECTED...")
+            return None
