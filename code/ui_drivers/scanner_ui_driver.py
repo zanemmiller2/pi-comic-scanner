@@ -155,7 +155,7 @@ class ScannerUI:
         Asks the user if they want to upload comics to database.
         """
         if self.scanner.get_num_barcodes() > 0:
-            print("Would you like to upload the scanned _barcodes to the database (y/n)? ")
+            print("Would you like to upload the scanned barcodes to the database (y/n)? ")
             db_upload_res = input(">>> ").strip()
 
             if db_upload_res == 'N' or db_upload_res == 'n':

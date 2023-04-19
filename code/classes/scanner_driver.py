@@ -185,7 +185,7 @@ class Scanner:
 
         # Upload to db
         if confirm_commit == 'Y' or confirm_commit == 'y':
-            self.db.cursor.commit()  # commits the changes to the database
+            self.db.commit()  # commits the changes to the database
             print("Changes committed to database")
             self.scanned_barcodes_list = []
 
