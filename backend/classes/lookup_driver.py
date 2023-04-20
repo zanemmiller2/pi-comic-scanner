@@ -11,7 +11,7 @@ import requests
 
 import keys.private_keys
 import keys.pub_keys
-from code.data_objects.comic_book_object import ComicBook
+from backend.data_objects.comic_book_object import ComicBook
 
 COMICS_URL = "https://gateway.marvel.com/v1/public/comics"
 CHARACTERS_URL = "https://gateway.marvel.com/v1/public/characters"

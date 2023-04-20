@@ -6,8 +6,8 @@ Date: 04/15/2023
 Description: Command Line interface driver
 """
 
-from code.classes.scanner_driver import *
-from code.database.db_driver import DB
+from backend.classes.scanner_driver import *
+from backend.database.db_driver import DB
 
 SCANNER_INPUT_MODE = '1'
 KEYBOARD_INPUT_MODE = '2'

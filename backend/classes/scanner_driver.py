@@ -181,7 +181,7 @@ class Scanner:
 
         formatted_date = self.get_formatted_YYYY_MM_DD_string()
 
-        # uploads each upc code to db
+        # uploads each upc backend to db
         for upc in self.scanned_barcodes_list:
             query_params = (upc, formatted_date)
             self.db.upload_upc_to_buffer(query_params)
@@ -232,7 +232,7 @@ class Scanner:
     @staticmethod
     def format_marvel_barcode(mav18_barcode: str) -> str:
         """
-        Appends the MAV18- code to a mav18_barcode
+        Appends the MAV18- backend to a mav18_barcode
         :param mav18_barcode:
         :return: formatted mav18_barcode as string with appended prefix
         """
@@ -280,9 +280,9 @@ class ScannerBarcodeEntry(Scanner):
 
     def enter_marvel_barcodes(self):
         """
-        Reads marvel _barcodes (UPC-A with a 5-digit add_on code) from
-        serial_scanner with a 5 digit add on code. The first 3 digits of the
-        add-on code represent the issue number, the 4th digit represents the
+        Reads marvel _barcodes (UPC-A with a 5-digit add_on backend) from
+        serial_scanner with a 5 digit add on backend. The first 3 digits of the
+        add-on backend represent the issue number, the 4th digit represents the
         cover variant and the 5th digit represents the print variant.
         """
 
@@ -346,9 +346,9 @@ class KeyboardBarcodeEntry(Scanner):
 
     def enter_marvel_barcodes(self):
         """
-        Reads marvel _barcodes (UPC-A with a 5-digit add_on code) from
-        user keyboard input with a 5 digit add on code. The first 3 digits of the
-        add-on code represent the issue number, the 4th digit represents the
+        Reads marvel _barcodes (UPC-A with a 5-digit add_on backend) from
+        user keyboard input with a 5 digit add on backend. The first 3 digits of the
+        add-on backend represent the issue number, the 4th digit represents the
         cover variant and the 5th digit represents the print variant.
         """
 

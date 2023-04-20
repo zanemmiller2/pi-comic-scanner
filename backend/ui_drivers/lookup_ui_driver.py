@@ -6,8 +6,8 @@ Date: 04/15/2023
 Description: Command Line interface driver
 """
 
-from code.classes.lookup_driver import Lookup
-from code.database.db_driver import DB
+from backend.classes.lookup_driver import Lookup
+from backend.database.db_driver import DB
 
 
 class LookupUI:
