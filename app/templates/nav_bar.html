@@ -1,0 +1,15 @@
+<html lang="en">
+<head>
+    <title></title>
+</head>
+<body>
+<nav>
+    {% for item in nav.top %}
+    <a
+            href="{{ item.url }}">{{ item.label }} | </a>
+    {% endfor %}
+</nav>
+</body>
+{% block content %}
+{% endblock %}
+</html>

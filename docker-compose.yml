@@ -1,0 +1,6 @@
+version: "2"
+services:
+  app:
+    build: ../flaskProject_test/app
+    ports:
+      - "5010:5010"

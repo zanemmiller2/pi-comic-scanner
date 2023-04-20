@@ -35,9 +35,11 @@
 # Example 1
 
 from __future__ import print_function
-import de2120_barcode_scanner
-import time
+
 import sys
+import time
+
+import de2120_barcode_scanner
 
 
 def run_example():
