@@ -22,7 +22,7 @@ home controller and touch screen.
 * [1. **What You Need**](#1-what-you-need)
 * [2. **Resources**](#2-resources)
 * [3. **Notes**](#3-notes)
-* [4. **Scanner Set-Up Instructions**](#4-set-up-instructions)
+* [4. **Scanner Set-Up Instructions**](#4-scanner-set-up-instructions)
    * [A. **Set Up Raspberry Pi**](#a-set-up-raspberry-pi)
    * [B. **Connect Barcode HAT to Raspberry
      Pi**](#b-connect-barcode-hat-to-raspberry-pi)
