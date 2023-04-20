@@ -1,8 +1,1 @@
-
-
-# IntelliJ project files
-.idea
-*.iml
-out
-gen
-!/code/database/db_credentials.py
+/keys/
