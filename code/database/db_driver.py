@@ -61,19 +61,15 @@ class DB:
         :return: cursor object from connection
         """
 
-        if self._connection is None:
-            print(
-                "No connection to the database found! Have you called connect_to_database() first?"
-            )
-            return None
-
         query = "INSERT INTO comic_books.scanned_upc_codes(upc_code, date_uploaded) VALUES (%s, %s);"
 
-        print("Executing %s with %s" % (query, params))
-        # Create a cursor to execute query. Why? Because apparently they optimize execution by retaining a reference according to PEP0249
-
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            print("Executing %s with %s" % (query, params))
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"UPC {params[0]} NOT UPLOADED TO BUFFER")
+            self._connection.rollback()
 
     def upload_new_comic_book(self, params: tuple):
         """
@@ -92,9 +88,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"COMIC {params[0]} : {params[2]} NOT UPLOADED TO Comics TABLE")
+            self._connection.rollback()
 
     def upload_new_image_record(self, full_image_path: str):
         """
@@ -107,8 +106,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"IMAGE {full_image_path} NOT UPLOADED TO Images TABLE")
+            self._connection.rollback()
 
     def upload_new_url_record(self, url_type: str, url_path: str):
         """
@@ -122,8 +125,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._connection.commit()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"URL {url_type} : {url_path} NOT UPLOADED TO URLs TABLE")
+            self._connection.rollback()
 
     def upload_new_creator_record(
             self, creator_id: int, first_name: str, middle_name: str,
@@ -145,8 +152,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"CREATOR {creator_id} - {first_name + middle_name + last_name} NOT UPLOADED TO Creators TABLE")
+            self._connection.rollback()
 
     def upload_new_character_record(self, character_id: int, character_name: str, character_uri: str):
         """
@@ -163,8 +174,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"CHARACTER {character_id} - {character_name} NOT UPLOADED TO Characters TABLE")
+            self._connection.rollback()
 
     def upload_new_story_record(self, story_id: int, story_title: str, story_uri: str, story_type: str):
         """
@@ -182,8 +197,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"STORY {story_id} : {story_title} NOT UPLOADED TO Stories TABLE")
+            self._connection.rollback()
 
     ################################################################
     #  GENERIC UTILITY FOR Events, Series, Variant Comics
@@ -204,8 +223,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"NEW RECORD {entity_id} : {entity_title} NOT UPLOADED TO {table_name} TABLE")
+            self._connection.rollback()
 
     ####################################################################################################################
     #
@@ -228,8 +251,15 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(
+                f"COMIC : CREATOR M:M RELATIONSHIP {comic_id} : {creator_id} WITH "
+                f"ROLE {creator_role} NOT UPLOADED TO Comics_has_Creator TABLE"
+                )
+            self._connection.rollback()
 
     def upload_new_comics_has_images_record(self, comic_id: int, image_path: str):
         """
@@ -244,8 +274,14 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(
+                f"COMIC : IMAGE M:M RELATIONSHIP {comic_id} : {image_path} WITH NOT UPLOADED TO Comics_has_Images TABLE"
+                )
+            self._connection.rollback()
 
     def upload_new_comics_has_urls_record(self, comic_id: int, url: str):
         """
@@ -260,8 +296,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"COMIC : URL M:M RELATIONSHIP {comic_id} : {url} WITH NOT UPLOADED TO Comics_has_URL TABLE")
+            self._connection.rollback()
 
     def upload_new_comics_has_characters_record(self, comic_id: int, character_id: int):
         """
@@ -276,8 +316,14 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(
+                f"COMIC : CHARACTER M:M RELATIONSHIP {comic_id} : {character_id} WITH NOT UPLOADED TO Comics_has_Characters TABLE"
+                )
+            self._connection.rollback()
 
     def upload_new_comics_has_events_record(self, comic_id: int, event_id: int):
         """
@@ -292,8 +338,14 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(
+                f"COMIC : EVENTS M:M RELATIONSHIP {comic_id} : {event_id} WITH NOT UPLOADED TO Comics_has_Events TABLE"
+                )
+            self._connection.rollback()
 
     def upload_new_comics_has_stories_record(self, comic_id: int, story_id: int):
         """
@@ -308,8 +360,14 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(
+                f"COMIC : STORY M:M RELATIONSHIP {comic_id} : {story_id} WITH NOT UPLOADED TO Comics_has_Stories TABLE"
+                )
+            self._connection.rollback()
 
     def upload_new_comics_has_variants_record(self, comic_id: int, variant_id: int):
         """
@@ -324,8 +382,14 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(
+                f"COMIC : VARIANT M:M RELATIONSHIP {comic_id} : {variant_id} WITH NOT UPLOADED TO Comics_has_Variants TABLE"
+                )
+            self._connection.rollback()
 
     ####################################################################################################################
     #
@@ -343,8 +407,12 @@ class DB:
 
         print("Executing %s with %s" % (query, params))
 
-        self.cursor.execute(query, params)
-        self._commit_to_db()
+        try:
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"DELETE {upc_code} NOT DELETED FROM scanned_upc_codes TABLE")
+            self._connection.rollback()
 
     ####################################################################################################################
     #
