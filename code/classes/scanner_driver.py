@@ -45,9 +45,11 @@ class Scanner:
         """
         pass
 
-    ######################################################################
-    #                       REVIEW BARCODES
-    ######################################################################
+    ####################################################################################################################
+    #
+    #                                           REVIEW
+    #
+    ####################################################################################################################
 
     def review_barcodes(self):
         """
@@ -61,7 +63,7 @@ class Scanner:
         self._print_list_barcodes()
         num_barcodes = self.get_num_barcodes()
         lines = {x + 1 for x in range(num_barcodes)}
-        edit_response = self.get_edit_response(lines)
+        edit_response = self._get_edit_response(lines)
 
         # DO YOU WANT TO MAKE ANY CHANGES
         while str(edit_response).upper() != "N" and num_barcodes > 0:
@@ -93,7 +95,7 @@ class Scanner:
             self._print_list_barcodes()
             num_barcodes = self.get_num_barcodes()
             lines = {x + 1 for x in range(num_barcodes)}
-            edit_response = self.get_edit_response(lines)
+            edit_response = self._get_edit_response(lines)
 
     def _delete_entry(self, barcode: str, del_index: int) -> bool:
         print(f"Are you sure you want to delete {barcode} (y/n) ")
@@ -124,7 +126,7 @@ class Scanner:
 
         return False
 
-    def get_edit_response(self, lines) -> str:
+    def _get_edit_response(self, lines) -> str:
         """
         Asks the user which line item they want to edit.
         :return: string response from user if line item is N or line is valid integer line number
@@ -143,11 +145,13 @@ class Scanner:
             else:
                 print("Invalid line number...out of range")
 
-        return self.get_edit_response(lines)
+        return self._get_edit_response(lines)
 
-    ######################################################################
-    #                       DATABASE INTERACTIONS
-    ######################################################################
+    ####################################################################################################################
+    #
+    #                                         DATABASE INTERACTIONS
+    #
+    ####################################################################################################################
 
     def upload_db(self):
         """
@@ -164,6 +168,7 @@ class Scanner:
             return False
         elif upload_confirm == 'Y' or upload_confirm == 'y':
             self._upload_upcs_to_db()
+            return True
 
     def _upload_upcs_to_db(self):
         """
@@ -181,9 +186,11 @@ class Scanner:
             query_params = (upc, formatted_date)
             self.db.upload_upc_to_buffer(query_params)
 
-    ######################################################################
-    #               GETTERS AND SETTERS (PARENT)
-    ######################################################################
+    ####################################################################################################################
+    #
+    #                                       GETTERS AND SETTERS
+    #
+    ####################################################################################################################
 
     def get_num_barcodes(self) -> int:
         """
@@ -194,14 +201,15 @@ class Scanner:
 
     def get_entry_method(self):
         """
-        DOCSTRING
-        :return:
+        Returns the current entry_mode (scanner, keyboard) for inputting barcodes.
         """
         return self.entry_mode
 
-    ######################################################################
-    #                   UTILITIES (PARENT)
-    ######################################################################
+    ####################################################################################################################
+    #
+    #                                       PARENT UTILITIES
+    #
+    ####################################################################################################################
 
     def _print_list_barcodes(self):
         """ Prints a formatted list of _barcodes with line numbers """
@@ -226,7 +234,7 @@ class Scanner:
         """
         Appends the MAV18- code to a mav18_barcode
         :param mav18_barcode:
-        :return:
+        :return: formatted mav18_barcode as string with appended prefix
         """
         return "MAV18-" + mav18_barcode
 

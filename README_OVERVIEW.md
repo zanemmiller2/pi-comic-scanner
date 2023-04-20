@@ -5,23 +5,39 @@ Email: millerzanem@gmail.com
 Raspberry Pi comic book barcode scanner and lookup. This project uses a Raspberry Pi 3 with a 32 GB microSD card running Raspberry Pi OS (64-bit) and an attached RPI Barcode Reader HAT. 
 
 # Purpose:
-With an accumulating comic book collection, I currently pay ~$3/month for an app (CLZ Comics) to manage my catalog of comics. I have a handful of hard to find Raspberry Pi's sitting around the house and wanted to put some of them to use while I look for a new job. I recently put one of them to use as an integrated Smart Home Controller Touchscreen Kiosk. With the Barcode Scanner/Raspberry Pi, the goal is to develop accompnaying software that can (1) read in barcodes from comic books;  (2) use the barcoded isbn to look up the comic book and prefill a database entity form for review;  (3) and then commit the entries to local database server hosted on my linux server. From there I will be able to develop an interactive UI that I can integrate with my smart home controller and touch screen. 
+With an accumulating comic book collection, I currently pay ~$3/month for an
+app (CLZ Comics) to manage my catalog of comics. I have a handful of hard to
+find Raspberry Pi's sitting around the house and wanted to put some of them to
+use while I look for a new job. I recently put one of them to use as an
+integrated Smart Home Controller Touchscreen Kiosk. With the Barcode
+Scanner/Raspberry Pi, the goal is to develop accompanying software that can (1)
+read in barcodes from comic books;  (2) use the barcoded isbn to look up the
+comic book and prefill a database entity form for review;  (3) and then commit
+the entries to local database server hosted on my linux server. From there I
+will be able to develop an interactive UI that I can integrate with my smart
+home controller and touch screen.
 
 # Table of Contents
 <!-- TOC -->
 * [1. **What You Need**](#1-what-you-need)
 * [2. **Resources**](#2-resources)
 * [3. **Notes**](#3-notes)
-* [4. **Set-Up Instructions**](#4-set-up-instructions)
-  * [A. **Set Up Raspberry Pi**](#a-set-up-raspberry-pi)
-  * [B. **Connect Barcode HAT to Raspberry Pi**](#b-connect-barcode-hat-to-raspberry-pi)
-  * [C. **Start up the Raspberry Pi**](#c-start-up-the-raspberry-pi)
-  * [D. **Configuring Raspberry Pi to work with scanner**](#d-configuring-raspberry-pi-to-work-with-scanner)
-  * [E. **Configure the Scanner**](#e-configure-the-scanner)
-  * [F. **Configure the Raspberry Pi Serial Interface**](#f-configure-the-raspberry-pi-serial-interface)
-  * [G. **Test scanner with a sample program**](#g-test-scanner-with-a-sample-program)
-  * [H. **Connecting Barcode Reader HAT to a Mac**](#h-connecting-barcode-reader-hat-to-a-mac)
-  * [I. **Enabling scanner to read 5 digit add on codes**](#i-enabling-scanner-to-read-5-digit-add-on-codes)
+* [4. **Scanner Set-Up Instructions**](#4-set-up-instructions)
+   * [A. **Set Up Raspberry Pi**](#a-set-up-raspberry-pi)
+   * [B. **Connect Barcode HAT to Raspberry
+     Pi**](#b-connect-barcode-hat-to-raspberry-pi)
+   * [C. **Start up the Raspberry Pi**](#c-start-up-the-raspberry-pi)
+   * [D. **Configuring Raspberry Pi to work with
+     scanner**](#d-configuring-raspberry-pi-to-work-with-scanner)
+   * [E. **Configure the Scanner**](#e-configure-the-scanner)
+   * [F. **Configure the Raspberry Pi Serial
+     Interface**](#f-configure-the-raspberry-pi-serial-interface)
+   * [G. **Test scanner with a sample
+     program**](#g-test-scanner-with-a-sample-program)
+   * [H. **Connecting Barcode Reader HAT to a
+     Mac**](#h-connecting-barcode-reader-hat-to-a-mac)
+   * [I. **Enabling scanner to read 5 digit add on
+     codes**](#i-enabling-scanner-to-read-5-digit-add-on-codes)
 * [5. Known Issues](#5-known-issues)
 * [6. Configurations](#6-configurations)
 <!-- TOC -->
@@ -48,7 +64,7 @@ With an accumulating comic book collection, I currently pay ~$3/month for an app
 
 - I'm using the [Barcode HAT for Raspberry Pi](https://shop.sb-components.co.uk/products/barcode-hat-for-raspberry-pi) from SB Components but found their documentation lacking which is why you'll see links referenced to SparkFun's documentation on a similar DE2120 Barcode Scanner.
 
-# 4. **Set-Up Instructions**
+# 4. **Scanner Set-Up Instructions**
 
 ## A. **Set Up Raspberry Pi**
    1. **Open Raspberry Pi Imager** 
@@ -225,7 +241,7 @@ With an accumulating comic book collection, I currently pay ~$3/month for an app
    tracing back to the serial.serialposix.py read() function. The "if not read:
    break" within the try statement is where I've narrowed it down to...see
    below:
-   ![](/Users/zanemiller/pi-comic-scanner/readme_images/serialposix_read_problem.png)
+   ![](readme_images/serialposix_read_problem.png)
     * For now I bypass this by always returning True from
       de2120_barcode_scanner.is_connected() and
       de2120_barcode_scanner.send_command() functions:
@@ -235,10 +251,29 @@ With an accumulating comic book collection, I currently pay ~$3/month for an app
 # 6. **Configurations**
 
 1. Database:
-    1. Automated backup dump to cronjob at 4am every Saturday morning
-       ```bash
-       0 4 * * 6 /usr/bin/mysqldump --routines -u [DB_USERNAME] -p '[DB_PASSWORD]' [DB_NAME] > ${HOME}/[PATH]/[FILE_NAME.sql]
-       ```
+   1. Automated backup dump to cronjob at 4am every Saturday morning
+      ```bash
+      0 4 * * 6 /usr/bin/mysqldump --routines -u [DB_USERNAME] -p '[DB_PASSWORD]' [DB_NAME] > ${HOME}/[PATH]/[FILE_NAME.sql]
+      ```
+   2. Database Relational Model
+      ![](readme_images/database_relational_model.jpg)
+2. Directory Structure
+   1. code/
+      1. classes/
+         - lookup_driver.py
+         - scanner_driver.py
+      2. data_objects/
+         - comic_book_object.py
+      3. database/
+         - db_driver.py
+      4. ui_drivers/
+         - lookup_ui_driver.py
+         - scanner_ui_driver.py
+   2. Resources
+      - comic_bookdb.mwb
+      - DY_Scan_Setting_Manual-DE2120.pdf
+
+
    
 
 

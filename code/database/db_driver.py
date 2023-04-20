@@ -54,10 +54,10 @@ class DB:
     #                                       UPLOAD TO DATABASE
     #
     ####################################################################################################################
-    def upload_upc_to_buffer(self, query_params=(str, str)):
+    def upload_upc_to_buffer(self, params: tuple[str, str]):
         """
         Uploads a tuple of strings (upc and YYYY-MM-DD) to the scanned_upc_codes table in the comic_books database
-        :param query_params: (upc: str, YYYY-MM-DD: str)
+        :param params: (upc: str, YYYY-MM-DD: str)
         :return: cursor object from connection
         """
 
@@ -69,10 +69,10 @@ class DB:
 
         query = "INSERT INTO comic_books.scanned_upc_codes(upc_code, date_uploaded) VALUES (%s, %s);"
 
-        print("Executing %s with %s" % (query, query_params))
+        print("Executing %s with %s" % (query, params))
         # Create a cursor to execute query. Why? Because apparently they optimize execution by retaining a reference according to PEP0249
 
-        self.cursor.execute(query, query_params)
+        self.cursor.execute(query, params)
         self._commit_to_db()
 
     def upload_new_comic_book(self, params: tuple):
@@ -130,7 +130,7 @@ class DB:
             last_name: str, resource_uri: str
             ):
         """
-        Uploads a new creator record to comic_books.creators if URL does not already exist in database
+        Uploads a new creator record to comic_books.creators if Creator does not already exist in database
         :param creator_id: The unique ID of the creator resource.
         :param first_name: The first name of the creator.
         :param middle_name: The middle name of the creator.

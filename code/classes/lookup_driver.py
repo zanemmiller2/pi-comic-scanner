@@ -40,10 +40,12 @@ class Lookup:
     #                                           HTTPS INTERACTIONS
     #
     ####################################################################################################################
-    def lookup_marvel_by_upc(self, barcode):
+    def lookup_marvel_by_upc(self, barcode: str):
         """
         Sends the http request to /comics&upc= endpoint and store response as comic_books object
+        :param barcode: the upc barcode for the comic to look up
         """
+
         # barcode has not already been lookedUp
         if barcode not in self.lookedUp_barcodes:
             hash_str, timestamp = self._get_marvel_api_hash()
@@ -95,7 +97,7 @@ class Lookup:
             'prefix': self.comic_books[barcode]['prefix']
         }
 
-    def upload_comic_book(self, barcode):
+    def upload_comic_book(self, barcode: str):
         """
         Create a new database record for the looked up comic book. First uploads any non-existent foreign key
         dependencies and then uploads the entire comic_book object.
@@ -206,7 +208,7 @@ class Lookup:
 
     def print_lookedUp_barcodes(self):
         """
-        Prints the formatted list of barcodes in the queued_barcodes dictionary
+        Prints the formatted list of barcodes in the lookedUp_barcodes dictionary
         """
         i = 1
         for lookedup_barcode in self.lookedUp_barcodes:
@@ -215,7 +217,7 @@ class Lookup:
 
     def print_committed_barcodes(self):
         """
-        Prints the formatted list of barcodes in the queued_barcodes dictionary
+        Prints the formatted list of barcodes in the committed_barcodes dictionary
         """
         i = 1
         for committed_barcode in self.committed_barcodes:
