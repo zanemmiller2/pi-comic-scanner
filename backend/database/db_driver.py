@@ -86,9 +86,8 @@ class DB:
                 f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s," \
                 f"%s, %s, %s, %s, %s, %s, %s, %s, %s);"
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -104,9 +103,8 @@ class DB:
         query = "INSERT INTO Images (path) SELECT %s WHERE NOT EXISTS(SELECT * FROM Images WHERE path=%s);"
         params = (full_image_path, full_image_path,)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -123,9 +121,8 @@ class DB:
         query = "INSERT INTO URLs (type, url) SELECT %s, %s WHERE NOT EXISTS (SELECT * FROM URLs WHERE type=%s AND url=%s);"
         params = (url_type, url_path, url_type, url_path)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -150,9 +147,8 @@ class DB:
 
         params = (creator_id, first_name, middle_name, last_name, resource_uri, creator_id)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -172,9 +168,8 @@ class DB:
 
         params = (character_id, character_name, character_uri, character_id)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -195,21 +190,45 @@ class DB:
 
         params = (story_id, story_title, story_uri, story_type, story_id)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
             print(f"STORY {story_id} : {story_title} NOT UPLOADED TO Stories TABLE")
             self._connection.rollback()
 
+    def upload_new_variants_record(
+            self, variant_id: int, variant_title: str, variant_uri: str, issue_number: float, is_variant: bool
+            ):
+        """
+        Uploads a new story record to comic_books.stories if story does not already exist in database
+        :param variant_id: The unique ID of the comic resource.
+        :param variant_title: The variant comic title.
+        :param variant_uri: The canonical URL identifier for this resource.
+        :param issue_number: The issue number of the variant comic in the series
+        :param is_variant: boolean value denoting if the comic is a variant
+        """
+
+        query = "INSERT INTO Comics (id, title, resourceURI, issueNumber, isVariant) " \
+                "SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM Comics WHERE id=%s);"
+
+        params = (variant_id, variant_title, variant_uri, issue_number, is_variant, variant_id)
+
+        try:
+            print("Executing %s with %s" % (query, params))
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except:
+            print(f"VARIANT COMIC {variant_id} : {variant_id} NOT UPLOADED TO Comics TABLE")
+            self._connection.rollback()
+
     ################################################################
-    #  GENERIC UTILITY FOR Events, Series, Variant Comics
+    #  GENERIC UTILITY FOR Events and Series
     ################################################################
     def upload_new_record_by_table(self, table_name: str, entity_id: str, entity_title: str, entity_uri: str):
         """
-        Uploads a new record to comic_books.table_name (Events, Series, or "Variant (Comics)
+        Uploads a new record to comic_books.table_name (Events, Series)
         if record does not already exist in database using id, title, and uri
         :param table_name: the name of the table in the comic_books database
         :param entity_id: The unique ID of the resource.
@@ -221,9 +240,8 @@ class DB:
                 f"SELECT %s, %s, %s WHERE NOT EXISTS (SELECT * FROM {table_name} WHERE id=%s);"
         params = (entity_id, entity_title, entity_uri, entity_id)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -249,16 +267,15 @@ class DB:
                 "(SELECT * FROM Comics_has_Creators WHERE comicId=%s AND creatorId=%s AND creatorRole=%s);"
         params = (comic_id, creator_id, creator_role, comic_id, creator_id, creator_role)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
             print(
                 f"COMIC : CREATOR M:M RELATIONSHIP {comic_id} : {creator_id} WITH "
                 f"ROLE {creator_role} NOT UPLOADED TO Comics_has_Creator TABLE"
-                )
+            )
             self._connection.rollback()
 
     def upload_new_comics_has_images_record(self, comic_id: int, image_path: str):
@@ -272,15 +289,14 @@ class DB:
                 "(SELECT * FROM Comics_has_Images WHERE comicId=%s AND imagePath=%s);"
         params = (comic_id, image_path, comic_id, image_path)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
             print(
                 f"COMIC : IMAGE M:M RELATIONSHIP {comic_id} : {image_path} WITH NOT UPLOADED TO Comics_has_Images TABLE"
-                )
+            )
             self._connection.rollback()
 
     def upload_new_comics_has_urls_record(self, comic_id: int, url: str):
@@ -294,9 +310,8 @@ class DB:
                 "(SELECT * FROM Comics_has_URLs WHERE comicId=%s AND url=%s);"
         params = (comic_id, url, comic_id, url)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -314,9 +329,8 @@ class DB:
                 "(SELECT * FROM Comics_has_Characters WHERE comicId=%s AND characterId=%s);"
         params = (comic_id, character_id, comic_id, character_id)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -336,15 +350,14 @@ class DB:
                 "(SELECT * FROM Comics_has_Events WHERE comicId=%s AND eventId=%s);"
         params = (comic_id, event_id, comic_id, event_id)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
             print(
                 f"COMIC : EVENTS M:M RELATIONSHIP {comic_id} : {event_id} WITH NOT UPLOADED TO Comics_has_Events TABLE"
-                )
+            )
             self._connection.rollback()
 
     def upload_new_comics_has_stories_record(self, comic_id: int, story_id: int):
@@ -358,9 +371,8 @@ class DB:
                 "(SELECT * FROM Comics_has_Stories WHERE comicId=%s AND storyId=%s);"
         params = (comic_id, story_id, comic_id, story_id)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -380,9 +392,8 @@ class DB:
                 "(SELECT * FROM Comics_has_Variants WHERE comicId=%s AND variantId=%s);"
         params = (comic_id, variant_id, comic_id, variant_id)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:
@@ -405,9 +416,8 @@ class DB:
         query = "DELETE FROM scanned_upc_codes WHERE upc_code=%s;"
         params = (upc_code,)
 
-        print("Executing %s with %s" % (query, params))
-
         try:
+            print("Executing %s with %s" % (query, params))
             self.cursor.execute(query, params)
             self._commit_to_db()
         except:

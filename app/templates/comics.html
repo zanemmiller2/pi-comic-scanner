@@ -3,44 +3,53 @@
 <!-- Modified from starter code provided in exploration from bsg_app-->
 <head>
     <title>Comics</title>
-    <link href=# rel="stylesheet" type="text/css"/>
 </head>
 
 <body>
-<h1>Comics@@</h1>
+<h1>Comics</h1>
 {% extends "nav_bar.html" %}
 {% block content %}
 
-<div id="browse">
-    <table border="1" cellpadding="5" class="center">
-        <!-- Access data tuple passed from app.py -->
-        {% if data %}
-        <thead>
-        <tr>
-            {% for key in data[0].keys() %}
-            <th scope="col"
-                data-field="{{ key }}"
-                data-filter-control="input">
-                {{ key }}
-            </th>
-            <!-- End of this for loop -->
-            {% endfor %}
-        </tr>
+    <div id="browse">
+        <table border="1" cellpadding="5" class="center">
+            <!-- Check that there is comics data data to  -->
+            {% if comics_data %}
 
-        <tbody>
-        {% for item in data %}
-        <tr>
-            {% for key in item.keys() %}
+                <!-- Display the header rows -->
+                <thead>
+                <tr>
+                    <th>Thumbnail</th>
+                    <th>Comic ID</th>
+                    <th>Title</th>
+                    <th>Issue Number</th>
+                    <th>View Detail</th>
+                </tr>
+                </thead>
 
-            <td> {{item[key]}}</td>
-            {% endfor %}
+                <!-- Display the row of content for each comic book in
+                the appropriate column -->
+                <tbody>
+                {% for comic in comics_data %}
+                    <tr>
+                        {% if comic['thumbnail'] %}
+                            <td><img class="thumbnail-small"
+                                     src="{{ comic['thumbnail'] }}"
+                                     alt="thumbnail"></td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+                        <td> {{ comic['id'] }}</td>
+                        <td> {{ comic['title'] }}</td>
+                        <td> {{ comic['issueNumber']|int }}</td>
+                        <td><a href="view-comic/{{ comic['id'] }}">VIEW</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            {% endif %}
+        </table>
+    </div>
 
-        </tr>
-        {% endfor %}
-        {% endif %}
-    </table>
-    <p></p>
-</div>
 {% endblock %}
 </body>
 </html>

@@ -476,10 +476,13 @@ class ComicBook:
             variant_title = variant['name']
             variant_id = self.get_id_from_resourceURI(variant_uri)
 
+            if "Variant" in variant_title:
+                isVariant = True
+
             if variant_id != -1:
                 # used for creating new comic book record for variant
                 if variant_id not in self.variantDetail and variant_id != self.id:
-                    self.variantDetail[variant_id] = {'title': variant_title, 'uri': variant_uri}
+                    self.variantDetail[variant_id] = {'title': variant_title, 'uri': variant_uri, 'isVariant': True}
 
                 # used for creating comic_has_variants entity later
                 if variant_id not in self.variantIds and variant_id != self.id:
@@ -575,8 +578,9 @@ class ComicBook:
             variant_id = variant
             variant_title = self.variantDetail[variant_id]['title']
             variant_uri = self.variantDetail[variant_id]['uri']
+            isVariant = self.variantDetail[variant_id]['isVariant']
 
-            self.db.upload_new_record_by_table(COMICS_TABLE_NAME, variant_id, variant_title, variant_uri)
+            self.db.upload_new_variants_record(variant_id, variant_title, variant_uri, self.issueNumber, isVariant)
 
     ####################################################################################################################
     #

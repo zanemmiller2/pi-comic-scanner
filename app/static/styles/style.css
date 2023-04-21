@@ -1,0 +1,51 @@
+/* ---------- Thumbnails ----------*/
+.thumbnail-small {
+    width: 100px;
+    height: 153px;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+
+nav.navbar {
+    position: relative;
+    z-index: 1;
+    line-height: 100px;
+    font-size: xx-large;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+}
+
+nav.backgroundImage {
+    min-height: 200px;
+    background-image: url('../images/comic_banner.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+a.focusnav {
+    color: white;
+    font-weight: bold;
+    background: linear-gradient(rgba(180, 114, 128, .4), rgba(159, 104, 81, .7));
+
+}
+
+a.activenav {
+    color: white;
+    font-weight: bold;
+    background: linear-gradient(rgba(180, 114, 128, .4), rgba(159, 104, 81, .7));
+}
+
+a.visitednav {
+    color: white;
+    font-weight: bold;
+    background: linear-gradient(rgba(180, 114, 128, .4), rgba(159, 104, 81, .7));
+}
+
+a.linknav {
+    color: white;
+    font-weight: bold;
+    background: linear-gradient(rgba(180, 114, 128, .4), rgba(159, 104, 81, .7));
+}
