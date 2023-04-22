@@ -11,7 +11,8 @@ import requests
 
 import keys.private_keys
 import keys.pub_keys
-from backend.data_objects.comic_book_object import ComicBook
+from backend.models.ComicBook import ComicBook
+from backend.models.Creators import Creator
 
 COMICS_URL = "https://gateway.marvel.com/v1/public/comics"
 CHARACTERS_URL = "https://gateway.marvel.com/v1/public/characters"
@@ -32,7 +33,8 @@ class Lookup:
         self.queued_barcodes = {}  # (queued_barcodes[barcode] = {prefix: barcode_prefix, upload_date: ''})
         self.lookedUp_barcodes = {}  # (lookedUp_barcodes[barcode] = {cb: comic_books[barcode], prefix: ''})
         self.committed_barcodes = {}  # (committed_barcodes[barcode] = {cb: comic_books[barcode], prefix: ''})
-        self.comic_books = {}  # comic_books[barcode] = {cb: ComicBook(), prefix: ''}
+        self.comic_books = {}  # (comic_books[barcode] = {cb: ComicBook(), prefix: ''})
+        self.creators = {}  # (creators[creatorId] = Creator())
         self.db = lookup_db
 
     ####################################################################################################################
@@ -40,7 +42,7 @@ class Lookup:
     #                                           HTTPS INTERACTIONS
     #
     ####################################################################################################################
-    def lookup_marvel_by_upc(self, barcode: str):
+    def lookup_marvel_comic_by_upc(self, barcode: str):
         """
         Sends the http request to /comics&upc= endpoint and store response as comic_books object
         :param barcode: the upc barcode for the comic to look up
@@ -65,21 +67,43 @@ class Lookup:
         else:
             print("BARCODE HAS ALREADY BEEN LOOKED UP...WAITING TO BE COMMITTED")
 
+    def lookup_marvel_creator_by_id(self, creator_id: int):
+        """
+        Pulls creator information from CREATORS_URL + '/{creatorId}'
+        :param creator_id: the integer id of the creator resource
+        """
+
+        if creator_id in self.creators:
+            hash_str, timestamp = self._get_marvel_api_hash()
+
+            PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
+            endpoint = CREATORS_URL + '/' + str(creator_id)
+
+            request = requests.get(endpoint, PARAMS)
+            data = request.json()
+
+            if data['data']['count'] == 0:
+                print(f"No Creator found with {creator_id} creator id")
+            elif data['data']['count'] > 1:
+                print("TOO MANY CREATORS FOUND...")
+            else:
+                self._make_creator_object(data['data']['results'][0], creator_id)
+
     ####################################################################################################################
     #
-    #                           COMIC BOOK OBJECT INTERACTIONS
+    #                                       OBJECT INTERACTIONS
     #
     ####################################################################################################################
 
-    def _make_comic_book_object(self, marvel_data, barcode):
+    def _make_comic_book_object(self, marvel_comic_data, barcode):
         """
         Create a ComicBook() object with the api response data and the barcode
-        :param marvel_data: json response from the marvel lookup api
+        :param marvel_comic_data: json response from the marvel lookup api
         :param barcode: the barcode key
         """
 
         # establish a connection with the ComicBook object Pass database control to the comic book object
-        cb = ComicBook(self.db, marvel_data)
+        cb = ComicBook(self.db, marvel_comic_data)
 
         # Saves the comic book objects to its member variables
         cb.save_properties()
@@ -127,6 +151,46 @@ class Lookup:
         else:
             print("BARCODE ALREADY COMMITTED TO DATABASE...")
 
+    def _make_creator_object(self, marvel_creator_data, creator_id: int):
+        """
+        Create a Creator() object with the api response data and the creator_id
+        :param marvel_creator_data: json response from the marvel lookup api
+        :param creator_id: id of the creator
+        """
+
+        # establish a connection with the Creator object and pass database control to the Creator object
+        creatorObj = Creator(self.db, marvel_creator_data)
+
+        # Saves the creator objects to its member variables
+        creatorObj.save_properties()
+
+        # link the creatorObj to the appropriate creator_id
+        self.creators[creator_id] = creatorObj
+
+    def update_complete_creator(self, creator_id: int):
+        """
+        Create a new database record for the looked up Creator Object. First uploads any non-existent foreign key
+        dependencies and then uploads the entire Creator object.
+        :param creator_id: creator's identification number
+        """
+
+        # Valid creator id
+        if creator_id in self.creators:
+            # Create new records for the different member variables that also represent database entities.
+            # For example, create a new series if it does not already exist so that the Creators seriesId
+            # foreign key dependency can be established.
+            self.creators[creator_id].upload_new_records()
+
+            # Once all the foreign key dependencies have been established, go ahead and create the
+            # Creator entity with all of its foreign key dependencies
+            self.creators[creator_id].upload_creator()
+
+            # Once the Creator() has been uploaded, go ahead and create the creators_has_relationships
+            self.creators[creator_id].upload_creator_has_relationships()
+
+        else:
+            print(f"INVALID CREATOR ID {creator_id}...")
+
     ####################################################################################################################
     #
     #                                         DATABASE INTERACTIONS
@@ -156,6 +220,23 @@ class Lookup:
             # duplicate with same date
             else:
                 print("Duplicate barcode found but dates not conflicting...")
+
+    def get_stale_creators_from_db(self):
+        """
+        Queries the database for any stale creators. A stale creator is one with a modified date more than a year
+        old or no modified date. No modified date is usually a result of uploading a creator to satisfy a foreign key
+        dependency for some other entity.
+        """
+
+        res_data = self.db.get_stale_creators()
+
+        for creator in res_data:
+            creator_id = creator['id']
+            if creator_id not in self.creators:
+                self.creators[creator_id] = None
+            # duplicate with same date
+            else:
+                print("DUPLICATE CREATOR FOUND...")
 
     def remove_committed_from_buffer_db(self):
         """
@@ -196,6 +277,13 @@ class Lookup:
         :return: integer number of barcodes that have been committed to the comic_books database
         """
         return len(self.committed_barcodes)
+
+    def get_num_stale_creators(self) -> int:
+        """
+        Gets the number of stale creators.
+        :return: integer number of stale creators.
+        """
+        return len(self.creators)
 
     def print_queued_barcodes(self):
         """

@@ -49,3 +49,26 @@ a.linknav {
     font-weight: bold;
     background: linear-gradient(rgba(180, 114, 128, .4), rgba(159, 104, 81, .7));
 }
+
+footer.backgroundImage {
+    min-height: 200px;
+    background-image: url('../images/comic_banner_footer.jpg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+footer.footer-text {
+    color: #e53494;
+    font-weight: 1000;
+}
+
+p.footer-copyright {
+    color: #e53494;
+    font-weight: 1000;
+}
+
+a.footer-links {
+    color: #e53494;
+    font-weight: 1000;
+}

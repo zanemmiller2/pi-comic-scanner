@@ -354,7 +354,10 @@ class KeyboardBarcodeEntry(Scanner):
 
         marvel_barcode = ""
         while marvel_barcode.upper() != "Q":
-            marvel_barcode = input("Enter barcode with 5-digit add-on: ")
+            marvel_barcode = input("Enter barcode with 5-digit add-on or (q) to quit: ")
+
+            if marvel_barcode == 'q' or marvel_barcode == 'Q':
+                break
 
             if len(marvel_barcode) == MAV18_LENGTH:
                 formatted_marvel_barcode = self.format_marvel_barcode(marvel_barcode)

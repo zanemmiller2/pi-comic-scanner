@@ -5,41 +5,27 @@ Date: 04/17/2023
 Description: Class drivers for looking up marvel comics with marvel public api
 """
 
-import datetime
-
 import json
 
-CHARACTERS_TABLE_NAME = 'Characters'
-COMICS_TABLE_NAME = 'Comics'
-CREATORS_TABLE_NAME = 'Creators'
-EVENTS_TABLE_NAME = 'Events'
-IMAGES_TABLE_NAME = 'Images'
-SERIES_TABLE_NAME = 'Series'
-STORIES_TABLE_NAME = 'Stories'
-URLS_TABLE_NAME = 'URLs'
-PURCHASED_COMICS_TABLE_NAME = 'PurchasedComics'
+from backend.models.Entity import Entity
 
 
-class ComicBook:
+class ComicBook(Entity):
     """
     ComicBook object is a map of the marvel public api /comics endpoint response model. The ComicBook object is
     responsible for parsing the response data, creating new database records for specific entities and creating a new
     Comic in the database.
     """
 
-    def __init__(self, db_connection, marvel_data):
+    def __init__(self, db_connection, response_data):
         """ Represents a Comic book based on the marvel comic developer api json response model """
-        self.db = db_connection
-        self.data = marvel_data
+        super().__init__(db_connection, response_data)
         self.count = None  # int, optional
-
-        self.id = None  # int, optional
         self.digitalId = None  # int, optional
         self.title = None  # string, optional
         self.issueNumber = None  # double, optional
         self.variantDescription = None  # string, optional
         self.description = None  # string, optional
-        self.modified = None  # Date, optional
         self.isbn = None  # string, optional
         self.upc = None  # string, optional
         self.diamondCode = None  # string, optional
@@ -52,32 +38,18 @@ class ComicBook:
         #     'language': string, optional,
         #     'text': string, optional
         # }
-        self.resourceURI = None  # string, optional
-        self.urls = set()  # set of tuples (type, url)
-        self.seriesDetail = {}  # (seriesDetail[series_id] = {title: '', uri: ''})
         self.seriesId = None
-        self.variantDetail = {}  # (variantDetail[variant_id] = {title: '', uri: ''})
-        self.variantIds = set()  # {variant_ids} ...comics_has...
+        self.originalIssueId = None
         self.onSaleDate = None
         self.focDate = None
         self.unlimitedDate = None
         self.digitalPurchaseDate = None
         self.printPrice = None
         self.digitalPurchasePrice = None
-        self.thumbnail = None
-
-        self.image_paths = set()  # {image_paths} ... includes thumbnail path as well ...comics_has...
-        self.creatorIds = {}  # (creatorIds[creator_id] = [roles]}) ...comics_has...
-        self.characterIds = set()  # {character_ids} ...comics_has...
-        self.storyIds = set()  # {story_ids} ...comics_has...
-        self.eventIds = set()  # {event_ids} ...comics_has...
-
+        self.variantDetail = {}  # (variantDetail[variant_id] = {title: '', uri: ''})
         self.creatorDetail = {}  # (creatorDetail[creator_id] = {f_name: '', m_name: '', l_name: '', uri: ''})
+        self.creatorIds = {}  # (creatorIds[creator_id] = [roles]}) ...comics_has...
         self.characterDetail = {}  # (characterDetail[character_id] = {name: '', uri: ''})
-        self.storyDetail = {}  # (storyDetail[story_id] = {title: '', type: '', uri: ''})
-        self.eventDetail = {}  # (eventDetail[event_id] = {title: '', uri: ''})
-
-        self.originalIssueId = None
 
     ####################################################################################################################
     #
@@ -90,46 +62,53 @@ class ComicBook:
         Maps the json response to member class variables
         """
         if self.data:
-            self._save_id()
-            self._save_digitalId()
-            self._save_title()
-            self._save_issueNumber()
-            self._save_variantDescription()
+            # Unique to ComicBook() class
+            self._save_characters()
+            self._save_creators()
+            self._save_dates()
             self._save_description()
-            self._save_modified()
-            self._save_isbn()
-            self._save_upc()
             self._save_diamondCode()
+            self._save_digitalId()
             self._save_ean()
-            self._save_issn()
+            self._save_events()
             self._save_format()
+            self._save_images()
+            self._save_isbn()
+            self._save_issn()
+            self._save_issueNumber()
             self._save_pageCount()
+            self._save_prices()
+            self._save_series()
+            self._save_stories()
             self._save_textObjects()
+            self._save_title()
+            self._save_upc()
+            self._save_variantDescription()
+            self._save_variants()
+
+            # From Parent class
+            self._save_id()
+            self._save_modified()
             self._save_resourceURI()
             self._save_urls()
-            self._save_series()
-            self._save_variants()
-            self._save_dates()
-            self._save_prices()
-            self._save_images()
-            self._save_creators()
-            self._save_characters()
-            self._save_stories()
-            self._save_events()
+            self._save_thumbnail()
 
     def upload_new_records(self):
         """
         Uploads new records to the database before uploading the entire comic book with relevant foreign keys
         """
 
-        self._add_new_url()
-        self._add_new_series()
+        # Unique to ComicBook() class
         self._add_new_variant()
-        self._add_new_image()
         self._add_new_creator()
         self._add_new_character()
-        self._add_new_story()
+
+        # From parent class
         self._add_new_event()
+        self._add_new_image()
+        self._add_new_series()
+        self._add_new_story()
+        self._add_new_url()
 
     def upload_comic_book(self):
         """
@@ -155,7 +134,7 @@ class ComicBook:
                   self.pageCount, json.dumps(self.textObjects), self.resourceURI, comic_detailURL, comic_purchaseURL,
                   comic_readerURL, comic_inAppLinkURL, self.onSaleDate, self.focDate, self.unlimitedDate,
                   self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice, self.seriesId, self.thumbnail,
-                  self.originalIssueId)
+                  self.thumbnailExtension, self.originalIssueId)
 
         self.db.upload_new_comic_book(params)
 
@@ -195,10 +174,6 @@ class ComicBook:
                             'uri': character_resource_uri
                         }
 
-                    # characterIds will later be used to create Comics_has_Characters entity
-                    if character_id not in self.characterIds:
-                        self.characterIds.add(character_id)
-
     def _save_creators(self):
         """
         A resource list containing the creators associated with this comic.
@@ -234,13 +209,13 @@ class ComicBook:
         """
         for date in self.data['dates']:
             if date['type'] == "onsaleDate":
-                self.onSaleDate = datetime.datetime.strptime(date['date'], "%Y-%m-%dT%H:%M:%S%z")
+                self.onSaleDate = self.convert_to_SQL_date(date['date'])
             elif date['type'] == "focDate":
-                self.focDate = datetime.datetime.strptime(date['date'], "%Y-%m-%dT%H:%M:%S%z")
+                self.focDate = self.convert_to_SQL_date(date['date'])
             elif date['type'] == "unlimitedDate":
-                self.unlimitedDate = datetime.datetime.strptime(date['date'], "%Y-%m-%dT%H:%M:%S%z")
+                self.unlimitedDate = self.convert_to_SQL_date(date['date'])
             elif date['type'] == "digitalPurchaseDate":
-                self.digitalPurchaseDate = datetime.datetime.strptime(date['date'], "%Y-%m-%dT%H:%M:%S%z")
+                self.digitalPurchaseDate = self.convert_to_SQL_date(date['date'])
             else:
                 print(f"{date['type']} DATE TYPE NOT CATEGORIZED")
 
@@ -269,52 +244,23 @@ class ComicBook:
         """
         self.ean = str(self.data['ean'])
 
-    def _save_events(self):
-        """
-        A resource list containing the events in which this comic appears.
-        """
-
-        if self.data['events']['available'] > 0:
-            for event in self.data['events']['items']:
-                event_resource_uri = event['resourceURI']
-                event_title = event['name']
-                event_id = self.get_id_from_resourceURI(event_resource_uri)
-
-                if event_id != -1:
-                    if event_id not in self.eventDetail:
-                        self.eventDetail[event_id] = {
-                            'title': event_title,
-                            'uri': event_resource_uri
-                        }
-
-                    if event_id not in self.eventIds:
-                        self.eventIds.add(event_id)
-
     def _save_format(self):
         """
         The publication format of the comic e.g. comic, hardcover, trade paperback.
         """
         self.format = str(self.data['format'])
 
-    def _save_id(self):
-        """
-        The unique ID of the comic resource.
-        """
-        self.id = int(self.data['id'])
-
     def _save_images(self):
         """
         A list of promotional image_paths associated with this comic.
         """
 
-        self._save_thumbnail()
-
         for image in self.data['images']:
             image_path = image['path']
-            image_extension = image['extension']
-            full_path = image_path + '.' + image_extension
-            if full_path not in self.image_paths:
-                self.image_paths.add(full_path)
+            image_extension = '.' + image['extension']
+
+            if image_path not in self.image_paths:
+                self.image_paths.add((image_path, image_extension))
 
     def _save_isbn(self):
         """
@@ -333,13 +279,6 @@ class ComicBook:
         The number of the issue in the series (will generally be 0 for collection formats).
         """
         self.issueNumber = float(self.data['issueNumber'])
-
-    def _save_modified(self):
-        """
-        The date the resource was most recently modified.
-        """
-
-        self.modified = datetime.datetime.strptime(self.data['modified'], "%Y-%m-%dT%H:%M:%S%z")
 
     def _save_pageCount(self):
         """
@@ -360,12 +299,6 @@ class ComicBook:
             else:
                 print(f"{price['type']} PRICE TYPE NOT CATEGORIZED")
 
-    def _save_resourceURI(self):
-        """
-        The canonical URL identifier for this resource.
-        """
-        self.resourceURI = str(self.data['resourceURI'])
-
     def _save_series(self):
         """
         A summary representation of the series to which this comic belongs.
@@ -381,30 +314,6 @@ class ComicBook:
                     self.seriesDetail[series_id] = {'title': series_title, 'uri': series_uri}
 
             self.seriesId = series_id
-
-    def _save_stories(self):
-        """
-        A resource list containing the stories which appear in this comic.
-        """
-
-        if self.data['stories']['available'] > 0:
-            for story in self.data['stories']['items']:
-                story_resource_uri = story['resourceURI']
-                story_title = story['name']
-                story_type = story['type']
-                story_id = self.get_id_from_resourceURI(story_resource_uri)
-
-                if story_id != -1:
-                    # used for creating new db story record
-                    if story_id not in self.storyDetail:
-                        self.storyDetail[story_id] = {
-                            'title': story_title,
-                            'type': story_type,
-                            'uri': story_resource_uri,
-                            'originalIssue': self.id
-                        }
-                    if story_id not in self.storyIds:
-                        self.storyIds.add(story_id)
 
     def _save_textObjects(self):
         """
@@ -427,18 +336,6 @@ class ComicBook:
             else:
                 self.textObjects[textObjectType].append({'language': language, 'text': text})
 
-    def _save_thumbnail(self):
-        """
-        The representative image for this comic.
-        """
-        thumbnail_path = self.data['thumbnail']['path']
-        thumbnail_extension = self.data['thumbnail']['extension']
-
-        self.thumbnail = str(thumbnail_path + '.' + thumbnail_extension)
-
-        if self.thumbnail not in self.image_paths:
-            self.image_paths.add(self.thumbnail)
-
     def _save_title(self):
         """
         The canonical title of the comic.
@@ -450,13 +347,6 @@ class ComicBook:
         The UPC barcode number for the comic (generally only populated for periodical formats).
         """
         self.upc = str(self.data['upc'])
-
-    def _save_urls(self):
-        """
-        A set of public web-site URLs for the resource.
-        """
-        for url in self.data['urls']:
-            self.urls.add((url['type'], url['url']))
 
     def _save_variantDescription(self):
         """
@@ -484,10 +374,6 @@ class ComicBook:
                 if variant_id not in self.variantDetail and variant_id != self.id:
                     self.variantDetail[variant_id] = {'title': variant_title, 'uri': variant_uri, 'isVariant': True}
 
-                # used for creating comic_has_variants entity later
-                if variant_id not in self.variantIds and variant_id != self.id:
-                    self.variantIds.add(variant_id)
-
     ####################################################################################################################
     #
     #                                   ADD NEW RECORDS TO DATABASE
@@ -499,7 +385,7 @@ class ComicBook:
         Adds new character to comic_books.characters table if record does not exist
         """
 
-        for character in self.characterIds:
+        for character in self.characterDetail:
             character_id = character
             character_name = self.characterDetail[character_id]['name']
             character_resource_uri = self.characterDetail[character_id]['uri']
@@ -518,57 +404,6 @@ class ComicBook:
             resource_uri = self.creatorDetail[creator_id]['uri']
 
             self.db.upload_new_creator_record(creator_id, f_name, m_name, l_name, resource_uri)
-
-    def _add_new_event(self):
-        """
-        Adds a new event to the comic_books.events table if event record does not already exist
-        """
-        for event in self.eventDetail:
-            event_id = event
-            event_title = self.eventDetail[event_id]['title']
-            event_uri = self.eventDetail[event_id]['uri']
-
-            self.db.upload_new_record_by_table(EVENTS_TABLE_NAME, event_id, event_title, event_uri)
-
-    def _add_new_image(self):
-        """
-        Adds any image urls to the database that are not currently in the comic_books.Images table
-        """
-
-        for image in self.image_paths:
-            self.db.upload_new_image_record(image)
-
-    def _add_new_series(self):
-        """
-        Adds the series to the comic_books.series table if series record does not already exist.
-        """
-
-        series_id = self.seriesId
-        series_title = self.seriesDetail[series_id]['title']
-        series_uri = self.seriesDetail[series_id]['uri']
-
-        self.db.upload_new_record_by_table(SERIES_TABLE_NAME, series_id, series_title, series_uri)
-
-    def _add_new_story(self):
-        """
-        Creates and commits any new story records to comic_books.stories table
-        """
-
-        for story in self.storyDetail:
-            story_id = story
-            story_title = self.storyDetail[story_id]['title']
-            story_type = self.storyDetail[story_id]['type']
-            story_resource_uri = self.storyDetail[story_id]['uri']
-            original_issue = self.storyDetail[story_id]['originalIssue']
-
-            self.db.upload_new_story_record(story_id, story_title, story_resource_uri, story_type)
-
-    def _add_new_url(self):
-        """
-        Adds any new urls without an existing record to the comic_books.URLs table
-        """
-        for url_type, url_path in self.urls:
-            self.db.upload_new_url_record(url_type, url_path)
 
     def _add_new_variant(self):
         """
@@ -592,7 +427,7 @@ class ComicBook:
         """
         Upload new record in Comics_has_Characters table
         """
-        for characterId in self.characterIds:
+        for characterId in self.characterDetail:
             self.db.upload_new_comics_has_characters_record(int(self.id), int(characterId))
 
     def _comics_has_creators(self):
@@ -608,21 +443,21 @@ class ComicBook:
         """
         Upload new record in Comics_has_Events table
         """
-        for event in self.eventIds:
-            self.db.upload_new_comics_has_events_record(int(self.id), int(event))
+        for eventId in self.eventDetail:
+            self.db.upload_new_comics_has_events_record(int(self.id), int(eventId))
 
     def _comics_has_images(self):
         """
         Upload new record in Comics_has_Events table
         """
-        for image_path in self.image_paths:
+        for image_path, image_extension in self.image_paths:
             self.db.upload_new_comics_has_images_record(int(self.id), str(image_path))
 
     def _comics_has_stories(self):
         """
         Upload new record in Comics_has_Events table
         """
-        for story in self.storyIds:
+        for story in self.storyDetail:
             self.db.upload_new_comics_has_stories_record(int(self.id), int(story))
 
     def _comics_has_urls(self):
@@ -637,59 +472,5 @@ class ComicBook:
         Upload new record in Comics_has_Events table
         """
 
-        for variant_id in self.variantIds:
+        for variant_id in self.variantDetail:
             self.db.upload_new_comics_has_variants_record(int(self.id), int(variant_id))
-
-    ####################################################################################################################
-    #
-    #                                        UTILITIES
-    #
-    ####################################################################################################################
-    @staticmethod
-    def get_split_name(full_name: str) -> tuple[str, str, str]:
-        """
-        Takes a full name and splits it into first, middle, and last
-        :param full_name: full name as a string
-        :return: tuple of names (first, middle, last)
-        """
-
-        split_name = full_name.split()
-        total_names = len(split_name)
-
-        if total_names >= 3:
-            first_name = split_name[0]
-            last_name = split_name[-1]
-            middle_name = "".join(split_name[1:total_names - 1])
-
-        elif total_names == 2:
-            first_name = split_name[0]
-            middle_name = ""
-            last_name = split_name[-1]
-
-        elif total_names == 1:
-            first_name = split_name[0]
-            middle_name = ""
-            last_name = ""
-        else:
-            first_name = ""
-            middle_name = ""
-            last_name = ""
-
-        return first_name, middle_name, last_name
-
-    @staticmethod
-    def get_id_from_resourceURI(resource_uri: str) -> int:
-        """
-        Gets the resource id from a resource URI and returns it as an integer
-        :param resource_uri: full URI path of the resource
-        :return: int of resource id, or -1 if resource id not in expected location
-        """
-
-        split_arr = resource_uri.split('/')
-
-        if split_arr[-1].isnumeric():
-            return int(split_arr[-1])
-
-        # last index not what we expect
-        print(f'CANT FIND RESOURCE ID FROM {resource_uri} split into {split_arr}...')
-        return -1

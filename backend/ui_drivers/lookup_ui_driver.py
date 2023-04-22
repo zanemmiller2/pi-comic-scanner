@@ -21,36 +21,56 @@ class LookupUI:
         self.db = DB()  # DB object controller passed to Lookup class
         self.lookup = Lookup(self.db)  # lookup controller
 
-    ####################################################
+    ####################################################################################################################
+    #
     #               NAVIGATION MENU
-    ####################################################
+    #
+    ####################################################################################################################
 
     def start_menu(self):
         """
         Initial start up menu asks user if they want to get the barcodes from the database to lookup
         """
-        start_res = input("Would you like to begin looking up barcodes (y/n)? ")
+        start_res = input(
+            "Would you like to:\n"
+            "\t(1) Lookup barcodes\n"
+            "\t(2) Update Creators records\n"
+            "\t(3) Quit\n: "
+            )
 
-        if start_res == 'y' or start_res == 'Y':
-            self.lookup.get_barcodes_from_db()
-
-            if self.lookup.get_num_queued_barcodes() == 0:
-                print("NOTHING TO LOOKUP...GOODBYE")
-                self.exit_program()
-            else:
-                self.process_barcodes()
-
-        elif start_res == 'n' or start_res == 'N':
+        if start_res == '1':
+            self.lookup_comics_by_barcode()
+        elif start_res == '2':
+            self.lookup_creators()
+        elif start_res == '3':
             print("NOTHING FOR ME TO DO THEN...GOODBYE")
             self.exit_program()
-
         else:
             print("INVALID RESPONSE...RETURNING TO THE START MENU")
             self.start_menu()
 
-    def process_barcodes(self):
+    ####################################################################################################################
+    #
+    #               COMICS
+    #
+    ####################################################################################################################
+
+    def lookup_comics_by_barcode(self):
         """
-        Processes barcodes
+        Lookup barcodes from the available barcodes in the scanned_upc_codes db table
+        """
+
+        self.lookup.get_barcodes_from_db()
+
+        if self.lookup.get_num_queued_barcodes() == 0:
+            print("NOTHING TO LOOKUP...GOODBYE")
+            self.exit_program()
+        else:
+            self.process_comics()
+
+    def process_comics(self):
+        """
+        Processes comics
         """
         print("SUCCESSFULLY GOT BARCODES FROM scanned_upc_codes")
         self.lookup.print_queued_barcodes()
@@ -58,7 +78,7 @@ class LookupUI:
         # 1) Lookup each barcode and save as ComicBook Object
         print("Creating ComicBook() for each barcode")
         for barcode in self.lookup.queued_barcodes:
-            self.lookup.lookup_marvel_by_upc(barcode)
+            self.lookup.lookup_marvel_comic_by_upc(barcode)
 
         # 2) Upload each ComicBook() to database
         print("Uploading ComicBook()s to database")
@@ -71,9 +91,53 @@ class LookupUI:
         print("CLEANING UP COMMITTED COMICS FROM scanned_upc_codes")
         self.lookup.remove_committed_from_buffer_db()
 
-    ####################################################
-    #                   UTILITIES
-    ####################################################
+    ####################################################################################################################
+    #
+    #               CREATORS
+    #
+    ####################################################################################################################
+    def lookup_creators(self):
+        """
+        Updates the creator records that already exist in the database
+        """
+        self.lookup.get_stale_creators_from_db()
+
+        if self.lookup.get_num_stale_creators() == 0:
+            print("NOTHING TO LOOKUP...GOODBYE")
+            self.exit_program()
+        else:
+            self.process_creators()
+
+    def process_creators(self):
+        """
+        Processes Creators
+        """
+        print("SUCCESSFULLY GOT STALE CREATORS FROM Creators")
+
+        # 1) Lookup each barcode and save as ComicBook Object
+        print("Creating Creator() for each creatorid")
+        for creator in self.lookup.creators:
+            self.lookup.lookup_marvel_creator_by_id(creator)
+
+        # 2) Upload each ComicBook() to database
+        print("Uploading Creators()s to database")
+        for creator in self.lookup.creators:
+            if self.lookup.creators[creator] is not None:
+                self.lookup.update_complete_creator(creator)
+            else:
+                print(f"SELF.LOOKUP.CREATORS[{creator}] HAS NO Creator() OBJECT")
+
+        print("UPLOADED THE FOLLOWING COMIC BOOKS")
+        self.lookup.print_committed_barcodes()
+
+        print("CLEANING UP COMMITTED COMICS FROM scanned_upc_codes")
+        self.lookup.remove_committed_from_buffer_db()
+
+    ####################################################################################################################
+    #
+    #               UTILITIES
+    #
+    ####################################################################################################################
     def exit_program(self):
         """
         Prints exit message and quits

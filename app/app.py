@@ -10,7 +10,7 @@ from flask_mysqldb import MySQL
 from flask_navigation import Navigation
 
 import keys.db_credentials
-from Comic import Comic
+from app.models.Comic import Comic
 
 app = Flask(__name__)
 
@@ -39,29 +39,19 @@ nav.Bar(
 )
 
 
-def get_comics():
+def get_comics(comic_id: int = None):
     """ Gets list of all comics and their id, title, issue number, thumbnail """
     cursor = mysql.connection.cursor()
-    query = "SELECT * FROM Comics ORDER BY title;"
-    cursor.execute(query)
-    results = [Comic(item) for item in cursor]
 
-    return results
+    if comic_id is not None:
+        query = "SELECT * FROM Comics WHERE id=%s;"
+        params = (comic_id,)
+    else:
+        query = "SELECT * FROM Comics ORDER BY title;"
+        params = ()
 
-
-def get_comic_by_id(comic_id):
-    """
-    Querys the database and returns the comic by id
-    :param comic_id:
-    :return:
-    """
-    cursor = mysql.connection.cursor()
-    query = "SELECT * FROM Comics WHERE id=%s;"
-    params = (comic_id,)
     cursor.execute(query, params)
-    data = cursor.fetchall()[0]
-    comic = Comic(data)
-    print(comic.title)
+    return [Comic(item) for item in cursor]
 
 
 @app.route('/')
@@ -73,14 +63,14 @@ def index():
 @app.route('/comics', methods=['GET'])
 def comics():
     """ Browse a list of all comics currently in the database """
-    data = get_comics()
-    return render_template("comics.html", comics_data=data)
+    comics_data = get_comics()
+    return render_template("comics.html", comics_data=comics_data)
 
 
 @app.route('/view-comic/<int:comic_id>', methods=["GET"])
 def view_comic(comic_id):
     """ View individual comic by id """
-    get_comic_by_id(comic_id)
+    comic_data = get_comics(comic_id)[0]
     return redirect('/comics')
 
 

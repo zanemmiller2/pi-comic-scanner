@@ -2,59 +2,19 @@
 <html lang="en">
 <!-- Modified from starter code provided in exploration from bsg_app-->
 <head>
-    <title>Comics</title>
+    <title>Comic Detail</title>
     <link href=# rel="stylesheet" type="text/css"/>
 </head>
 
 <body>
-<h1>Comics</h1>
-{% extends "nav_bar.html" %}
+<h1>Comic Detail</h1>
+{% extends "base.html" %}
+
 {% block content %}
-
-    <div id="browse">
-        <table border="1" cellpadding="5" class="center">
-            <!-- Check that there is comics data data to  -->
-            {% if comics_data %}
-
-                <thead>
-                <tr>
-                    {% for col_name in comics_data[0].keys() %}
-                        <th scope="col"
-                            data-field="{{ col_name }}">
-                            {{ key }}
-                        </th>
-                    {% endfor %}
-                </tr>
-                </thead>
-
-                <tbody>
-                {% for item in comics_data %}
-                    <tr>
-                        <!-- Display thumbnail, id, title, issue_number-->
-                        {% for key in item.keys() %}
-                            {% if key != 'thumbnail' %}
-                                <td> {{ item[key] }}</td>
-                            {% elif key == 'thumbnail' and item[key] %}
-                                <td><img src="{{ item[key] }}" width="100"
-                                         height="153" alt="thumbnail"></td>
-                            {% else %}
-                                <td></td>
-                            {% endif %}
-                        {% endfor %}
-
-                        <!-- Buttons - View, edit, delete -->
-                        <td><a href="view-comic/{{ item['id'] }}">VIEW</a></td>
-                    </tr>
-
-
-                {% endfor %}
-                </tbody>
-
-            {% endif %}
-
-        </table>
-        <p></p>
+    <div>
     </div>
 {% endblock %}
+
 </body>
+
 </html>

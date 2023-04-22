@@ -6,8 +6,9 @@
 </head>
 
 <body>
+{% extends "base.html" %}
 <h1>Comics</h1>
-{% extends "nav_bar.html" %}
+
 {% block content %}
 
     <div id="browse">
@@ -30,11 +31,12 @@
                 the appropriate column -->
                 <tbody>
                 {% for comic in comics_data %}
+
                     <tr>
                         {% if comic['thumbnail'] %}
-                            <td><img class="thumbnail-small"
-                                     src="{{ comic['thumbnail'] }}"
-                                     alt="thumbnail"></td>
+                            <td><img
+                                    src="{{ comic['thumbnail'] + '/' + 'portrait_medium' + comic['thumbnailExtension'] }}"
+                                    alt="medium portrait thumbnail"></td>
                         {% else %}
                             <td></td>
                         {% endif %}
@@ -44,12 +46,17 @@
                         <td><a href="view-comic/{{ comic['id'] }}">VIEW</a>
                         </td>
                     </tr>
+
                 {% endfor %}
                 </tbody>
+
             {% endif %}
         </table>
+
     </div>
 
 {% endblock %}
+
 </body>
+
 </html>
