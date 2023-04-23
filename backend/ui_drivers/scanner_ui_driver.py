@@ -27,9 +27,11 @@ class ScannerUI:
         self.scanner = None  # Defined in ask_scan_mode (dependent on input method)
         self.db = DB()  # DB object will be passed to *Scanner class
 
+    '''
     ####################################################
     #               NAVIGATION MENU
     ####################################################
+    '''
     def get_menu_nav(self) -> int:
         """
         Asks the user which menu they would like to return to.
@@ -77,9 +79,11 @@ class ScannerUI:
             print("Invalid option...")
             return self.get_menu_nav()
 
+    '''
     ####################################################
     #               SCAN MENU
     ####################################################
+    '''
     def ask_scan_mode(self):
         """
         Asks the user what mode they would like to enter _barcodes
@@ -118,9 +122,11 @@ class ScannerUI:
         self.scanner.enter_marvel_barcodes()
         self.get_menu_nav()
 
+    '''
     ####################################################
     #               REVIEW MENU
     ####################################################
+    '''
     def ask_review(self):
         """
         Asks the user if they would like to review the _barcodes they scanned in
@@ -147,9 +153,11 @@ class ScannerUI:
             print("Nothing left to review...")
             self.exit_program()
 
+    '''
     ####################################################
     #               DB UPLOAD MENU
     ####################################################
+    '''
     def ask_db_upload(self):
         """
         Asks the user if they want to upload comics to database.
@@ -172,9 +180,11 @@ class ScannerUI:
             print("No _barcodes to upload.")
             self.get_menu_nav()
 
+    '''
     ####################################################
     #                   UTILITIES
     ####################################################
+    '''
     def exit_program(self):
         """
         Prints exit message and quits

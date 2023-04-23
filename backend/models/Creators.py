@@ -76,7 +76,7 @@ class Creator(Entity):
                   self.resourceURI, self.thumbnail, self.thumbnailExtension, self.firstName, self.middleName,
                   self.lastName, self.suffix, self.modified, self.resourceURI, self.thumbnail, self.thumbnailExtension)
 
-        self.db.update_new_creator(params)
+        self.db.upload_complete_creator(params)
 
     def upload_creator_has_relationships(self):
         """

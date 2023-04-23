@@ -17,7 +17,10 @@ class ComicBook(Entity):
     Comic in the database.
     """
 
-    def __init__(self, db_connection, response_data):
+    def __init__(
+            self, db_connection, response_data, isPurchasedDate: str = None, isPurchasedPrice: float = None,
+            isPurchasedType: str = None, isPurchased: bool = False
+            ):
         """ Represents a Comic book based on the marvel comic developer api json response model """
         super().__init__(db_connection, response_data)
         self.count = None  # int, optional
@@ -51,11 +54,18 @@ class ComicBook(Entity):
         self.creatorIds = {}  # (creatorIds[creator_id] = [roles]}) ...comics_has...
         self.characterDetail = {}  # (characterDetail[character_id] = {name: '', uri: ''})
 
+        self.isPurchased = isPurchased
+        self.isPurchasedDate = self.convert_to_SQL_date(isPurchasedDate)
+        self.isPurchasedPrice = isPurchasedPrice
+        self.isPurchasedType = isPurchasedType.title()
+
+    '''
     ####################################################################################################################
     #
     #                                   MAIN CONTROL FLOW FUNCTIONS
     #
     ####################################################################################################################
+    '''
 
     def save_properties(self):
         """
@@ -97,7 +107,6 @@ class ComicBook(Entity):
         """
         Uploads new records to the database before uploading the entire comic book with relevant foreign keys
         """
-
         # Unique to ComicBook() class
         self._add_new_variant()
         self._add_new_creator()
@@ -136,7 +145,7 @@ class ComicBook(Entity):
                   self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice, self.seriesId, self.thumbnail,
                   self.thumbnailExtension, self.originalIssueId)
 
-        self.db.upload_new_comic_book(params)
+        self.db.upload_complete_comic_book(params)
 
     def upload_comics_has_relationships(self):
         """
@@ -150,11 +159,23 @@ class ComicBook(Entity):
         self._comics_has_urls()
         self._comics_has_variants()
 
+        if self.isPurchased is True:
+            self._upload_purchasedComic()
+
+    def _upload_purchasedComic(self):
+        """ Uploads a purchased comic to the PurchasedComics table """
+
+        params = (self.id, self.isPurchasedDate, self.isPurchasedPrice, self.isPurchasedType, self.isPurchasedDate,
+                  self.isPurchasedPrice, self.isPurchasedType)
+        self.db.upload_complete_purchased_comic(params)
+
+    '''
     ####################################################################################################################
     #
     #          ADD NEW JSON RESPONSE DATA TO CLASS VARIABLES
     #
     ####################################################################################################################
+    '''
 
     def _save_characters(self):
         """

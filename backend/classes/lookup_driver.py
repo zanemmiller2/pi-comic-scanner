@@ -20,6 +20,7 @@ CREATORS_URL = "https://gateway.marvel.com/v1/public/creators"
 EVENTS_URL = "https://gateway.marvel.com/v1/public/events"
 SERIES_URL = "https://gateway.marvel.com/v1/public/series"
 STORIES_URL = "https://gateway.marvel.com/v1/public/stories"
+MARVEL_YYYY_MM_DD_SUFFIX = "T00:00:00-0400"
 
 
 class Lookup:
@@ -36,12 +37,17 @@ class Lookup:
         self.comic_books = {}  # (comic_books[barcode] = {cb: ComicBook(), prefix: ''})
         self.creators = {}  # (creators[creatorId] = Creator())
         self.db = lookup_db
+        self.LOOKUP_DEBUG = True
+        self.marvel_comic_data = None
 
+    '''
     ####################################################################################################################
     #
     #                                           HTTPS INTERACTIONS
     #
     ####################################################################################################################
+    '''
+
     def lookup_marvel_comic_by_upc(self, barcode: str):
         """
         Sends the http request to /comics&upc= endpoint and store response as comic_books object
@@ -56,16 +62,16 @@ class Lookup:
                 'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str, 'upc': barcode
             }
             request = requests.get(COMICS_URL, PARAMS)
-            data = request.json()
+            self.marvel_comic_data = request.json()
 
-            if data['data']['count'] == 0:
-                print(f"No comics found with {barcode} upc")
-            elif data['data']['count'] > 1:
-                print("TOO MANY COMIC BOOKS FOUND...")
+            if self.marvel_comic_data['data']['count'] == 0:
+                print(f"No comics found with {barcode} upc") if self.LOOKUP_DEBUG else 0
+            elif self.marvel_comic_data['data']['count'] > 1:
+                print("TOO MANY COMIC BOOKS FOUND...") if self.LOOKUP_DEBUG else 0
             else:
-                self._make_comic_book_object(data['data']['results'][0], barcode)
+                self._make_comic_book_object(barcode)
         else:
-            print("BARCODE HAS ALREADY BEEN LOOKED UP...WAITING TO BE COMMITTED")
+            print("BARCODE HAS ALREADY BEEN LOOKED UP...WAITING TO BE COMMITTED") if self.LOOKUP_DEBUG else 0
 
     def lookup_marvel_creator_by_id(self, creator_id: int):
         """
@@ -83,27 +89,76 @@ class Lookup:
             data = request.json()
 
             if data['data']['count'] == 0:
-                print(f"No Creator found with {creator_id} creator id")
+                print(f"No Creator found with {creator_id} creator id") if self.LOOKUP_DEBUG else 0
             elif data['data']['count'] > 1:
-                print("TOO MANY CREATORS FOUND...")
+                print("TOO MANY CREATORS FOUND...") if self.LOOKUP_DEBUG else 0
             else:
                 self._make_creator_object(data['data']['results'][0], creator_id)
 
+    '''
     ####################################################################################################################
     #
     #                                       OBJECT INTERACTIONS
     #
     ####################################################################################################################
+    '''
 
-    def _make_comic_book_object(self, marvel_comic_data, barcode):
+    def get_purchased_details(self) -> tuple[str, float, str]:
+        """ Gets the purchase details from the user """
+
+        purchasedDate = None
+        purchasedPrice = None
+
+        # Purchased type
+        purchasedType_res = input("Purchase Format:\n(1) Print\n(2) Digital\n> ")
+        if purchasedType_res == '1' or purchasedType_res == '2':
+            if purchasedType_res == '1':
+                purchasedType = "Comic"
+                dateType = 'onsaleDate'
+                priceType = 'printPrice'
+            else:
+                purchasedType = "Digital"
+                dateType = 'digitalPurchaseDate'
+                priceType = 'digitalPurchasePrice'
+
+            # Purchased Date
+            for date in self.marvel_comic_data['data']['results']['dates']:
+                if date['type'] == dateType:
+                    purchasedDate = date['date']
+                    break
+            purchasedDate_res = input(f"Purchased Date:\n(1) {purchasedDate}\n(2) Enter different date?\n> ")
+            if purchasedDate_res == '2':
+                purchasedDate = input("Enter a different date in YYYY-MM-DD format: ")
+                purchasedDate = purchasedDate + MARVEL_YYYY_MM_DD_SUFFIX
+
+            # Purchased Price
+            for price in self.marvel_comic_data['data']['results']['prices']:
+                if price['type'] == priceType:
+                    purchasedPrice = price['price']
+                    break
+            purchasedPrice_res = input(f"Purchased Price:\n(1) {purchasedPrice}\n(2) Enter different price?\n> ")
+            if purchasedPrice_res == '2':
+                purchasedPrice = float(input("Enter a purchase price: "))
+
+        else:
+            print("INVALID RESPONSE: TRY AGAIN...") if self.LOOKUP_DEBUG else 0
+            return self.get_purchased_details()
+
+        return purchasedDate, purchasedPrice, purchasedType
+
+    def _make_comic_book_object(self, barcode):
         """
         Create a ComicBook() object with the api response data and the barcode
-        :param marvel_comic_data: json response from the marvel lookup api
         :param barcode: the barcode key
         """
+        purchasedDate, purchasedPrice, purchasedType, isPurchased = None, None, None, False
+        isPurchased_res = input("Did you purchase this comic:\n(y/n) > ")
+        if isPurchased_res == 'y' or isPurchased_res == 'Y':
+            purchasedDate, purchasedPrice, purchasedType = self.get_purchased_details()
+            isPurchased = True
 
         # establish a connection with the ComicBook object Pass database control to the comic book object
-        cb = ComicBook(self.db, marvel_comic_data)
+        cb = ComicBook(self.db, self.marvel_comic_data, purchasedDate, purchasedPrice, purchasedType, isPurchased)
 
         # Saves the comic book objects to its member variables
         cb.save_properties()
@@ -149,7 +204,7 @@ class Lookup:
             }
 
         else:
-            print("BARCODE ALREADY COMMITTED TO DATABASE...")
+            print("BARCODE ALREADY COMMITTED TO DATABASE...") if self.LOOKUP_DEBUG else 0
 
     def _make_creator_object(self, marvel_creator_data, creator_id: int):
         """
@@ -189,13 +244,16 @@ class Lookup:
             self.creators[creator_id].upload_creator_has_relationships()
 
         else:
-            print(f"INVALID CREATOR ID {creator_id}...")
+            print(f"INVALID CREATOR ID {creator_id}...") if self.LOOKUP_DEBUG else 0
 
+    '''
     ####################################################################################################################
     #
     #                                         DATABASE INTERACTIONS
     #
     ####################################################################################################################
+    '''
+
     def get_barcodes_from_db(self):
         """
         Queries the database for any queued_barcodes in the scanned_upc_codes table.
@@ -219,7 +277,7 @@ class Lookup:
 
             # duplicate with same date
             else:
-                print("Duplicate barcode found but dates not conflicting...")
+                print("Duplicate barcode found but dates not conflicting...") if self.LOOKUP_DEBUG else 0
 
     def get_stale_creators_from_db(self):
         """
@@ -236,7 +294,7 @@ class Lookup:
                 self.creators[creator_id] = None
             # duplicate with same date
             else:
-                print("DUPLICATE CREATOR FOUND...")
+                print("DUPLICATE CREATOR FOUND...") if self.LOOKUP_DEBUG else 0
 
     def remove_committed_from_buffer_db(self):
         """
@@ -249,11 +307,14 @@ class Lookup:
 
         self.committed_barcodes = {}
 
+    '''
     ####################################################################################################################
     #
     #                                       GETTERS AND SETTERS
     #
     ####################################################################################################################
+    '''
+
     def get_num_queued_barcodes(self) -> int:
         """
         Gets the number of barcodes ready for api lookup.
@@ -312,11 +373,14 @@ class Lookup:
             print(f"({i})\t{committed_barcode}")
             i += 1
 
+    '''
     ####################################################################################################################
     #
     #                                               UTILITIES
     #
     ####################################################################################################################
+    '''
+
     @staticmethod
     def _get_marvel_api_hash():
         """
@@ -365,18 +429,19 @@ class Lookup:
         """
 
         if self.get_num_queued_barcodes() > 0:
-            quit_res = input("YOU STILL HAVE BARCODES IN THE QUEUE...ARE YOU SURE YOU WANT TO QUIT (y/n)?: ")
+            quit_res = input("YOU STILL HAVE BARCODES IN THE QUEUE...ARE YOU SURE YOU WANT TO QUIT (y/n)?: ") \
+                if self.LOOKUP_DEBUG else 0
 
             if quit_res == 'y' or quit_res == 'Y':
-                print("Cleaning up committed barcodes...")
+                print("Cleaning up committed barcodes...") if self.LOOKUP_DEBUG else 0
                 self.remove_committed_from_buffer_db()
-                print("QUITTING LOOKUP PROGRAM...")
+                print("QUITTING LOOKUP PROGRAM...") if self.LOOKUP_DEBUG else 0
                 exit(1)
             else:
                 return
 
         else:
-            print("Cleanining up committed barcodes...")
+            print("Cleanining up committed barcodes...") if self.LOOKUP_DEBUG else 0
             self.remove_committed_from_buffer_db()
-            print("QUITTING LOOKUP PROGRAM...")
+            print("QUITTING LOOKUP PROGRAM...") if self.LOOKUP_DEBUG else 0
             exit(1)

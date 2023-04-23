@@ -36,11 +36,13 @@ class DB:
         self._connection = self._connect_to_database()
         self.cursor = self._connection.cursor(MySQLdb.cursors.DictCursor)
 
+    '''
     ####################################################################################################################
     #
     #                                       GET FROM DATABASE
     #
     ####################################################################################################################
+    '''
     def get_upcs_from_buffer(self):
         """
         Selects all entries from scanned_upc_codes from comic_books database
@@ -85,11 +87,18 @@ class DB:
 
         return self.cursor.fetchall()
 
+    '''
     ####################################################################################################################
     #
     #                                       UPLOAD TO DATABASE
     #
     ####################################################################################################################
+    '''
+
+    ################################################################
+    #  Complete Entities
+    ################################################################
+
     def upload_upc_to_buffer(self, params: tuple[str, str]):
         """
         Uploads a tuple of strings (upc and YYYY-MM-DD) to the scanned_upc_codes table in the comic_books database
@@ -107,7 +116,7 @@ class DB:
             print(f"UPC {params[0]} NOT UPLOADED TO BUFFER")
             self._connection.rollback()
 
-    def upload_new_comic_book(self, params: tuple):
+    def upload_complete_comic_book(self, params: tuple):
         """
         Inserts a new comic book record in the comic_books.comics table
         :param params: a tuple of comic book column values
@@ -129,7 +138,7 @@ class DB:
             print(f"COMIC {params[0]} : {params[2]} NOT UPLOADED TO Comics TABLE")
             self._connection.rollback()
 
-    def update_new_creator(self, params: tuple):
+    def upload_complete_creator(self, params: tuple):
         """
         Updates/Inserts a Creator in the comic_books.creators table
         :param params: a tuple of creator column values
@@ -150,6 +159,30 @@ class DB:
         except InvalidCursorExecute:
             print(f"CREATOR {params[0]} : {params[2]} NOT UPLOADED TO Comics TABLE")
             self._connection.rollback()
+
+    def upload_complete_purchased_comic(self, params: tuple):
+        """
+        Uploads a complete record to the PurchasedComics Table
+        """
+        query = f"INSERT INTO PurchasedComics " \
+                f"(comicId, purchaseDate, purchasePrice, purchaseType) " \
+                f"VALUES " \
+                f"(%s, %s, %s, %s) " \
+                f"ON DUPLICATE KEY UPDATE " \
+                f"purchasedDate = COALESCE (VALUES(purchasedDate), %s)," \
+                f"purchasePrice = COALESCE (VALUES(purchasePrice), %s)," \
+                f"purchaseType = COALESCE (VALUES(purchaseType), %s);"
+        try:
+            print("Executing %s with %s" % (query, params))
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except InvalidCursorExecute:
+            print(f"PURCHASED COMIC {params[0]} NOT UPLOADED TO PurchasedComics TABLE")
+            self._connection.rollback()
+
+    ################################################################
+    #  Foreign Key Dependencies -- partial records
+    ################################################################
 
     def upload_new_image_record(self, image_path: str, image_extension: str):
         """
@@ -326,11 +359,13 @@ class DB:
             print(f"NEW RECORD {entity_id} : {entity_title} NOT UPLOADED TO {table_name} TABLE")
             self._connection.rollback()
 
+    '''
     ####################################################################################################################
     #
     #                                       ADD NEW ENTITY_HAS_RELATIONSHIPS
     #
     ####################################################################################################################
+    '''
 
     ################################################################
     #  COMICS_has
@@ -570,11 +605,13 @@ class DB:
             )
             self._connection.rollback()
 
+    '''
     ####################################################################################################################
     #
     #                                           DELETE RECORDS
     #
     ####################################################################################################################
+    '''
     def delete_from_scanned_upc_codes_table(self, upc_code: str):
         """
         Deletes records from the scanned_upc_codes table based on the upc_code provided.
@@ -592,11 +629,13 @@ class DB:
             print(f"DELETE {upc_code} NOT DELETED FROM scanned_upc_codes TABLE")
             self._connection.rollback()
 
+    '''
     ####################################################################################################################
     #
     #                                       DATABASE MANAGEMENT
     #
     ####################################################################################################################
+    '''
 
     def close_cursor(self):
         """

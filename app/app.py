@@ -5,12 +5,12 @@ Date: 04/20/2023
 Description: Frontend driver for web ui
 """
 
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template
 from flask_mysqldb import MySQL
 from flask_navigation import Navigation
 
 import keys.db_credentials
-from app.models.Comic import Comic
+from models.Comic import Comic
 
 app = Flask(__name__)
 
@@ -44,10 +44,10 @@ def get_comics(comic_id: int = None):
     cursor = mysql.connection.cursor()
 
     if comic_id is not None:
-        query = "SELECT * FROM Comics WHERE id=%s;"
+        query = "SELECT * FROM Comics WHERE id=%s AND modified IS NOT NULL;"
         params = (comic_id,)
     else:
-        query = "SELECT * FROM Comics ORDER BY title;"
+        query = "SELECT * FROM Comics WHERE modified is NOT NULL ORDER BY title;"
         params = ()
 
     cursor.execute(query, params)
@@ -71,7 +71,7 @@ def comics():
 def view_comic(comic_id):
     """ View individual comic by id """
     comic_data = get_comics(comic_id)[0]
-    return redirect('/comics')
+    return render_template("comic_detail.html", comic_data=comic_data)
 
 
 if __name__ == '__main__':
