@@ -19,6 +19,7 @@ article, aside, figcaption, figure, footer, header, hgroup, main, nav, section {
 
 img {
     vertical-align: middle;
+    horiz-align: center;
     border-style: none;
 }
 
@@ -177,7 +178,7 @@ ul ol {
     background-color: #fff;
     background-clip: border-box;
     border: 1px solid rgba(0, 0, 0, 0.125);
-    border-radius: 0.25rem;
+    border-radius: 0.25em;
 }
 
 .list-group {
@@ -191,13 +192,13 @@ ul ol {
 
 .table {
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 1em;
     color: #212529;
 }
 
 .table th,
 .table td {
-    padding: 0.75rem;
+    padding: 0.75em;
     vertical-align: top;
     border-top: 1px solid #dee2e6;
 }
@@ -225,24 +226,31 @@ ul ol {
 
 ---------------------------------------------------------------------------- */
 .comic-header-row {
-    display: -ms-flexbox;
     display: flex;
-    -ms-flex-wrap: nowrap;
     flex-wrap: nowrap;
     margin-right: -5px;
     margin-left: -5px;
-    min-width: 1600px;
-    width: 100%;
+    min-width: 1800px;
+    flex: 1 1 100%;
     height: 100%;
+    border: 10px solid black;
 }
 
 .comic-thumbnail-column {
     max-width: 100%;
     max-height: 100%;
+    border: 5px solid aqua;
+
 }
 
-.comic-thumbnail-responsive {
-    padding: 5px;
+img.comic-thumbnail-responsive {
+    max-width: 600px;
+    max-height: 900px;
+    border: 5px solid red;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /* ----------------------------------------------------------------------------
@@ -252,10 +260,14 @@ ul ol {
 ---------------------------------------------------------------------------- */
 .comic-details1 {
     position: relative;
-    padding-right: 5px;
-    padding-left: 5px;
-    -ms-flex: 1 1 50%;
     flex: 1 1 50%;
+    border: 5px solid orange;
+    min-height: 100%;
+}
+
+.comic-details1 > div {
+    border: 5px solid yellow;
+    display: flex;
     align-items: center;
 }
 
@@ -269,21 +281,20 @@ ul ol {
     color: #000000;
     font-weight: bolder;
     margin: 10px;
+    text-align: center;
+    border: 5px solid purple;
+
 }
 
 .comic-detail-basic {
-    display: -ms-flexbox;
     display: flex;
-    -ms-flex-wrap: wrap;
     flex-wrap: wrap;
     flex-direction: column;
     height: 10%;
-    -ms-flex: 1 1 33.333333%;
-    flex: 1 1 33.333333%;
 }
 
 .comic-detail-basic-text {
-    font-size: min(calc(1vw + 1vh + 1vmin), 1.5rem);
+    font-size: max(calc(.6vw + .6vh + .6vmin), 1.2em);
 }
 
 /* ----------------------------------------------------------------------------
@@ -292,27 +303,26 @@ ul ol {
 
 ---------------------------------------------------------------------------- */
 .comic-print-digital-detail {
-    display: -ms-flexbox;
     display: flex;
-    -ms-flex-wrap: nowrap;
     flex-wrap: nowrap;
-    max-height: 60%;
-    width: auto;
+    height: 55%;
+    flex: 1 1 100%;
 }
 
 .comic-print-detail-card {
     margin: 0;
-    width: 100%;
+    flex: 1 1 100%;
     flex-direction: column;
     word-wrap: break-word;
     background-color: #fff;
     background-clip: border-box;
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    border-radius: 0.25rem;
+    border: 5px solid rgba(100, 0, 0, 100);
+    border-radius: 0.25em;
 }
 
 .comic-print-detail-card-text {
     font-size: min(calc(.75vw + .75vh + .75vmin), 20px);
+    border: 5px solid blueviolet;
 }
 
 /* ----------------------------------------------------------------------------
@@ -322,20 +332,19 @@ ul ol {
 ---------------------------------------------------------------------------- */
 .comic-details2 {
     position: relative;
-    width: auto;
-    -ms-flex: 1 1 30%;
     flex: 1 1 30%;
+    border: 5px solid brown;
 }
 
 .issue-number-box {
     position: relative;
-    width: 35%;
+    width: 30%;
     height: 0;
-    padding-bottom: 35%;
+    padding-bottom: 30%;
     background-color: #fff;
     background-clip: border-box;
-    border: 10px solid black;
-    border-radius: 0.25rem;
+    border: 10px solid deeppink;
+    border-radius: 0.25em;
 }
 
 .issue-number-box-text {
@@ -344,30 +353,45 @@ ul ol {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 4em;
+    font-size: calc(1.1em + 1.1em + 1.1em);
     font-weight: bolder;
     inline-size: max-content;
+    border: 5px solid lawngreen;
 }
 
 .comic-description {
     flex-wrap: wrap;
     flex: 1 1 100%;
-
+    border: 5px solid mediumseagreen;
 }
 
 .comic-description-text {
-    font-size: max(calc(.75vw + .75vh + .75vmin), 1.7rem);
+    font-size: max(calc(.7vw + .7vh + .7vmin), 1.5em);
     text-align: justify;
-    line-height: max(calc(.9vw + .9vh + .9vmin), 2rem);
+    line-height: max(calc(.9vw + .9vh + .9vmin), 2em);
+    border: 5px solid mediumseagreen;
+
 }
 
 .comic-number-descriptors {
     padding-top: 5px;
     padding-bottom: 5px;
-    text-align: center;
+    text-align: justify-all;
+    border: 5px solid fuchsia;
 }
 
-.comic-numbers {
+table.comic-number-descriptors {
+    border-spacing: 40px 15px;
+    display: flex;
+    flex-wrap: nowrap;
+    flex: 1 1 100%;
+    border: 5px solid fuchsia;
+
+}
+
+.comic-numbers-text {
+    font-size: min(calc(.6vw + .6vh + .6vmin), 1.7em);
+
 }
 
 
@@ -377,19 +401,18 @@ ul ol {
 
 ---------------------------------------------------------------------------- */
 .comic-series-stories-row {
-    width: 100%;
+    flex: 1 1 100%;
 }
 
 .series-story-col {
-    width: 33%;
+   flex: 1 1 30%;
 }
 
 .comic-series-story-card {
+    flex: 1 1 100%;
 }
 
 .series-story-thumbnail {
-    max-width: 100px;
-    max-height: 150px;
     min-width: 100px;
     min-height: 150px;
     text-align: justify;
@@ -421,25 +444,30 @@ ul ol {
 .characters-gallery {
     display: flex;
     flex-wrap: nowrap;
+    flex: 1 1 100%;
 }
 
 .gallery-card-col {
     padding: 0;
     margin: 0;
-    min-width: 20%;
-    text-align: justify;
+    flex: 1 1 20%;
+    text-align: left;
 }
 
 .events-gallery {
+    flex: 1 1 100%;
 }
 
 .creators-gallery {
+    flex: 1 1 100%;
 }
 
 .variants-gallery {
+    flex: 1 1 100%;
 }
 
 .images-gallery {
+    flex: 1 1 100%;
 }
 
 

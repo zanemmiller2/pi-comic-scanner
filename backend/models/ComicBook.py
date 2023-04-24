@@ -20,7 +20,7 @@ class ComicBook(Entity):
     def __init__(
             self, db_connection, response_data, isPurchasedDate: str = None, isPurchasedPrice: float = None,
             isPurchasedType: str = None, isPurchased: bool = False
-            ):
+    ):
         """ Represents a Comic book based on the marvel comic developer api json response model """
         super().__init__(db_connection, response_data)
         self.count = None  # int, optional
@@ -28,7 +28,6 @@ class ComicBook(Entity):
         self.title = None  # string, optional
         self.issueNumber = None  # double, optional
         self.variantDescription = None  # string, optional
-        self.description = None  # string, optional
         self.isbn = None  # string, optional
         self.upc = None  # string, optional
         self.diamondCode = None  # string, optional
@@ -50,22 +49,17 @@ class ComicBook(Entity):
         self.printPrice = None
         self.digitalPurchasePrice = None
         self.variantDetail = {}  # (variantDetail[variant_id] = {title: '', uri: ''})
-        self.creatorDetail = {}  # (creatorDetail[creator_id] = {f_name: '', m_name: '', l_name: '', uri: ''})
-        self.creatorIds = {}  # (creatorIds[creator_id] = [roles]}) ...comics_has...
-        self.characterDetail = {}  # (characterDetail[character_id] = {name: '', uri: ''})
 
         self.isPurchased = isPurchased
         self.isPurchasedDate = self.convert_to_SQL_date(isPurchasedDate)
         self.isPurchasedPrice = isPurchasedPrice
         self.isPurchasedType = isPurchasedType.title()
 
-    '''
     ####################################################################################################################
     #
     #                                   MAIN CONTROL FLOW FUNCTIONS
     #
     ####################################################################################################################
-    '''
 
     def save_properties(self):
         """
@@ -73,14 +67,10 @@ class ComicBook(Entity):
         """
         if self.data:
             # Unique to ComicBook() class
-            self._save_characters()
-            self._save_creators()
             self._save_dates()
-            self._save_description()
             self._save_diamondCode()
             self._save_digitalId()
             self._save_ean()
-            self._save_events()
             self._save_format()
             self._save_images()
             self._save_isbn()
@@ -88,20 +78,24 @@ class ComicBook(Entity):
             self._save_issueNumber()
             self._save_pageCount()
             self._save_prices()
-            self._save_series()
-            self._save_stories()
             self._save_textObjects()
-            self._save_title()
             self._save_upc()
             self._save_variantDescription()
             self._save_variants()
 
             # From Parent class
+            self._save_characters()
+            self._save_creators()
+            self._save_description()
+            self._save_events()
             self._save_id()
             self._save_modified()
             self._save_resourceURI()
-            self._save_urls()
+            self._save_series()
+            self._save_stories()
             self._save_thumbnail()
+            self._save_title()
+            self._save_urls()
 
     def upload_new_records(self):
         """
@@ -109,10 +103,10 @@ class ComicBook(Entity):
         """
         # Unique to ComicBook() class
         self._add_new_variant()
-        self._add_new_creator()
-        self._add_new_character()
 
         # From parent class
+        self._add_new_creator()
+        self._add_new_character()
         self._add_new_event()
         self._add_new_image()
         self._add_new_series()
@@ -169,60 +163,11 @@ class ComicBook(Entity):
                   self.isPurchasedPrice, self.isPurchasedType)
         self.db.upload_complete_purchased_comic(params)
 
-    '''
-    ####################################################################################################################
+####################################################################################################################
     #
     #          ADD NEW JSON RESPONSE DATA TO CLASS VARIABLES
     #
     ####################################################################################################################
-    '''
-
-    def _save_characters(self):
-        """
-        A resource list containing the characters which appear in this comic.
-        """
-        if self.data['characters']['available'] > 0:
-            for character in self.data['characters']['items']:
-                character_resource_uri = character['resourceURI']
-                character_name = character['name']
-                character_id = self.get_id_from_resourceURI(character_resource_uri)
-
-                if character_id != -1:
-                    # Save to dict for creating new character record
-                    if character_id not in self.characterDetail:
-                        self.characterDetail[character_id] = {
-                            'name': character_name,
-                            'uri': character_resource_uri
-                        }
-
-    def _save_creators(self):
-        """
-        A resource list containing the creators associated with this comic.
-        """
-        if self.data['creators']['available'] > 0:
-            for creator in self.data['creators']['items']:
-                creator_resource_uri = creator['resourceURI']
-                creator_name = creator['name']
-                creator_role = creator['role']
-                creator_id = self.get_id_from_resourceURI(creator_resource_uri)
-                creator_first_name, creator_middle_name, creator_last_name = self.get_split_name(creator_name)
-
-                if creator_id != -1:
-
-                    # save it to the detail dictionary for creating new db record
-                    if creator_id not in self.creatorDetail:
-                        self.creatorDetail[creator_id] = {
-                            'first_name': creator_first_name,
-                            'middle_name': creator_middle_name,
-                            'last_name': creator_last_name,
-                            'uri': creator_resource_uri
-                        }
-
-                    # save to creatorIds dictionary with role for Comics_has_Creators entity
-                    if creator_id not in self.creatorIds:
-                        self.creatorIds[creator_id] = [creator_role]
-                    else:
-                        self.creatorIds[creator_id].append(creator_role)
 
     def _save_dates(self):
         """
@@ -239,12 +184,6 @@ class ComicBook(Entity):
                 self.digitalPurchaseDate = self.convert_to_SQL_date(date['date'])
             else:
                 print(f"{date['type']} DATE TYPE NOT CATEGORIZED")
-
-    def _save_description(self):
-        """
-        The preferred description of the comic.
-        """
-        self.description = str(self.data['description'])
 
     def _save_diamondCode(self):
         """
@@ -320,22 +259,6 @@ class ComicBook(Entity):
             else:
                 print(f"{price['type']} PRICE TYPE NOT CATEGORIZED")
 
-    def _save_series(self):
-        """
-        A summary representation of the series to which this comic belongs.
-        """
-
-        if self.data['series']:
-            series_uri = self.data['series']['resourceURI']
-            series_title = self.data['series']['name']
-            series_id = self.get_id_from_resourceURI(series_uri)
-
-            if series_id != -1:
-                if series_id not in self.seriesDetail:
-                    self.seriesDetail[series_id] = {'title': series_title, 'uri': series_uri}
-
-            self.seriesId = series_id
-
     def _save_textObjects(self):
         """
         A set of descriptive text blurbs for the comic.
@@ -356,12 +279,6 @@ class ComicBook(Entity):
                 self.textObjects[textObjectType] = [{'language': language, 'text': text}]
             else:
                 self.textObjects[textObjectType].append({'language': language, 'text': text})
-
-    def _save_title(self):
-        """
-        The canonical title of the comic.
-        """
-        self.title = str(self.data['title'])
 
     def _save_upc(self):
         """
@@ -401,31 +318,6 @@ class ComicBook(Entity):
     #
     ####################################################################################################################
 
-    def _add_new_character(self):
-        """
-        Adds new character to comic_books.characters table if record does not exist
-        """
-
-        for character in self.characterDetail:
-            character_id = character
-            character_name = self.characterDetail[character_id]['name']
-            character_resource_uri = self.characterDetail[character_id]['uri']
-
-            self.db.upload_new_character_record(character_id, character_name, character_resource_uri)
-
-    def _add_new_creator(self):
-        """
-        Adds new creator records to comic_books.creators with resourceURI, id, and first, middle and last names
-        """
-        for creator in self.creatorDetail:
-            creator_id = creator
-            f_name = self.creatorDetail[creator_id]['first_name']
-            m_name = self.creatorDetail[creator_id]['middle_name']
-            l_name = self.creatorDetail[creator_id]['last_name']
-            resource_uri = self.creatorDetail[creator_id]['uri']
-
-            self.db.upload_new_creator_record(creator_id, f_name, m_name, l_name, resource_uri)
-
     def _add_new_variant(self):
         """
         Uploads any variant comic records that do not already exist in the comic_books.comics table
@@ -455,9 +347,9 @@ class ComicBook(Entity):
         """
         Upload new record in Comics_has_Creators table
         """
-        for creator in self.creatorIds:
+        for creator in self.creatorsRoles:
             creator_id = creator
-            for role in self.creatorIds[creator_id]:
+            for role in self.creatorsRoles[creator_id]:
                 self.db.upload_new_comics_has_creators_record(int(self.id), int(creator_id), str(role))
 
     def _comics_has_events(self):

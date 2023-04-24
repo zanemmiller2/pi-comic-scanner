@@ -55,8 +55,8 @@
 
                 <!-- COL2, ROW 3 - PRINT AND DIGITAL DETAILS -->
                 <div class="comic-print-digital-detail">
-                    <div class="comic-print-detail-card comic-print-detail-card-text">
-                        <div>
+                    <div class="comic-print-detail-card">
+                        <div class="comic-print-detail-card-text">
                             <div class="card-header">
                                 <strong>Print Details</strong>
                             </div>
@@ -90,7 +90,7 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="comic-print-detail-card comic-print-detail-card-text">
+                    <div class="comic-print-detail-card">
                         <div class="comic-print-detail-card-text">
                             <div class="card-header">
                                 <strong>Digital Details</strong>
@@ -153,7 +153,7 @@
 
                 {% else %}
                     <div>
-                        <div class="issue-number-box">
+                        <div class="issue-number-box" style="align-items: center">
                             <div class="issue-number-box-text">
                                 {% if comic_data.issueNumber %}
                                     {{ "# " ~comic_data.issueNumber | int }}
@@ -166,28 +166,27 @@
                 {% endif %}
 
                 <!-- COL3, ROW 3 - NUMERIC DESCRIPTORS -->
-                <table class="comic-number-descriptors">
+                <table class="comic-number-descriptors comic-numbers-text">
                     <tbody>
                     <tr>
-                        <td>ISBN</td>
-                        <td>SSN</td>
+                        <td><strong>ISBN:</strong>{{ comic_data.isbn if comic_data.isbn else "N/A" }}</td>
+                        <td><strong>ISSN:</strong>{{ comic_data.issn if comic_data.issn else "N/A" }}</td>
                     </tr>
                     <tr>
-                        <td>EAN</td>
-                        <td>D Code</td>
+                        <td><strong>EAN:</strong>{{ comic_data.ean if comic_data.ean else "N/A" }}</td>
+                        <td><strong>Diamond Code:</strong>{{ comic_data.diamondCode if comic_data.diamondCode else "N/A" }}</td>
                     </tr>
                     <tr>
-                        <td>UPC</td>
-                        <td>Modified</td>
+                        <td><strong>UPC:</strong>{{ comic_data.upc if comic_data.upc else "N/A" }}</td>
+                        <td><strong>Modified:</strong>{{ comic_data.modified if comic_data.modified else "N/A" }}</td>
                     </tr>
                     <tr>
-                        <td>Foc Date&nbsp;</td>
-                        <td>Unltd. Date</td>
+                        <td><strong>Foc Date:</strong>{{ comic_data.focDate if comic_data.focDate else "N/A" }}</td>
+                        <td><strong>Unltd. Date:</strong>{{ comic_data.unlimitedDate if comic_data.unlimitedDate else "N/A" }}</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-
         </div>
 
         <!-- ROW 2 SERIES AND STORIES-->
@@ -198,7 +197,7 @@
                 <div class="series-story-col">
                     <div class="comic-series-story-card"><img
                             class="series-story-thumbnail"
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                            src=""
                             alt="Card image cap">
                         <div class="card-body">
                             <h5 class="card-title">Series Title</h5>
@@ -214,7 +213,7 @@
                 <div class="series-story-col">
                     <div class="comic-series-story-card"><img
                             class="series-story-thumbnail"
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                            src=""
                             alt="Card image cap">
                         <div class="card-body">
                             <h5 class="card-title">Interior Story Title</h5>
@@ -230,7 +229,7 @@
                 <!-- ROW 2, COL 3 COVER STORY DETAIL DETAIL -->
                 <div class="series-story-col">
                     <div class="comic-series-story-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                            src=""
                             alt="Card image cap"
                             class="series-story-thumbnail">
                         <div class="card-body">

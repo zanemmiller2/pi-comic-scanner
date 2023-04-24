@@ -18,6 +18,10 @@ class Entity:
     SERIES_TABLE_NAME = 'Series'
     STORIES_TABLE_NAME = 'Stories'
     URLS_TABLE_NAME = 'URLs'
+    STORY_ENTITY = "Stories"
+    COMIC_ENTITY = "Comics"
+    SERIES_ENTITY = "Series"
+    EVENT_ENTITY = "Events"
     PURCHASED_COMICS_TABLE_NAME = 'PurchasedComics'
 
     def __init__(self, db_connection, response_data):
@@ -35,6 +39,13 @@ class Entity:
         self.eventDetail = {}  # (eventDetail[eventId] = {title: '', uri: ''})
         self.seriesDetail = {}  # (seriesDetail[seriesId] = {title: '', uri: ''})
         self.storyDetail = {}  # (storyDetail[story_id] = {title: '', type: '', uri: ''})
+        self.creatorDetail = {}  # (creatorDetail[creator_id] = {f_name: '', m_name: '', l_name: '', uri: ''})
+        self.comicDetail = {}  # (comicDetail[comicId] = {title: '', uri: ''})
+
+        self.characterDetail = {}  # (characterDetail[character_id] = {name: '', uri: ''})
+        self.creatorsRoles = {}  # (creatorsRoles[creator_id] = [roles]}) ...entity_has...
+
+        self.description = None  # string, optional
 
     ####################################################################################################################
     #
@@ -59,6 +70,75 @@ class Entity:
     #          ADD NEW JSON RESPONSE DATA TO CLASS VARIABLES
     #
     ####################################################################################################################
+    def _save_characters(self):
+        """
+        A resource list containing the characters which appear in this comic.
+        """
+        if self.data['characters']['available'] > 0:
+            for character in self.data['characters']['items']:
+                character_resource_uri = character['resourceURI']
+                character_name = character['name']
+                character_id = self.get_id_from_resourceURI(character_resource_uri)
+
+                if character_id != -1:
+                    # Save to dict for creating new character record
+                    if character_id not in self.characterDetail:
+                        self.characterDetail[character_id] = {
+                            'name': character_name,
+                            'uri': character_resource_uri
+                        }
+
+    def _save_comics(self):
+        """
+        Saves the comics related to the creator. If the original number of returned comics is less than the available
+        number of comics, function will fetch the remaining comics and add to list.
+        """
+
+        # save the ones fetched from the initial creators query
+        if self.data['comics']['available'] > 0:
+            for comic in self.data['comics']['items']:
+                comic_uri = comic['resourceURI']
+                comic_title = comic['name']
+                comic_id = self.get_id_from_resourceURI(comic_uri)
+
+                if comic_id != -1 and comic_id not in self.comicDetail:
+                    self.comicDetail[comic_id] = {'title': comic_title, 'uri': comic_uri}
+
+    def _save_creators(self):
+        """
+        A resource list containing the creators associated with this comic.
+        """
+        if 'creators' in self.data and self.data['creators']['available'] > 0:
+            for creator in self.data['creators']['items']:
+                creator_resource_uri = creator['resourceURI']
+                creator_name = creator['name']
+                creator_role = creator['role']
+                creator_id = self.get_id_from_resourceURI(creator_resource_uri)
+                creator_first_name, creator_middle_name, creator_last_name = self.get_split_name(creator_name)
+
+                if creator_id != -1:
+
+                    # save it to the detail dictionary for creating new db record
+                    if creator_id not in self.creatorDetail:
+                        self.creatorDetail[creator_id] = {
+                            'first_name': creator_first_name,
+                            'middle_name': creator_middle_name,
+                            'last_name': creator_last_name,
+                            'uri': creator_resource_uri
+                        }
+
+                    # save to creatorIds dictionary with role for Comics_has_Creators entity
+                    if creator_id not in self.creatorsRoles:
+                        self.creatorsRoles[creator_id] = [creator_role]
+                    else:
+                        self.creatorsRoles[creator_id].append(creator_role)
+
+    def _save_description(self):
+        """
+        The preferred description of the comic.
+        """
+        if 'description' in self.data:
+            self.description = str(self.data['description'])
 
     def _save_events(self):
         """
@@ -97,12 +177,28 @@ class Entity:
         """
         self.resourceURI = str(self.data['resourceURI'])
 
+    def _save_series(self):
+        """
+        A summary representation of the series to which this comic belongs.
+        """
+        if self.data['series']['available'] > 0:
+            if 'series' in self.data and self.data['series']:
+                series_uri = self.data['series']['resourceURI']
+                series_title = self.data['series']['name']
+                series_id = self.get_id_from_resourceURI(series_uri)
+
+                if series_id != -1:
+                    if series_id not in self.seriesDetail:
+                        self.seriesDetail[series_id] = {'title': series_title, 'uri': series_uri}
+
+                self.seriesId = series_id
+
     def _save_stories(self):
         """
         A resource list containing the stories which are related to the entity.
         """
 
-        if self.data['stories']['available'] > 0:
+        if 'stories' in self.data and self.data['stories']['available'] > 0:
             for story in self.data['stories']['items']:
                 story_resource_uri = story['resourceURI']
                 story_title = story['name']
@@ -132,6 +228,13 @@ class Entity:
         if self.thumbnail not in self.image_paths:
             self.image_paths.add((self.thumbnail, self.thumbnailExtension))
 
+    def _save_title(self):
+        """
+        The canonical title of the resource.
+        """
+        if 'title' in self.data:
+            self.title = str(self.data['title'])
+
     def _save_urls(self):
         """
         A set of public web-site URLs for the resource.
@@ -144,6 +247,42 @@ class Entity:
     #                                   ADD NEW RECORDS TO DATABASE
     #
     ####################################################################################################################
+    def _add_new_character(self):
+        """
+        Adds new character to comic_books.characters table if record does not exist
+        """
+
+        for character in self.characterDetail:
+            character_id = character
+            character_name = self.characterDetail[character_id]['name']
+            character_resource_uri = self.characterDetail[character_id]['uri']
+
+            self.db.upload_new_character_record(character_id, character_name, character_resource_uri)
+
+    def _add_new_comic(self):
+        """
+        Uploads any related comic records that do not already exist in the comic_books.comics table
+        """
+        for comic in self.comicDetail:
+            comic_id = comic
+            comic_title = self.comicDetail[comic_id]['title']
+            comic_uri = self.comicDetail[comic_id]['uri']
+
+            self.db.upload_new_related_comic_record(comic_id, comic_title, comic_uri)
+
+    def _add_new_creator(self):
+        """
+        Adds new creator records to comic_books.creators with resourceURI, id, and first, middle and last names
+        """
+        for creator in self.creatorDetail:
+            creator_id = creator
+            f_name = self.creatorDetail[creator_id]['first_name']
+            m_name = self.creatorDetail[creator_id]['middle_name']
+            l_name = self.creatorDetail[creator_id]['last_name']
+            resource_uri = self.creatorDetail[creator_id]['uri']
+
+            self.db.upload_new_creator_record(creator_id, f_name, m_name, l_name, resource_uri)
+
     def _add_new_event(self):
         """
         Adds a new event to the comic_books.events table if event record does not already exist

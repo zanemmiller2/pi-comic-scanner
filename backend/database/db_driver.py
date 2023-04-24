@@ -18,6 +18,19 @@ class DB:
     """
     DB Object that represents a connection and cursor for the provided database and credentials
     """
+    CHARACTERS_TABLE_NAME = 'Characters'
+    COMICS_TABLE_NAME = 'Comics'
+    CREATORS_TABLE_NAME = 'Creators'
+    EVENTS_TABLE_NAME = 'Events'
+    IMAGES_TABLE_NAME = 'Images'
+    SERIES_TABLE_NAME = 'Series'
+    STORIES_TABLE_NAME = 'Stories'
+    URLS_TABLE_NAME = 'URLs'
+    STORY_ENTITY = "Stories"
+    COMIC_ENTITY = "Comics"
+    SERIES_ENTITY = "Series"
+    EVENT_ENTITY = "Events"
+    PURCHASED_COMICS_TABLE_NAME = 'PurchasedComics'
 
     def __init__(self):
         """
@@ -36,13 +49,13 @@ class DB:
         self._connection = self._connect_to_database()
         self.cursor = self._connection.cursor(MySQLdb.cursors.DictCursor)
 
-    '''
+
     ####################################################################################################################
     #
     #                                       GET FROM DATABASE
     #
     ####################################################################################################################
-    '''
+
     def get_upcs_from_buffer(self):
         """
         Selects all entries from scanned_upc_codes from comic_books database
@@ -50,7 +63,7 @@ class DB:
         """
         if self._connection is None:
             print(
-                "No connection to the database found! Have you called connect_to_database() first?"
+                    "No connection to the database found! Have you called connect_to_database() first?"
             )
             return None
 
@@ -87,13 +100,11 @@ class DB:
 
         return self.cursor.fetchall()
 
-    '''
     ####################################################################################################################
     #
     #                                       UPLOAD TO DATABASE
     #
     ####################################################################################################################
-    '''
 
     ################################################################
     #  Complete Entities
@@ -359,13 +370,11 @@ class DB:
             print(f"NEW RECORD {entity_id} : {entity_title} NOT UPLOADED TO {table_name} TABLE")
             self._connection.rollback()
 
-    '''
     ####################################################################################################################
     #
     #                                       ADD NEW ENTITY_HAS_RELATIONSHIPS
     #
     ####################################################################################################################
-    '''
 
     ################################################################
     #  COMICS_has
@@ -389,8 +398,8 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"COMIC : CREATOR M:M RELATIONSHIP {comic_id} : {creator_id} WITH "
-                f"ROLE {creator_role} NOT UPLOADED TO Comics_has_Creator TABLE"
+                    f"COMIC : CREATOR M:M RELATIONSHIP {comic_id} : {creator_id} WITH "
+                    f"ROLE {creator_role} NOT UPLOADED TO Comics_has_Creator TABLE"
             )
             self._connection.rollback()
 
@@ -411,7 +420,7 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"COMIC : IMAGE M:M RELATIONSHIP {comic_id} : {image_path} WITH NOT UPLOADED TO Comics_has_Images TABLE"
+                    f"COMIC : IMAGE M:M RELATIONSHIP {comic_id} : {image_path} WITH NOT UPLOADED TO Comics_has_Images TABLE"
             )
             self._connection.rollback()
 
@@ -451,7 +460,7 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"COMIC : CHARACTER M:M RELATIONSHIP {comic_id} : {character_id} WITH NOT UPLOADED TO Comics_has_Characters TABLE"
+                    f"COMIC : CHARACTER M:M RELATIONSHIP {comic_id} : {character_id} WITH NOT UPLOADED TO Comics_has_Characters TABLE"
             )
             self._connection.rollback()
 
@@ -472,7 +481,7 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"COMIC : EVENTS M:M RELATIONSHIP {comic_id} : {event_id} WITH NOT UPLOADED TO Comics_has_Events TABLE"
+                    f"COMIC : EVENTS M:M RELATIONSHIP {comic_id} : {event_id} WITH NOT UPLOADED TO Comics_has_Events TABLE"
             )
             self._connection.rollback()
 
@@ -493,7 +502,7 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"COMIC : STORY M:M RELATIONSHIP {comic_id} : {story_id} WITH NOT UPLOADED TO Comics_has_Stories TABLE"
+                    f"COMIC : STORY M:M RELATIONSHIP {comic_id} : {story_id} WITH NOT UPLOADED TO Comics_has_Stories TABLE"
             )
             self._connection.rollback()
 
@@ -514,7 +523,7 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"COMIC : VARIANT M:M RELATIONSHIP {comic_id} : {variant_id} WITH NOT UPLOADED TO Comics_has_Variants TABLE"
+                    f"COMIC : VARIANT M:M RELATIONSHIP {comic_id} : {variant_id} WITH NOT UPLOADED TO Comics_has_Variants TABLE"
             )
             self._connection.rollback()
 
@@ -538,7 +547,7 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"CREATOR : STORY M:M RELATIONSHIP {creator_id} : {story_id} WITH NOT UPLOADED TO Creators_has_Stories TABLE"
+                    f"CREATOR : STORY M:M RELATIONSHIP {creator_id} : {story_id} WITH NOT UPLOADED TO Creators_has_Stories TABLE"
             )
             self._connection.rollback()
 
@@ -559,7 +568,7 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"CREATOR : EVENT M:M RELATIONSHIP {creator_id} : {event_id} WITH NOT UPLOADED TO Creators_has_Events TABLE"
+                    f"CREATOR : EVENT M:M RELATIONSHIP {creator_id} : {event_id} WITH NOT UPLOADED TO Creators_has_Events TABLE"
             )
             self._connection.rollback()
 
@@ -580,7 +589,7 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"CREATOR : SERIES M:M RELATIONSHIP {creator_id} : {series_id} WITH NOT UPLOADED TO Creators_has_Series TABLE"
+                    f"CREATOR : SERIES M:M RELATIONSHIP {creator_id} : {series_id} WITH NOT UPLOADED TO Creators_has_Series TABLE"
             )
             self._connection.rollback()
 
@@ -601,17 +610,43 @@ class DB:
             self._commit_to_db()
         except InvalidCursorExecute:
             print(
-                f"CREATOR : URL M:M RELATIONSHIP {creator_id} : {url} WITH NOT UPLOADED TO Creators_has_URLs TABLE"
+                    f"CREATOR : URL M:M RELATIONSHIP {creator_id} : {url} WITH NOT UPLOADED TO Creators_has_URLs TABLE"
             )
             self._connection.rollback()
 
-    '''
+    ################################################################
+    #  SERIES_has
+    ################################################################
+    def upload_new_entity_has_characters_record(self, parentEntity: str, parent_id: int, character_id: int):
+        """
+        Creates a new Entity_has_Characters record if the parent_id and character_id aren't already related
+        :param parent_id: The unique ID of the parent resource.
+        :param character_id: The unique ID of the character resource.
+        """
+
+        if parentEntity == self.SERIES_ENTITY:
+            parentIdName = "seriesId"
+
+        query = "INSERT INTO Comics_has_Characters (comicId, characterId) SELECT %s, %s WHERE NOT EXISTS " \
+                "(SELECT * FROM Comics_has_Characters WHERE comicId=%s AND characterId=%s);"
+        params = (comic_id, character_id, comic_id, character_id)
+
+        try:
+            print("Executing %s with %s" % (query, params))
+            self.cursor.execute(query, params)
+            self._commit_to_db()
+        except InvalidCursorExecute:
+            print(
+                    f"COMIC : CHARACTER M:M RELATIONSHIP {comic_id} : {character_id} WITH NOT UPLOADED TO Comics_has_Characters TABLE"
+            )
+            self._connection.rollback()
+
     ####################################################################################################################
     #
     #                                           DELETE RECORDS
     #
     ####################################################################################################################
-    '''
+
     def delete_from_scanned_upc_codes_table(self, upc_code: str):
         """
         Deletes records from the scanned_upc_codes table based on the upc_code provided.
@@ -629,13 +664,11 @@ class DB:
             print(f"DELETE {upc_code} NOT DELETED FROM scanned_upc_codes TABLE")
             self._connection.rollback()
 
-    '''
     ####################################################################################################################
     #
     #                                       DATABASE MANAGEMENT
     #
     ####################################################################################################################
-    '''
 
     def close_cursor(self):
         """

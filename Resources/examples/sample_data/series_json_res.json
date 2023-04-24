@@ -1,0 +1,310 @@
+{
+  "code": 200,
+  "status": "Ok",
+  "copyright": "© 2023 MARVEL",
+  "attributionText": "Data provided by Marvel. © 2023 MARVEL",
+  "attributionHTML": "<a href=\"http://marvel.com\">Data provided by Marvel. © 2023 MARVEL</a>",
+  "etag": "72a2349302669f6f65930ef9c9f1be5c99883b86",
+  "data": {
+    "offset": 0,
+    "limit": 20,
+    "total": 1,
+    "count": 1,
+    "results": [
+      {
+        "id": 33199,
+        "title": "Star Wars: The Halcyon Legacy (2022)",
+        "description": "THE VOYAGES OF THE GREATEST OF ALL-STAR CRUISERS! As the legendary HALCYON embarks on a momentous…cruise, the ship heads toward a confrontation with THE FIRST ORDER! But what secret from THE HIGH REPUBLIC ERA can help the passengers and crew all these years later? And how did JEDI NIBS and BURRY fend off a NIHIL attack on one of the ship's first ever voyages? ",
+        "resourceURI": "http://gateway.marvel.com/v1/public/series/33199",
+        "urls": [
+          {
+            "type": "detail",
+            "url": "http://marvel.com/comics/series/33199/star_wars_the_halcyon_legacy_2022?utm_campaign=apiRef&utm_source=93cc6dfbb3da60c6b36d9b511ac641df"
+          }
+        ],
+        "startYear": 2022,
+        "endYear": 2022,
+        "rating": "",
+        "type": "",
+        "modified": "2022-02-02T12:08:22-0500",
+        "thumbnail": {
+          "path": "http://i.annihil.us/u/prod/marvel/i/mg/1/60/61faba7baa33c",
+          "extension": "jpg"
+        },
+        "creators": {
+          "available": 14,
+          "collectionURI": "http://gateway.marvel.com/v1/public/series/33199/creators",
+          "items": [
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/365",
+              "name": "Pasqual Ferry",
+              "role": "inker (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/13936",
+              "name": "Valerio Giangiordano",
+              "role": "inker (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/12406",
+              "name": "Marc Laming",
+              "role": "inker (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/13161",
+              "name": "E.M. Gist",
+              "role": "penciler (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/507",
+              "name": "Matt Hollingsworth",
+              "role": "colorist (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/3708",
+              "name": "Carlos Lopez",
+              "role": "colorist (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/593",
+              "name": "Lee Loughridge",
+              "role": "colorist (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/13449",
+              "name": "Chris Sotomayor",
+              "role": "colorist (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/12136",
+              "name": "Annie Wu",
+              "role": "colorist (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/4600",
+              "name": "Mark Paniccia",
+              "role": "editor"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/12991",
+              "name": "Rachelle Rosenberg",
+              "role": "colorist"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/12974",
+              "name": "Vc Joe Sabino",
+              "role": "letterer"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/13232",
+              "name": "Ethan Sacks",
+              "role": "writer"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/12999",
+              "name": "Will Sliney",
+              "role": "inker"
+            }
+          ],
+          "returned": 14
+        },
+        "characters": {
+          "available": 0,
+          "collectionURI": "http://gateway.marvel.com/v1/public/series/33199/characters",
+          "items": [],
+          "returned": 0
+        },
+        "stories": {
+          "available": 34,
+          "collectionURI": "http://gateway.marvel.com/v1/public/series/33199/stories",
+          "items": [
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214756",
+              "name": "cover from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #1",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214757",
+              "name": "story from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #1",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214758",
+              "name": "cover from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #2",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214759",
+              "name": "story from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #2",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214760",
+              "name": "cover from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #3",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214761",
+              "name": "story from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #3",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214762",
+              "name": "cover from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #4",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214763",
+              "name": "story from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #4",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214764",
+              "name": "cover from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #5",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/214765",
+              "name": "story from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #5",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/219654",
+              "name": "cover from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #1 (VARIANT)",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/219655",
+              "name": "story from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #1 (VARIANT)",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/219656",
+              "name": "cover from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #1 (VARIANT)",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/219657",
+              "name": "story from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #1 (VARIANT)",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/219658",
+              "name": "cover from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #1 (VARIANT)",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/219659",
+              "name": "story from Star Wars: Galaxy's Edge - Galactic Starcruiser (2021) #1 (VARIANT)",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/220606",
+              "name": "cover from Star Wars: The Halcyon Legacy (2022) #1 (VARIANT)",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/220607",
+              "name": "story from Star Wars: The Halcyon Legacy (2022) #1 (VARIANT)",
+              "type": "interiorStory"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/220608",
+              "name": "cover from Star Wars: The Halcyon Legacy (2022) #2 (VARIANT)",
+              "type": "cover"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/stories/220609",
+              "name": "story from Star Wars: The Halcyon Legacy (2022) #2 (VARIANT)",
+              "type": "interiorStory"
+            }
+          ],
+          "returned": 20
+        },
+        "comics": {
+          "available": 17,
+          "collectionURI": "http://gateway.marvel.com/v1/public/series/33199/comics",
+          "items": [
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/96844",
+              "name": "Star Wars: The Halcyon Legacy (2022) #1"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/99279",
+              "name": "Star Wars: The Halcyon Legacy (2022) #1 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/99280",
+              "name": "Star Wars: The Halcyon Legacy (2022) #1 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/99281",
+              "name": "Star Wars: The Halcyon Legacy (2022) #1 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/99753",
+              "name": "Star Wars: The Halcyon Legacy (2022) #1 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/96845",
+              "name": "Star Wars: The Halcyon Legacy (2022) #2"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/99754",
+              "name": "Star Wars: The Halcyon Legacy (2022) #2 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/100011",
+              "name": "Star Wars: The Halcyon Legacy (2022) #2 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/96846",
+              "name": "Star Wars: The Halcyon Legacy (2022) #3"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/99755",
+              "name": "Star Wars: The Halcyon Legacy (2022) #3 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/100642",
+              "name": "Star Wars: The Halcyon Legacy (2022) #3 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/96847",
+              "name": "Star Wars: The Halcyon Legacy (2022) #4"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/99756",
+              "name": "Star Wars: The Halcyon Legacy (2022) #4 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/100897",
+              "name": "Star Wars: The Halcyon Legacy (2022) #4 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/96848",
+              "name": "Star Wars: The Halcyon Legacy (2022) #5"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/99757",
+              "name": "Star Wars: The Halcyon Legacy (2022) #5 (Variant)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/101441",
+              "name": "Star Wars: The Halcyon Legacy (2022) #5 (Variant)"
+            }
+          ],
+          "returned": 17
+        },
+        "events": {
+          "available": 0,
+          "collectionURI": "http://gateway.marvel.com/v1/public/series/33199/events",
+          "items": [],
+          "returned": 0
+        },
+        "next": null,
+        "previous": null
+      }
+    ]
+  }
+}
