@@ -71,6 +71,7 @@ def comics():
 def view_comic(comic_id):
     """ View individual comic by id """
     comic_data = get_comics(comic_id)[0]
+    print(type(comic_data.description))
     return render_template("comic_detail.html", comic_data=comic_data)
 
 

@@ -16,8 +16,8 @@
 
             <!-- ROW1, COL 1 - THUMBNAIL -->
             <div class="comic-thumbnail-column">
-                <img src="{{ comic_data['thumbnail'] + '/portrait_uncanny' + comic_data['thumbnailExtension'] }}"
-                     alt="Placeholder image"
+                <img src="{{ comic_data.thumbnail + '/portrait_uncanny' + comic_data.thumbnailExtension }}"
+                     alt="{{ comic_data.title }} 300px x 450px thumbnail image"
                      class="comic-thumbnail-responsive">
             </div>
 
@@ -25,42 +25,102 @@
             <div class="comic-details1">
 
                 <!-- COL 2, ROW 1 - TITLE -->
-                <div class="comic-title">Title</div>
+                <div class="comic-title">
+                    <h1 class="comic-title-text">{{ comic_data.title }}</h1>
+                </div>
 
                 <!-- COL2, ROW 2 - FORMAT, PAGE COUNT, VARIANT DESCRIPTION -->
-                <div class="comic-detail-basic">
-                    <div class="comic-format">Comic Format if digital
-                        include reader link
+                <div class="comic-detail-basic comic-detail-basic-text">
+                    <div>
+                        <strong>Format:</strong>
+                        {{ comic_data.format if comic_data.format else 'Unkown' }}
                     </div>
-                    <div class="comic-page-count">Page Count</div>
-                    <div class="comic-variant-description">Variant
-                        Description&nbsp;
+                    <div>
+                        <strong>Page Count:</strong>
+                        {% if comic_data.pageCount and comic_data.pageCount != "None" %}
+                            {{ comic_data.pageCount }} pgs.
+                        {% else %}
+                            {{ 'Unknown' }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <strong>Variant Description:</strong>
+                        {% if comic_data.variantDescription and comic_data.variantDescription != "None" %}
+                            {{ comic_data.variantDescription }}
+                        {% else %}
+                            {{ "N/A" }}
+                        {% endif %}
                     </div>
                 </div>
 
                 <!-- COL2, ROW 3 - PRINT AND DIGITAL DETAILS -->
                 <div class="comic-print-digital-detail">
-                    <div class="comic-print-details">
-                        <div class="comic-print-details">
-                            <div class="card-header"> Print Details</div>
+                    <div class="comic-print-detail-card comic-print-detail-card-text">
+                        <div>
+                            <div class="card-header">
+                                <strong>Print Details</strong>
+                            </div>
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item">Print Price</li>
-                                <li class="list-group-item">Print onsale Date
+                                <li class="list-group-item">
+                                    <strong>Print Price:</strong>
+                                    {% if comic_data.printPrice %}
+                                        {{ "$" ~ comic_data.printPrice }}
+                                    {% else %}
+                                        {{ "N/A" }}
+                                    {% endif %}
                                 </li>
-                                <li class="list-group-item">Purchase URL</li>
+                                <li class="list-group-item">
+                                    <strong>On Sale Date:</strong>
+                                    {% if comic_data.onSaleDate %}
+                                        {{ comic_data.onSaleDate }}
+                                    {% else %}
+                                        {{ "N/A" }}
+                                    {% endif %}
+                                </li>
+                                <li class="list-group-item">
+                                    {% if comic_data.purchaseURL %}
+                                        <a href="{{ comic_data.purchaseURL }}">
+                                            <strong>Purchase URL</strong>
+                                        </a>
+                                    {% else %}
+                                        {{ "Purchase URL: N/A" }}
+                                    {% endif %}
+
+                                </li>
                             </ul>
                         </div>
                     </div>
-                    <div class="comic-digital-details">
-                        <div class="comic-digital-details">
-                            <div class="card-header"> Digital Details</div>
+                    <div class="comic-print-detail-card comic-print-detail-card-text">
+                        <div class="comic-print-detail-card-text">
+                            <div class="card-header">
+                                <strong>Digital Details</strong>
+                            </div>
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item">Digital Price</li>
-                                <li class="list-group-item">Digital Purchase
-                                    Date
+                                <li class="list-group-item">
+                                    <strong>Digital Price:</strong>
+                                    {% if comic_data.digitalPurchasePrice %}
+                                        {{ "$" ~ comic_data.digitalPurchasePrice }}
+                                    {% else %}
+                                        {{ "N/A" }}
+                                    {% endif %}
                                 </li>
-                                <li class="list-group-item">Digital Purchase
-                                    URL
+                                <li class="list-group-item">
+                                    <strong>Digital Purchase Date:</strong>
+                                    {% if comic_data.digitalPurchaseDate %}
+                                        {{ comic_data.digitalPurchaseDate }}
+                                    {% else %}
+                                        {{ "N/A" }}
+                                    {% endif %}
+                                </li>
+                                <li class="list-group-item">
+                                    {% if comic_data.readerURL %}
+                                        <a href="{{ comic_data.readerURL }}">
+                                            <strong>Reader URL</strong>
+                                        </a>
+                                    {% else %}
+                                        {{ "Reader URL: N/A" }}
+                                    {% endif %}
+
                                 </li>
                             </ul>
                         </div>
@@ -73,45 +133,65 @@
             <div class="comic-details2">
 
                 <!-- COL3, ROW 1 - ISSUE NUMBER -->
-                <div class="issue-number">Issue Number</div>
+                {% if comic_data.description.decode() and comic_data.description.decode() != "None" %}
+                    <div>
+                        <div class="issue-number-box"
+                             style="float: left; margin-right: 20px">
+                            <div class="issue-number-box-text">
+                                {% if comic_data.issueNumber %}
+                                    {{ "# " ~comic_data.issueNumber | int }}
+                                {% else %}
+                                    {{ "N/A" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <!-- COL3, ROW 2 - COMIC DESCRIPTION -->
+                    <div class="comic-description comic-description-text">
+                        {{ comic_data.description.decode() }}
+                    </div>
 
-                <!-- COL3, ROW 2 - COMIC DESCRIPTION -->
-                <div class="comic-description">
-                    <section class="comic-description">Comic description text&nbsp;Comic
-                        description textComic description textComic description
-                        textComic description textComic description textComic
-                        description textComic description text
-                    </section>
-                </div>
+                {% else %}
+                    <div>
+                        <div class="issue-number-box">
+                            <div class="issue-number-box-text">
+                                {% if comic_data.issueNumber %}
+                                    {{ "# " ~comic_data.issueNumber | int }}
+                                {% else %}
+                                    {{ "N/A" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
 
                 <!-- COL3, ROW 3 - NUMERIC DESCRIPTORS -->
                 <table class="comic-number-descriptors">
                     <tbody>
                     <tr>
-                        <td>&nbsp;ISBN</td>
-                        <td>&nbsp;ISSN</td>
+                        <td>ISBN</td>
+                        <td>SSN</td>
                     </tr>
                     <tr>
-                        <td>&nbsp;EAN</td>
+                        <td>EAN</td>
                         <td>D Code</td>
                     </tr>
                     <tr>
-                        <td>&nbsp;UPC</td>
-                        <td>&nbsp;Modified</td>
+                        <td>UPC</td>
+                        <td>Modified</td>
                     </tr>
                     <tr>
-                        <td>&nbsp;Foc Date&nbsp;</td>
-                        <td>&nbsp;Ultd. Date</td>
+                        <td>Foc Date&nbsp;</td>
+                        <td>Unltd. Date</td>
                     </tr>
                     </tbody>
                 </table>
-                &nbsp; &nbsp;
             </div>
 
         </div>
 
         <!-- ROW 2 SERIES AND STORIES-->
-        <div class="comic-series-stories-row">&nbsp;
+        <div class="comic-series-stories-row">
             <div class="row">
 
                 <!-- ROW 2, COL 1 SERIES DETAIL -->
@@ -168,71 +248,69 @@
 
         <!-- ROW 3 CHARACTERS -->
         <div class="characters-gallery">
-            <div class="row">
-                <!-- ROW 3, COL 1 CHARACTER 1 DETAIL -->
-                <div class="character-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Character 1</h5>
-                        </div>
+            <!-- ROW 3, COL 1 CHARACTER 1 DETAIL -->
+            <div class="gallery-card-col">
+                <div class="character-card"><img
+                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                        alt="Card image cap"
+                        class="series-story-thumbnail">
+                    <div class="card-body">
+                        <h5 class="card-title">Character 1</h5>
                     </div>
-                    &nbsp;
                 </div>
+                &nbsp;
+            </div>
 
-                <!-- ROW 3, COL 2 CHARACTER 2 DETAIL -->
-                <div class="character-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Character2</h5>
-                        </div>
+            <!-- ROW 3, COL 2 CHARACTER 2 DETAIL -->
+            <div class="gallery-card-col">
+                <div class="character-card"><img
+                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                        alt="Card image cap"
+                        class="series-story-thumbnail">
+                    <div class="card-body">
+                        <h5 class="card-title">Character2</h5>
                     </div>
-                    &nbsp;
                 </div>
+                &nbsp;
+            </div>
 
-                <!-- ROW 3, COL 3 CHARACTER 3 DETAIL -->
-                <div class="character-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Character3</h5>
-                        </div>
+            <!-- ROW 3, COL 3 CHARACTER 3 DETAIL -->
+            <div class="gallery-card-col">
+                <div class="character-card"><img
+                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                        alt="Card image cap"
+                        class="series-story-thumbnail">
+                    <div class="card-body">
+                        <h5 class="card-title">Character3</h5>
                     </div>
-                    &nbsp;
                 </div>
+                &nbsp;
+            </div>
 
-                <!-- ROW 3, COL 4 CHARACTER 4 DETAIL -->
-                <div class="character-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Character4</h5>
-                        </div>
+            <!-- ROW 3, COL 4 CHARACTER 4 DETAIL -->
+            <div class="gallery-card-col">
+                <div class="character-card"><img
+                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                        alt="Card image cap"
+                        class="series-story-thumbnail">
+                    <div class="card-body">
+                        <h5 class="card-title">Character4</h5>
                     </div>
-                    &nbsp;
                 </div>
+                &nbsp;
+            </div>
 
-                <!-- ROW 3, COL 5 CHARACTER 5 DETAIL -->
-                <div class="character-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Character5</h5>
-                        </div>
+            <!-- ROW 3, COL 5 CHARACTER 5 DETAIL -->
+            <div class="gallery-card-col">
+                <div class="character-card"><img
+                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                        alt="Card image cap"
+                        class="series-story-thumbnail">
+                    <div class="card-body">
+                        <h5 class="card-title">Character5</h5>
                     </div>
-                    &nbsp;
                 </div>
+                &nbsp;
             </div>
         </div>
 
@@ -241,7 +319,7 @@
             <div class="row">
 
                 <!-- EVENTS 1 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -254,7 +332,7 @@
                 </div>
 
                 <!-- EVENTS 2 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -267,7 +345,7 @@
                 </div>
 
                 <!-- EVENTS 3 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -280,7 +358,7 @@
                 </div>
 
                 <!-- EVENTS 4 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -293,7 +371,7 @@
                 </div>
 
                 <!-- EVENTS 5 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -312,7 +390,7 @@
             <div class="row">
 
                 <!-- CREATORS 1 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -325,7 +403,7 @@
                 </div>
 
                 <!-- CREATORS 2 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -338,7 +416,7 @@
                 </div>
 
                 <!-- CREATORS 3 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -351,7 +429,7 @@
                 </div>
 
                 <!-- CREATORS 4 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -364,7 +442,7 @@
                 </div>
 
                 <!-- CREATORS 5 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -383,7 +461,7 @@
             <div class="row">
 
                 <!-- VARIANTS 1 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -396,7 +474,7 @@
                 </div>
 
                 <!-- VARIANTS 2 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -409,7 +487,7 @@
                 </div>
 
                 <!-- VARIANTS 3 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -422,7 +500,7 @@
                 </div>
 
                 <!-- VARIANTS 4 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -435,7 +513,7 @@
                 </div>
 
                 <!-- VARIANTS 5 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -454,7 +532,7 @@
             <div class="row">
 
                 <!-- IMAGE 1 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -467,7 +545,7 @@
                 </div>
 
                 <!-- IMAGE 2 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -480,7 +558,7 @@
                 </div>
 
                 <!-- IMAGE 3 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -493,7 +571,7 @@
                 </div>
 
                 <!-- IMAGE 4 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
@@ -506,7 +584,7 @@
                 </div>
 
                 <!-- IMAGE 5 -->
-                <div class="character-card-col">
+                <div class="gallery-card-col">
                     <div class="character-card"><img
                             src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
                             alt="Card image cap"
