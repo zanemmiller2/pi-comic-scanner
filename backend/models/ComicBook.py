@@ -120,31 +120,17 @@ class ComicBook(Entity):
         Compiles the comic_book entities into params tuple to pass to database function for uploading complete comic
         book
         """
-        comic_detailURL = None
-        comic_purchaseURL = None
-        comic_readerURL = None
-        comic_inAppLinkURL = None
-        for url_type, url_str in self.urls:
-            if url_type == 'detail':
-                comic_detailURL = url_str
-            elif url_type == 'purchase':
-                comic_purchaseURL = url_str
-            elif url_type == 'reader':
-                comic_readerURL = url_str
-            elif url_type == 'inAppLink':
-                comic_inAppLinkURL = url_str
 
         params = (self.id, self.digitalId, self.title, self.issueNumber, self.variantDescription, self.description,
                   self.modified, self.isbn, self.upc, self.diamondCode, self.ean, self.issn, self.format,
-                  self.pageCount, json.dumps(self.textObjects), self.resourceURI, comic_detailURL, comic_purchaseURL,
-                  comic_readerURL, comic_inAppLinkURL, self.onSaleDate, self.focDate, self.unlimitedDate,
+                  self.pageCount, json.dumps(self.textObjects), self.resourceURI, self.onSaleDate, self.focDate,
+                  self.unlimitedDate, self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice,
+                  self.seriesId, self.thumbnail, self.originalIssueId, self.digitalId,
+                  self.title, self.issueNumber, self.variantDescription, self.description, self.modified, self.isbn,
+                  self.upc, self.diamondCode,self.ean, self.issn, self.format, self.pageCount,
+                  json.dumps(self.textObjects), self.resourceURI, self.onSaleDate, self.focDate, self.unlimitedDate,
                   self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice, self.seriesId, self.thumbnail,
-                  self.thumbnailExtension, self.originalIssueId, self.digitalId, self.title, self.issueNumber,
-                  self.variantDescription, self.description, self.modified, self.isbn, self.upc, self.diamondCode,
-                  self.ean, self.issn, self.format, self.pageCount, json.dumps(self.textObjects), self.resourceURI,
-                  comic_detailURL, comic_purchaseURL, comic_readerURL, comic_inAppLinkURL, self.onSaleDate,
-                  self.focDate, self.unlimitedDate, self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice,
-                  self.seriesId, self.thumbnail, self.thumbnailExtension, self.originalIssueId)
+                  self.originalIssueId)
 
         self.db.upload_complete_comic_book(params)
 
@@ -172,7 +158,7 @@ class ComicBook(Entity):
                   self.isPurchasedPrice, self.isPurchasedType)
         self.db.upload_complete_purchased_comic(params)
 
-####################################################################################################################
+    ####################################################################################################################
     #
     #          ADD NEW JSON RESPONSE DATA TO CLASS VARIABLES
     #

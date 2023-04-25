@@ -86,7 +86,7 @@ class DB:
             query = f"SELECT id from {entity_name} " \
                     f"WHERE " \
                     f"{entity_name}.modified IS NULL OR " \
-                    f"YEAR(CURRENT_TIMESTAMP) - YEAR({entity_name}.modified) > 1 LIMIT 10;"
+                    f"YEAR(CURRENT_TIMESTAMP) - YEAR({entity_name}.modified) > 1 LIMIT 10, 10;"
 
             try:
                 self._execute_commit(query)
@@ -128,12 +128,12 @@ class DB:
         """
         query = f"INSERT INTO Comics " \
                 f"(id, digitalId, title, issueNumber, variantDescription, description, modified, isbn, upc, diamondCode, " \
-                f"ean, issn, format, pageCount, textObjects, resourceURI, detailURL, purchaseURL, readerURL, inAppLink, " \
-                f"onSaleDate, focDate, unlimitedDate, digitalPurchaseDate, printPrice, digitalPurchasePrice, seriesId, " \
-                f"thumbnail, thumbnailExtension, originalIssue) " \
+                f"ean, issn, format, pageCount, textObjects, resourceURI, onSaleDate, focDate, unlimitedDate, " \
+                f"digitalPurchaseDate, printPrice, digitalPurchasePrice, seriesId, " \
+                f"thumbnail, originalIssue) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                f"%s, %s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
+                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
                 f"ON DUPLICATE KEY UPDATE " \
                 f"digitalId = COALESCE (%s, VALUES(digitalId)), " \
                 f"title = COALESCE (%s, VALUES(title)), " \
@@ -150,10 +150,6 @@ class DB:
                 f"pageCount = COALESCE (%s, VALUES(pageCount)), " \
                 f"textObjects = COALESCE (%s, VALUES(textObjects)), " \
                 f"resourceURI = COALESCE (%s, VALUES(resourceURI)), " \
-                f"detailURL = COALESCE (%s, VALUES(detailURL)), " \
-                f"purchaseURL = COALESCE (%s, VALUES(purchaseURL)), " \
-                f"readerURL = COALESCE (%s, VALUES(readerURL)), " \
-                f"inAppLink = COALESCE (%s, VALUES(inAppLink)), " \
                 f"onSaleDate = COALESCE (%s, VALUES(onSaleDate)), " \
                 f"focDate = COALESCE (%s, VALUES(focDate)), " \
                 f"unlimitedDate = COALESCE (%s, VALUES(unlimitedDate)), " \
@@ -162,7 +158,6 @@ class DB:
                 f"digitalPurchasePrice = COALESCE (%s, VALUES(digitalPurchasePrice)), " \
                 f"seriesId = COALESCE (%s, VALUES(seriesId)), " \
                 f"thumbnail = COALESCE (%s, VALUES(thumbnail)), " \
-                f"thumbnailExtension = COALESCE (%s, VALUES(thumbnailExtension)), " \
                 f"originalIssue = COALESCE (%s, VALUES(originalIssue));"
 
         try:
@@ -178,9 +173,9 @@ class DB:
         """
 
         query = f"INSERT INTO Creators " \
-                f"(id, firstName, middleName, lastName, suffix, modified, resourceURI, thumbnail, thumbnailExtension) " \
+                f"(id, firstName, middleName, lastName, suffix, modified, resourceURI, thumbnail) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, %s, %s, %s, %s) " \
                 f"ON DUPLICATE KEY UPDATE " \
                 f"firstName = COALESCE (%s, VALUES(firstName)), " \
                 f"middleName = COALESCE (%s, VALUES(middleName)), " \
@@ -188,8 +183,7 @@ class DB:
                 f"suffix = COALESCE (%s, VALUES(suffix)), " \
                 f"modified = COALESCE (%s, VALUES(modified)), " \
                 f"resourceURI = COALESCE (%s, VALUES(resourceURI)), " \
-                f"thumbnail = COALESCE (%s, VALUES(thumbnail)), " \
-                f"thumbnailExtension = COALESCE (%s, VALUES(thumbnailExtension));"
+                f"thumbnail = COALESCE (%s, VALUES(thumbnail));"
 
         try:
             self._execute_commit(query, params)
@@ -220,9 +214,10 @@ class DB:
         Uploads a complete record to the Series Table
         """
         query = f"INSERT INTO Series " \
-                f"(id, title, description, resourceURI, startYear, endYear, rating, modified, detailURL, purchaseURL, readerURL, inAppLink, thumbnail, nextSeriesId, previousSeriesId, Series.type) " \
+                f"(id, title, description, resourceURI, startYear, endYear, rating, modified, thumbnail, " \
+                f"nextSeriesId, previousSeriesId, Series.type) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
                 f"ON DUPLICATE KEY UPDATE " \
                 f"title = COALESCE(%s, VALUES(title)), " \
                 f"description = COALESCE(%s, VALUES(description))," \

@@ -74,8 +74,8 @@ class Creator(Entity):
         Compiles the Creator entities into params tuple to pass to database function for uploading complete Creator
         """
         params = (self.id, self.firstName, self.middleName, self.lastName, self.suffix, self.modified,
-                  self.resourceURI, self.thumbnail, self.thumbnailExtension, self.firstName, self.middleName,
-                  self.lastName, self.suffix, self.modified, self.resourceURI, self.thumbnail, self.thumbnailExtension)
+                  self.resourceURI, self.thumbnail, self.firstName, self.middleName, self.lastName, self.suffix,
+                  self.modified, self.resourceURI, self.thumbnail)
 
         self.db.upload_complete_creator(params)
 

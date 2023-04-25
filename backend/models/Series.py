@@ -73,22 +73,11 @@ class Series(Entity):
         Compiles the Series() entities into params tuple to pass to database function for uploading
         complete Series()
         """
-        detailURL = None
-        purchaseURL = None
-        readerURL = None
-        inAppLinkURL = None
 
-        for url_type, url_str in self.urls:
-            if url_type == 'detail':
-                detailURL = url_str
-            elif url_type == 'purchase':
-                purchaseURL = url_str
-            elif url_type == 'reader':
-                readerURL = url_str
-            elif url_type == 'inAppLink':
-                inAppLinkURL = url_str
-
-        params = (self.id, self.title, self.description, self.resourceURI, self.startYear, self.endYear, self.rating, self.modified, detailURL, purchaseURL, readerURL, inAppLinkURL, self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type, self.title, self.description, self.resourceURI, self.startYear, self.endYear, self.rating, self.modified, self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type)
+        params = (self.id, self.title, self.description, self.resourceURI, self.startYear, self.endYear, self.rating,
+                  self.modified, self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type, self.title,
+                  self.description, self.resourceURI, self.startYear, self.endYear, self.rating, self.modified,
+                  self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type)
 
         self.db.upload_complete_series(params)
 
