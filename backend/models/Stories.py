@@ -69,7 +69,6 @@ class Story(Entity):
         """
         Runs through and creates all the comics_has_relationships
         """
-
         self._entity_has_characters()
         self._entity_has_creators()
 
