@@ -18,8 +18,8 @@ class ComicBook(Entity):
     """
 
     def __init__(
-            self, db_connection, response_data, isPurchasedDate: str = None, isPurchasedPrice: float = None,
-            isPurchasedType: str = None, isPurchased: bool = False
+            self, db_connection, response_data, is_purchased_date: str = None, is_purchased_price: float = None,
+            is_purchased_type: str = None, is_purchased: bool = False
     ):
         """ Represents a Comic book based on the marvel comic developer api json response model """
         super().__init__(db_connection, response_data)
@@ -50,10 +50,12 @@ class ComicBook(Entity):
         self.digitalPurchasePrice = None
         self.variantDetail = {}  # (variantDetail[variant_id] = {title: '', uri: ''})
 
-        self.isPurchased = isPurchased
-        self.isPurchasedDate = self.convert_to_SQL_date(isPurchasedDate)
-        self.isPurchasedPrice = isPurchasedPrice
-        self.isPurchasedType = isPurchasedType.title()
+        self.isPurchased = is_purchased
+        self.isPurchasedDate = self.convert_to_SQL_date(is_purchased_date)
+        self.isPurchasedPrice = is_purchased_price
+        self.isPurchasedType = is_purchased_type.title()
+
+        self.ENTITY_NAME = self.COMIC_ENTITY
 
     ####################################################################################################################
     #
@@ -145,12 +147,12 @@ class ComicBook(Entity):
         """
         Runs through and creates all the comics_has_relationships
         """
-        self._comics_has_characters()
-        self._comics_has_creators()
-        self._comics_has_events()
+        self._entity_has_characters()
+        self._entity_has_creators()
+        self._entity_has_events()
+        self._entity_has_stories()
+        self._entity_has_urls()
         self._comics_has_images()
-        self._comics_has_stories()
-        self._comics_has_urls()
         self._comics_has_variants()
 
         if self.isPurchased is True:
@@ -335,50 +337,12 @@ class ComicBook(Entity):
     #                               Comics_has_Relationships
     #
     ####################################################################################################################
-
-    def _comics_has_characters(self):
-        """
-        Upload new record in Comics_has_Characters table
-        """
-        for characterId in self.characterDetail:
-            self.db.upload_new_comics_has_characters_record(int(self.id), int(characterId))
-
-    def _comics_has_creators(self):
-        """
-        Upload new record in Comics_has_Creators table
-        """
-        for creator in self.creatorsRoles:
-            creator_id = creator
-            for role in self.creatorsRoles[creator_id]:
-                self.db.upload_new_comics_has_creators_record(int(self.id), int(creator_id), str(role))
-
-    def _comics_has_events(self):
-        """
-        Upload new record in Comics_has_Events table
-        """
-        for eventId in self.eventDetail:
-            self.db.upload_new_comics_has_events_record(int(self.id), int(eventId))
-
     def _comics_has_images(self):
         """
         Upload new record in Comics_has_Events table
         """
         for image_path, image_extension in self.image_paths:
             self.db.upload_new_comics_has_images_record(int(self.id), str(image_path))
-
-    def _comics_has_stories(self):
-        """
-        Upload new record in Comics_has_Events table
-        """
-        for story in self.storyDetail:
-            self.db.upload_new_comics_has_stories_record(int(self.id), int(story))
-
-    def _comics_has_urls(self):
-        """
-        Upload new record in Comics_has_Events table
-        """
-        for url_type, url_str in self.urls:
-            self.db.upload_new_comics_has_urls_record(int(self.id), str(url_str))
 
     def _comics_has_variants(self):
         """

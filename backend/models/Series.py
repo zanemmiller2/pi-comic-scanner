@@ -17,7 +17,11 @@ class Series(Entity):
         self.rating = None
         self.type = None
         self.nextSeriesDetail = {}  # (nextSeries[seriesId] = {title: '', uri: ''})
+        self.nextSeriesId = None
         self.previousSeriesDetail = {}  # (previousSeries[seriesId] = {title: '', uri: ''})
+        self.previousSeriesId = None
+
+        self.ENTITY_NAME = self.SERIES_ENTITY
 
     ####################################################################################################################
     #
@@ -72,17 +76,34 @@ class Series(Entity):
         Compiles the Series() entities into params tuple to pass to database function for uploading
         complete Series()
         """
-        pass
+        detailURL = None
+        purchaseURL = None
+        readerURL = None
+        inAppLinkURL = None
+
+        for url_type, url_str in self.urls:
+            if url_type == 'detail':
+                detailURL = url_str
+            elif url_type == 'purchase':
+                purchaseURL = url_str
+            elif url_type == 'reader':
+                readerURL = url_str
+            elif url_type == 'inAppLink':
+                inAppLinkURL = url_str
+
+        params = (self.id, self.title, self.description, self.resourceURI, self.startYear, self.endYear, self.rating, self.modified, detailURL, purchaseURL, readerURL, inAppLinkURL, self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type, self.title, self.description, self.resourceURI, self.startYear, self.endYear, self.rating, self.modified, self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type)
+
+        self.db.upload_complete_series(params)
 
     def upload_series_has_relationships(self):
         """
         Runs through and creates all the series_has_relationships
         """
-        self._series_has_characters()
-        self._series_has_creators()
-        self._series_has_events()
-        self._series_has_stories()
-        self._series_has_urls()
+        self._entity_has_characters()
+        self._entity_has_creators()
+        self._entity_has_events()
+        self._entity_has_stories()
+        self._entity_has_urls()
 
     ####################################################################################################################
     #
@@ -100,6 +121,7 @@ class Series(Entity):
         """
         A summary representation of the series which follows this series.,
         """
+
         if self.data['next']:
             next_uri = self.data['next']['resourceURI']
             next_title = self.data['next']['name']
@@ -107,8 +129,10 @@ class Series(Entity):
 
             if next_id != -1:
                 if next_id not in self.nextSeriesDetail:
-                    self.nextSeriesDetail[next_id] = {'title': next_title,
-                                                      'uri'  : next_uri}
+                    self.nextSeriesDetail[next_id] = {'title': str(next_title),
+                                                      'uri'  : str(next_uri)}
+
+                self.nextSeriesId = int(next_id)
 
     def _save_previous_series(self):
         """
@@ -116,13 +140,15 @@ class Series(Entity):
         """
         if self.data['previous']:
             previous_uri = self.data['previous']['resourceURI']
-            previous_title = self.data['next']['name']
+            previous_title = self.data['previous']['name']
             previous_id = self.get_id_from_resourceURI(previous_uri)
 
             if previous_id != -1:
                 if previous_id not in self.previousSeriesDetail:
-                    self.previousSeriesDetail[previous_id] = {'title': previous_title,
-                                                              'uri'  : previous_uri}
+                    self.previousSeriesDetail[previous_id] = {'title': str(previous_title),
+                                                              'uri'  : str(previous_uri)}
+
+                self.previousSeriesId = int(previous_id)
 
     def _save_rating(self):
         """
@@ -140,7 +166,7 @@ class Series(Entity):
         """
         The type of the series.
         """
-        self.type = int(self.data['type'])
+        self.type = str(self.data['type'])
 
     ####################################################################################################################
     #
@@ -159,7 +185,7 @@ class Series(Entity):
             series_title = self.nextSeriesDetail[series_id]['title']
             series_uri = self.nextSeriesDetail[series_id]['uri']
 
-            self.db.upload_new_record_by_table(self.SERIES_TABLE_NAME, series_id, series_title,
+            self.db.upload_new_record_by_table(self.ENTITY_NAME, series_id, series_title,
                                                series_uri)
 
         for previous_series in self.previousSeriesDetail:
@@ -167,41 +193,6 @@ class Series(Entity):
             series_title = self.previousSeriesDetail[series_id]['title']
             series_uri = self.previousSeriesDetail[series_id]['uri']
 
-            self.db.upload_new_record_by_table(self.SERIES_TABLE_NAME, series_id, series_title,
+            self.db.upload_new_record_by_table(self.ENTITY_NAME, series_id, series_title,
                                                series_uri)
 
-    ####################################################################################################################
-    #
-    #                               Comics_has_Relationships
-    #
-    ####################################################################################################################
-
-    def _series_has_characters(self):
-        """
-        Upload new record in Series_has_Characters table
-        """
-        for characterId in self.characterDetail:
-            self.db.upload_new_entity_has_characters_record(self.SERIES_ENTITY, int(self.id), int(characterId))
-
-    def _series_has_creators(self):
-        """
-        Upload new record in Series_has_Creators table
-        """
-
-    def _series_has_events(self):
-        """
-        Upload new record in Series_has_Events table
-        """
-        pass
-
-    def _series_has_stories(self):
-        """
-        Upload new record in Series_has_Events table
-        """
-        pass
-
-    def _series_has_urls(self):
-        """
-        Upload new record in Series_has_URLs table
-        """
-        pass

@@ -1,6 +1,5 @@
 """
 Author: Zane Miller
-Adapted From: https://github.com/sparkfun/DE2120_Py/blob/main/examples/de2120_ex1_serial_scan.py
 Email: millerzanem@gmail.com
 Date: 04/15/2023
 Description: Command Line interface driver
@@ -35,7 +34,8 @@ class LookupUI:
             "Would you like to:\n"
             "\t(1) Lookup barcodes\n"
             "\t(2) Update Creators records\n"
-            "\t(3) Quit\n: "
+            "\t(3) Update Series records\n"
+            "\t(4) Quit\n: "
             )
 
         if start_res == '1':
@@ -43,6 +43,8 @@ class LookupUI:
         elif start_res == '2':
             self.lookup_creators()
         elif start_res == '3':
+            self.lookup_series()
+        elif start_res == '4':
             print("NOTHING FOR ME TO DO THEN...GOODBYE")
             self.exit_program()
         else:
@@ -114,12 +116,12 @@ class LookupUI:
         """
         print("SUCCESSFULLY GOT STALE CREATORS FROM Creators")
 
-        # 1) Lookup each barcode and save as ComicBook Object
+        # 1) Lookup each stale creator and save as Creator() Object
         print("Creating Creator() for each creatorid")
         for creator in self.lookup.creators:
             self.lookup.lookup_marvel_creator_by_id(creator)
 
-        # 2) Upload each ComicBook() to database
+        # 2) Upload each Creator() to database
         print("Uploading Creators()s to database")
         for creator in self.lookup.creators:
             if self.lookup.creators[creator] is not None:
@@ -127,11 +129,47 @@ class LookupUI:
             else:
                 print(f"SELF.LOOKUP.CREATORS[{creator}] HAS NO Creator() OBJECT")
 
-        print("UPLOADED THE FOLLOWING COMIC BOOKS")
-        self.lookup.print_committed_barcodes()
+        print("UPLOADED THE FOLLOWING Creators")
+        self.lookup.print_creator_ids()
 
-        print("CLEANING UP COMMITTED COMICS FROM scanned_upc_codes")
-        self.lookup.remove_committed_from_buffer_db()
+    ####################################################################################################################
+    #
+    #               SERIES
+    #
+    ####################################################################################################################
+    def lookup_series(self):
+        """
+        Updates the series records that already exist in the database
+        """
+        self.lookup.get_stale_series_from_db()
+
+        if self.lookup.get_num_stale_series() == 0:
+            print("NOTHING TO LOOKUP...GOODBYE")
+            self.exit_program()
+        else:
+            self.process_series()
+
+    def process_series(self):
+        """
+        Processes Series
+        """
+        print("SUCCESSFULLY GOT STALE SERIES FROM Series")
+
+        # 1) Lookup each stale series
+        print("Creating Series() for each seriesId")
+        for series in self.lookup.series:
+            self.lookup.lookup_marvel_series_by_id(series)
+
+        # 2) Upload each ComicBook() to database
+        print("Uploading Series() to database")
+        for series in self.lookup.series:
+            if self.lookup.series[series] is not None:
+                self.lookup.update_complete_series(series)
+            else:
+                print(f"SELF.LOOKUP.SERIES[{series}] HAS NO Series() OBJECT")
+
+        print("UPLOADED THE FOLLOWING SERIES")
+        self.lookup.print_series_ids()
 
     ####################################################################################################################
     #

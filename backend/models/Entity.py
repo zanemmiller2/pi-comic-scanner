@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import hashlib
 import time
@@ -10,19 +12,15 @@ import keys.pub_keys
 
 class Entity:
     """ Generic entity model for inheritance """
-    CHARACTERS_TABLE_NAME = 'Characters'
-    COMICS_TABLE_NAME = 'Comics'
-    CREATORS_TABLE_NAME = 'Creators'
-    EVENTS_TABLE_NAME = 'Events'
-    IMAGES_TABLE_NAME = 'Images'
-    SERIES_TABLE_NAME = 'Series'
-    STORIES_TABLE_NAME = 'Stories'
-    URLS_TABLE_NAME = 'URLs'
     STORY_ENTITY = "Stories"
     COMIC_ENTITY = "Comics"
     SERIES_ENTITY = "Series"
     EVENT_ENTITY = "Events"
-    PURCHASED_COMICS_TABLE_NAME = 'PurchasedComics'
+    CHARACTER_ENTITY = "Characters"
+    CREATOR_ENTITY = "Creators"
+    IMAGE_ENTITY = "Images"
+    URL_ENTITY = "URLs"
+    PURCHASED_COMICS_ENTITY = 'PurchasedComics'
 
     def __init__(self, db_connection, response_data):
 
@@ -46,6 +44,8 @@ class Entity:
         self.creatorsRoles = {}  # (creatorsRoles[creator_id] = [roles]}) ...entity_has...
 
         self.description = None  # string, optional
+
+        self.ENTITY_NAME = None  # assigned in subclass __init__
 
     ####################################################################################################################
     #
@@ -84,8 +84,8 @@ class Entity:
                     # Save to dict for creating new character record
                     if character_id not in self.characterDetail:
                         self.characterDetail[character_id] = {
-                            'name': character_name,
-                            'uri': character_resource_uri
+                            'name': str(character_name),
+                            'uri': str(character_resource_uri)
                         }
 
     def _save_comics(self):
@@ -102,7 +102,7 @@ class Entity:
                 comic_id = self.get_id_from_resourceURI(comic_uri)
 
                 if comic_id != -1 and comic_id not in self.comicDetail:
-                    self.comicDetail[comic_id] = {'title': comic_title, 'uri': comic_uri}
+                    self.comicDetail[comic_id] = {'title': str(comic_title), 'uri': str(comic_uri)}
 
     def _save_creators(self):
         """
@@ -121,23 +121,23 @@ class Entity:
                     # save it to the detail dictionary for creating new db record
                     if creator_id not in self.creatorDetail:
                         self.creatorDetail[creator_id] = {
-                            'first_name': creator_first_name,
-                            'middle_name': creator_middle_name,
-                            'last_name': creator_last_name,
-                            'uri': creator_resource_uri
+                            'first_name': str(creator_first_name),
+                            'middle_name': str(creator_middle_name),
+                            'last_name': str(creator_last_name),
+                            'uri': str(creator_resource_uri)
                         }
 
                     # save to creatorIds dictionary with role for Comics_has_Creators entity
                     if creator_id not in self.creatorsRoles:
-                        self.creatorsRoles[creator_id] = [creator_role]
+                        self.creatorsRoles[creator_id] = [str(creator_role)]
                     else:
-                        self.creatorsRoles[creator_id].append(creator_role)
+                        self.creatorsRoles[creator_id].append(str(creator_role))
 
     def _save_description(self):
         """
         The preferred description of the comic.
         """
-        if 'description' in self.data:
+        if 'description' in self.data and self.data['description'] is not None:
             self.description = str(self.data['description'])
 
     def _save_events(self):
@@ -154,8 +154,8 @@ class Entity:
                 if event_id != -1:
                     if event_id not in self.eventDetail:
                         self.eventDetail[event_id] = {
-                            'title': event_title,
-                            'uri': event_resource_uri
+                            'title': str(event_title),
+                            'uri': str(event_resource_uri)
                         }
 
     def _save_id(self):
@@ -189,7 +189,7 @@ class Entity:
 
                 if series_id != -1:
                     if series_id not in self.seriesDetail:
-                        self.seriesDetail[series_id] = {'title': series_title, 'uri': series_uri}
+                        self.seriesDetail[series_id] = {'title': str(series_title), 'uri': str(series_uri)}
 
                 self.seriesId = series_id
 
@@ -209,10 +209,10 @@ class Entity:
                     # used for creating new db story record
                     if story_id not in self.storyDetail:
                         self.storyDetail[story_id] = {
-                            'title': story_title,
-                            'type': story_type,
-                            'uri': story_resource_uri,
-                            'originalIssue': self.id
+                            'title': str(story_title),
+                            'type': str(story_type),
+                            'uri': str(story_resource_uri),
+                            'originalIssue': int(self.id)
                         }
 
     def _save_thumbnail(self):
@@ -223,7 +223,7 @@ class Entity:
         thumbnail_extension = '.' + self.data['thumbnail']['extension']
 
         self.thumbnail = str(thumbnail_path)
-        self.thumbnailExtension = thumbnail_extension
+        self.thumbnailExtension = str(thumbnail_extension)
 
         if self.thumbnail not in self.image_paths:
             self.image_paths.add((self.thumbnail, self.thumbnailExtension))
@@ -240,7 +240,7 @@ class Entity:
         A set of public web-site URLs for the resource.
         """
         for url in self.data['urls']:
-            self.urls.add((url['type'], url['url']))
+            self.urls.add((str(url['type']), str(url['url'])))
 
     ####################################################################################################################
     #
@@ -292,7 +292,7 @@ class Entity:
             event_title = self.eventDetail[event_id]['title']
             event_uri = self.eventDetail[event_id]['uri']
 
-            self.db.upload_new_record_by_table(self.EVENTS_TABLE_NAME, event_id, event_title, event_uri)
+            self.db.upload_new_record_by_table(self.EVENT_ENTITY, event_id, event_title, event_uri)
 
     def _add_new_image(self):
         """
@@ -311,7 +311,7 @@ class Entity:
             series_title = self.seriesDetail[series_id]['title']
             series_uri = self.seriesDetail[series_id]['uri']
 
-            self.db.upload_new_record_by_table(self.SERIES_TABLE_NAME, series_id, series_title, series_uri)
+            self.db.upload_new_record_by_table(self.SERIES_ENTITY, series_id, series_title, series_uri)
 
     def _add_new_story(self):
         """
@@ -332,6 +332,49 @@ class Entity:
         """
         for url_type, url_path in self.urls:
             self.db.upload_new_url_record(url_type, url_path)
+
+    ####################################################################################################################
+    #
+    #                               Entity_has_Relationships
+    #
+    ####################################################################################################################
+
+    def _entity_has_characters(self):
+        """
+        Upload new record in Entity_has_Characters table
+        """
+        for characterId in self.characterDetail:
+            self.db.upload_new_entity_has_characters_record(self.ENTITY_NAME, int(self.id), int(characterId))
+
+    def _entity_has_creators(self):
+        """
+        Upload new record in Entity_has_Creators table
+        """
+        for creator in self.creatorsRoles:
+            creator_id = creator
+            for role in self.creatorsRoles[creator_id]:
+                self.db.upload_new_entity_has_creators_record(self.ENTITY_NAME, int(self.id), int(creator_id), str(role))
+
+    def _entity_has_events(self):
+        """
+        Upload new record in Entity_has_Events table
+        """
+        for eventId in self.eventDetail:
+            self.db.upload_new_entity_has_events_record(self.ENTITY_NAME, int(self.id), int(eventId))
+
+    def _entity_has_stories(self):
+        """
+        Upload new record in Entity_has_Stories table
+        """
+        for story in self.storyDetail:
+            self.db.upload_new_entity_has_stories_record(self.ENTITY_NAME, int(self.id), int(story))
+
+    def _entity_has_urls(self):
+        """
+        Upload new record in Entity_has_URLs table
+        """
+        for url_type, url_str in self.urls:
+            self.db.upload_new_entity_has_urls_record(self.ENTITY_NAME, int(self.id), str(url_str))
 
     ####################################################################################################################
     #
@@ -389,12 +432,17 @@ class Entity:
         return -1
 
     @staticmethod
-    def convert_to_SQL_date(date_string: str) -> Date:
+    def convert_to_SQL_date(date_string: str) -> Date | None:
         """
         Converts Date string formatted "%Y-%m-%dT%H:%M:%S%z" to datetime object compatible with SQL database
         """
 
-        return datetime.datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S%z")
+        try:
+            converted_date = datetime.datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S%z")
+            return converted_date
+        except ValueError:
+            print(f"ERROR WITH {date_string} CONVERSION ... RETURNING NONE")
+            return None
 
     @staticmethod
     def _get_marvel_api_hash():

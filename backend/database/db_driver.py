@@ -18,19 +18,15 @@ class DB:
     """
     DB Object that represents a connection and cursor for the provided database and credentials
     """
-    CHARACTERS_TABLE_NAME = 'Characters'
-    COMICS_TABLE_NAME = 'Comics'
-    CREATORS_TABLE_NAME = 'Creators'
-    EVENTS_TABLE_NAME = 'Events'
-    IMAGES_TABLE_NAME = 'Images'
-    SERIES_TABLE_NAME = 'Series'
-    STORIES_TABLE_NAME = 'Stories'
-    URLS_TABLE_NAME = 'URLs'
-    STORY_ENTITY = "Stories"
+    CHARACTER_ENTITY = "Characters"
     COMIC_ENTITY = "Comics"
-    SERIES_ENTITY = "Series"
+    CREATOR_ENTITY = "Creators"
     EVENT_ENTITY = "Events"
-    PURCHASED_COMICS_TABLE_NAME = 'PurchasedComics'
+    IMAGE_ENTITY = "Images"
+    SERIES_ENTITY = "Series"
+    STORY_ENTITY = "Stories"
+    URL_ENTITY = "URLs"
+    PURCHASED_COMICS_ENTITY = 'PurchasedComics'
 
     def __init__(self):
         """
@@ -49,13 +45,13 @@ class DB:
         self._connection = self._connect_to_database()
         self.cursor = self._connection.cursor(MySQLdb.cursors.DictCursor)
 
+        self.DB_DEBUG = True
 
     ####################################################################################################################
     #
     #                                       GET FROM DATABASE
     #
     ####################################################################################################################
-
     def get_upcs_from_buffer(self):
         """
         Selects all entries from scanned_upc_codes from comic_books database
@@ -70,9 +66,7 @@ class DB:
         query = "SELECT upc_code, date_uploaded FROM scanned_upc_codes;"
 
         try:
-            print("Executing %s", query)
-            self.cursor.execute(query)
-            self._commit_to_db()
+            self._execute_commit(query)
         except InvalidCursorExecute:
             print(f"GET UPCS ERROR")
             self._connection.rollback()
@@ -91,14 +85,30 @@ class DB:
                 "YEAR(CURRENT_TIMESTAMP) - YEAR(Creators.modified) > 1;"
 
         try:
-            print("Executing %s", query)
-            self.cursor.execute(query)
-            self._commit_to_db()
+            self._execute_commit(query)
         except InvalidCursorExecute:
             print(f"GET STALE CREATORS ERROR")
             self._connection.rollback()
 
         return self.cursor.fetchall()
+
+    def get_stale_series(self):
+        """
+        Selects the Series records that have a modified date older than a year ago or no modified date at all.
+        Series with no modified date were most likely added as a bare bones foreign key dependency.
+        :return: set of creator ids to update
+        """
+        query = "SELECT id FROM Series " \
+                "WHERE " \
+                "Series.modified IS NULL OR " \
+                "YEAR(CURRENT_TIMESTAMP) - YEAR(Series.modified) > 1;"
+
+        try:
+            self._execute_commit(query)
+            return self.cursor.fetchall()
+        except InvalidCursorExecute:
+            print(f"GET STALE SERIES ERROR")
+            self._connection.rollback()
 
     ####################################################################################################################
     #
@@ -120,11 +130,9 @@ class DB:
         query = "INSERT INTO comic_books.scanned_upc_codes(upc_code, date_uploaded) VALUES (%s, %s);"
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
-            print(f"UPC {params[0]} NOT UPLOADED TO BUFFER")
+            print(f"UPC {params[0]} NOT UPLOADED TO BUFFER") if self.DB_DEBUG else 0
             self._connection.rollback()
 
     def upload_complete_comic_book(self, params: tuple):
@@ -142,11 +150,9 @@ class DB:
                 f"%s, %s, %s, %s, %s);"
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
-            print(f"COMIC {params[0]} : {params[2]} NOT UPLOADED TO Comics TABLE")
+            print(f"COMIC {params[0]} : {params[2]} NOT UPLOADED TO Comics TABLE") if self.DB_DEBUG else 0
             self._connection.rollback()
 
     def upload_complete_creator(self, params: tuple):
@@ -160,15 +166,19 @@ class DB:
                 f"VALUES " \
                 f"(%s, %s, %s, %s, %s, %s, %s, %s, %s) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"firstName=%s, middleName=%s, lastName=%s, suffix=%s, modified=%s, resourceURI=%s, thumbnail=%s, " \
-                f"thumbnailExtension=%s;"
+                f"firstName = COALESCE (%s, VALUES(firstName)), " \
+                f"middleName = COALESCE (%s, VALUES(middleName)), " \
+                f"lastName = COALESCE (%s, VALUES(lastName)), " \
+                f"suffix = COALESCE (%s, VALUES(suffix)), " \
+                f"modified = COALESCE (%s, VALUES(modified)), " \
+                f"resourceURI = COALESCE (%s, VALUES(resourceURI)), " \
+                f"thumbnail = COALESCE (%s, VALUES(thumbnail)), " \
+                f"thumbnailExtension = COALESCE (%s, VALUES(thumbnailExtension));"
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
-            print(f"CREATOR {params[0]} : {params[2]} NOT UPLOADED TO Comics TABLE")
+            print(f"CREATOR {params[0]} : {params[2]} NOT UPLOADED TO Comics TABLE") if self.DB_DEBUG else 0
             self._connection.rollback()
 
     def upload_complete_purchased_comic(self, params: tuple):
@@ -180,16 +190,41 @@ class DB:
                 f"VALUES " \
                 f"(%s, %s, %s, %s) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"purchasedDate = COALESCE (VALUES(purchasedDate), %s)," \
-                f"purchasePrice = COALESCE (VALUES(purchasePrice), %s)," \
-                f"purchaseType = COALESCE (VALUES(purchaseType), %s);"
+                f"purchasedDate = COALESCE (%s, VALUES(purchasedDate))," \
+                f"purchasePrice = COALESCE (%s, VALUES(purchasePrice))," \
+                f"purchaseType = COALESCE (%s, VALUES(purchaseType));"
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"PURCHASED COMIC {params[0]} NOT UPLOADED TO PurchasedComics TABLE")
             self._connection.rollback()
+
+    def upload_complete_series(self, params: tuple):
+        """
+        Uploads a complete record to the PurchasedComics Table
+        """
+        query = f"INSERT INTO Series " \
+                f"(id, title, description, resourceURI, startYear, endYear, rating, modified, detailURL, purchaseURL, readerURL, inAppLink, thumbnail, nextSeriesId, previousSeriesId, Series.type) " \
+                f"VALUES " \
+                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+                f"ON DUPLICATE KEY UPDATE " \
+                f"title = COALESCE(%s, VALUES(title)), " \
+                f"description = COALESCE(%s, VALUES(description))," \
+                f"resourceURI = COALESCE(%s, VALUES(resourceURI))," \
+                f"startYear = COALESCE(%s, VALUES(startYear)), " \
+                f"endYear = COALESCE(%s, VALUES(endYear)), " \
+                f"rating = COALESCE(%s, VALUES(rating)), " \
+                f"modified = COALESCE(%s, VALUES(modified)), " \
+                f"thumbnail = COALESCE(%s, VALUES(thumbnail)), " \
+                f"nextSeriesId = COALESCE(%s, VALUES(nextSeriesId)), " \
+                f"previousSeriesId = COALESCE(%s, VALUES(previousSeriesId))," \
+                f"Series.type = COALESCE(%s, VALUES(Series.type));"
+        try:
+            self._execute_commit(query, params)
+        except InvalidCursorExecute:
+            print(f"PURCHASED COMIC {params[0]} NOT UPLOADED TO PurchasedComics TABLE")
+            self._connection.rollback()
+
 
     ################################################################
     #  Foreign Key Dependencies -- partial records
@@ -206,9 +241,7 @@ class DB:
         params = (image_path, image_extension, image_path)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"IMAGE {image_path + image_extension} NOT UPLOADED TO Images TABLE")
             self._connection.rollback()
@@ -224,9 +257,7 @@ class DB:
         params = (url_type, url_path, url_type, url_path)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"URL {url_type} : {url_path} NOT UPLOADED TO URLs TABLE")
             self._connection.rollback()
@@ -250,9 +281,7 @@ class DB:
         params = (creator_id, first_name, middle_name, last_name, resource_uri, creator_id)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"CREATOR {creator_id} - {first_name + middle_name + last_name} NOT UPLOADED TO Creators TABLE")
             self._connection.rollback()
@@ -271,9 +300,7 @@ class DB:
         params = (character_id, character_name, character_uri, character_id)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"CHARACTER {character_id} - {character_name} NOT UPLOADED TO Characters TABLE")
             self._connection.rollback()
@@ -293,9 +320,7 @@ class DB:
         params = (story_id, story_title, story_uri, story_type, story_id)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"STORY {story_id} : {story_title} NOT UPLOADED TO Stories TABLE")
             self._connection.rollback()
@@ -318,9 +343,7 @@ class DB:
         params = (variant_id, variant_title, variant_uri, issue_number, is_variant, variant_id)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"VARIANT COMIC {variant_id} : {variant_title} NOT UPLOADED TO Comics TABLE")
             self._connection.rollback()
@@ -338,9 +361,7 @@ class DB:
         params = (comic_id, comic_title, comic_uri, comic_id)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"COMIC {comic_id} : {comic_title} NOT UPLOADED TO Comics TABLE")
             self._connection.rollback()
@@ -363,9 +384,7 @@ class DB:
         params = (entity_id, entity_title, entity_uri, entity_id)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"NEW RECORD {entity_id} : {entity_title} NOT UPLOADED TO {table_name} TABLE")
             self._connection.rollback()
@@ -379,30 +398,6 @@ class DB:
     ################################################################
     #  COMICS_has
     ################################################################
-    def upload_new_comics_has_creators_record(self, comic_id: int, creator_id: int, creator_role: str = None):
-        """
-        Creates a new Comics_has_Creators record if the comic_id and character_id aren't already related with the
-        creator_role
-        :param comic_id: The unique ID of the comic resource.
-        :param creator_id: The unique ID of the creator resource.
-        :param creator_role: The role of the creator in the parent entity.
-        """
-
-        query = "INSERT INTO Comics_has_Creators (comicId, creatorId, creatorRole) VALUES (%s, %s, %s)" \
-                "ON DUPLICATE KEY UPDATE creatorRole = COALESCE (VALUES(creatorRole), %s);"
-        params = (comic_id, creator_id, creator_role, creator_role)
-
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(
-                    f"COMIC : CREATOR M:M RELATIONSHIP {comic_id} : {creator_id} WITH "
-                    f"ROLE {creator_role} NOT UPLOADED TO Comics_has_Creator TABLE"
-            )
-            self._connection.rollback()
-
     def upload_new_comics_has_images_record(self, comic_id: int, image_path: str):
         """
         Creates a new Comics_has_Creators record if the comic_id and image_path aren't already related
@@ -415,94 +410,10 @@ class DB:
         params = (comic_id, image_path, comic_id, image_path)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(
                     f"COMIC : IMAGE M:M RELATIONSHIP {comic_id} : {image_path} WITH NOT UPLOADED TO Comics_has_Images TABLE"
-            )
-            self._connection.rollback()
-
-    def upload_new_comics_has_urls_record(self, comic_id: int, url: str):
-        """
-        Creates a new Comics_has_Stories record if the comic_id and story_id aren't already related
-        :param comic_id: The unique ID of the comic resource.
-        :param url: A full URL (including scheme, domain, and path) related to the comic.
-        """
-
-        query = "INSERT INTO Comics_has_URLs (comicId, url) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_URLs WHERE comicId=%s AND url=%s);"
-        params = (comic_id, url, comic_id, url)
-
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(f"COMIC : URL M:M RELATIONSHIP {comic_id} : {url} WITH NOT UPLOADED TO Comics_has_URL TABLE")
-            self._connection.rollback()
-
-    def upload_new_comics_has_characters_record(self, comic_id: int, character_id: int):
-        """
-        Creates a new Comics_has_Characters record if the comic_id and character_id aren't already related
-        :param comic_id: The unique ID of the comic resource.
-        :param character_id: The unique ID of the character resource.
-        """
-
-        query = "INSERT INTO Comics_has_Characters (comicId, characterId) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_Characters WHERE comicId=%s AND characterId=%s);"
-        params = (comic_id, character_id, comic_id, character_id)
-
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(
-                    f"COMIC : CHARACTER M:M RELATIONSHIP {comic_id} : {character_id} WITH NOT UPLOADED TO Comics_has_Characters TABLE"
-            )
-            self._connection.rollback()
-
-    def upload_new_comics_has_events_record(self, comic_id: int, event_id: int):
-        """
-        Creates a new Comics_has_Events record if the comic_id and event_id aren't already related
-        :param comic_id: The unique ID of the comic resource.
-        :param event_id: The unique ID of the event resource.
-        """
-
-        query = "INSERT INTO Comics_has_Events (comicId, eventId) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_Events WHERE comicId=%s AND eventId=%s);"
-        params = (comic_id, event_id, comic_id, event_id)
-
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(
-                    f"COMIC : EVENTS M:M RELATIONSHIP {comic_id} : {event_id} WITH NOT UPLOADED TO Comics_has_Events TABLE"
-            )
-            self._connection.rollback()
-
-    def upload_new_comics_has_stories_record(self, comic_id: int, story_id: int):
-        """
-        Creates a new Comics_has_Stories record if the comic_id and story_id aren't already related
-        :param comic_id: The unique ID of the comic resource.
-        :param story_id: The unique ID of the story resource.
-        """
-
-        query = "INSERT INTO Comics_has_Stories (comicId, storyId) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_Stories WHERE comicId=%s AND storyId=%s);"
-        params = (comic_id, story_id, comic_id, story_id)
-
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(
-                    f"COMIC : STORY M:M RELATIONSHIP {comic_id} : {story_id} WITH NOT UPLOADED TO Comics_has_Stories TABLE"
             )
             self._connection.rollback()
 
@@ -518,9 +429,7 @@ class DB:
         params = (comic_id, variant_id, comic_id, variant_id)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(
                     f"COMIC : VARIANT M:M RELATIONSHIP {comic_id} : {variant_id} WITH NOT UPLOADED TO Comics_has_Variants TABLE"
@@ -530,47 +439,6 @@ class DB:
     ################################################################
     #  CREATOR_has
     ################################################################
-    def upload_new_creators_has_stories_record(self, creator_id: int, story_id: int):
-        """
-        Creates a new Creators_has_Stories record if the creator_id and story_id aren't already related
-        :param creator_id: The unique ID of the creator resource.
-        :param story_id: The unique ID of the story resource.
-        """
-
-        query = "INSERT INTO Creators_has_Stories (creatorId, storyId) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Creators_has_Stories WHERE creatorId=%s AND storyId=%s);"
-        params = (creator_id, story_id, creator_id, story_id)
-
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(
-                    f"CREATOR : STORY M:M RELATIONSHIP {creator_id} : {story_id} WITH NOT UPLOADED TO Creators_has_Stories TABLE"
-            )
-            self._connection.rollback()
-
-    def upload_new_creators_has_events_record(self, creator_id: int, event_id: int):
-        """
-        Creates a new Creators_has_Stories record if the creator_id and story_id aren't already related
-        :param creator_id: The unique ID of the creator resource.
-        :param event_id: The unique ID of the event resource.
-        """
-
-        query = "INSERT INTO Creators_has_Events (creatorId, eventId) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Creators_has_Events WHERE creatorId=%s AND eventId=%s);"
-        params = (creator_id, event_id, creator_id, event_id)
-
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(
-                    f"CREATOR : EVENT M:M RELATIONSHIP {creator_id} : {event_id} WITH NOT UPLOADED TO Creators_has_Events TABLE"
-            )
-            self._connection.rollback()
 
     def upload_new_creators_has_series_record(self, creator_id: int, series_id: int):
         """
@@ -584,62 +452,134 @@ class DB:
         params = (creator_id, series_id, creator_id, series_id)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(
                     f"CREATOR : SERIES M:M RELATIONSHIP {creator_id} : {series_id} WITH NOT UPLOADED TO Creators_has_Series TABLE"
             )
             self._connection.rollback()
 
-    def upload_new_creators_has_urls_record(self, creator_id: int, url: str):
-        """
-        Creates a new Creators_has_URLs record if the creator_id and url aren't already related
-        :param creator_id: The unique ID of the creator resource.
-        :param url: The unique url.
-        """
-
-        query = "INSERT INTO Creators_has_URLs (creatorId, url) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Creators_has_URLs WHERE creatorId=%s AND url=%s);"
-        params = (creator_id, url, creator_id, url)
-
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(
-                    f"CREATOR : URL M:M RELATIONSHIP {creator_id} : {url} WITH NOT UPLOADED TO Creators_has_URLs TABLE"
-            )
-            self._connection.rollback()
-
     ################################################################
-    #  SERIES_has
+    #  ENTITY_has
     ################################################################
-    def upload_new_entity_has_characters_record(self, parentEntity: str, parent_id: int, character_id: int):
+    def upload_new_entity_has_characters_record(self, parent_entity: str, parent_id: int, character_id: int):
         """
         Creates a new Entity_has_Characters record if the parent_id and character_id aren't already related
+        :param parent_entity: the name of the parent entity
         :param parent_id: The unique ID of the parent resource.
         :param character_id: The unique ID of the character resource.
         """
+        parentIdName = self.get_parent_id_name(parent_entity)
 
-        if parentEntity == self.SERIES_ENTITY:
-            parentIdName = "seriesId"
+        if parentIdName is not None:
+            tableName = parent_entity + '_has_' + self.CHARACTER_ENTITY
 
-        query = "INSERT INTO Comics_has_Characters (comicId, characterId) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_Characters WHERE comicId=%s AND characterId=%s);"
-        params = (comic_id, character_id, comic_id, character_id)
+            query = f"INSERT INTO {tableName} ({parentIdName}, characterId) SELECT %s, %s WHERE NOT EXISTS " \
+                    f"(SELECT * FROM {tableName} WHERE {parentIdName}=%s AND characterId=%s);"
+            params = (parent_id, character_id, parent_id, character_id)
 
-        try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
-        except InvalidCursorExecute:
-            print(
-                    f"COMIC : CHARACTER M:M RELATIONSHIP {comic_id} : {character_id} WITH NOT UPLOADED TO Comics_has_Characters TABLE"
-            )
-            self._connection.rollback()
+            try:
+                self._execute_commit(query, params)
+            except InvalidCursorExecute:
+                print(
+                        f"{parent_entity.upper()} : CHARACTER M:M RELATIONSHIP {parent_id} : {character_id} WITH NOT UPLOADED TO {tableName} TABLE"
+                )
+                self._connection.rollback()
+
+    def upload_new_entity_has_creators_record(self, parent_entity: str, parent_id: int, creator_id: int,
+                                              creator_role: str = None):
+        """
+        Creates a new Comics_has_Creators record if the comic_id and character_id aren't already related with the
+        creator_role
+        :param parent_entity: the name of the parent entity
+        :param parent_id: The unique ID of the parent entity resource.
+        :param creator_id: The unique ID of the creator resource.
+        :param creator_role: The role of the creator in the parent entity.
+        """
+
+        parentIdName = self.get_parent_id_name(parent_entity)
+
+        if parentIdName is not None:
+            tableName = parent_entity + '_has_' + self.CREATOR_ENTITY
+
+            query = f"INSERT INTO {tableName} ({parentIdName}, creatorId, creatorRole) VALUES (%s, %s, %s)" \
+                    f"ON DUPLICATE KEY UPDATE creatorRole = COALESCE (VALUES(creatorRole), %s);"
+            params = (parent_id, creator_id, creator_role, creator_role)
+
+            try:
+                self._execute_commit(query, params)
+            except InvalidCursorExecute:
+                print(
+                        f"{parent_entity.upper()} : CREATOR M:M RELATIONSHIP {parent_id} : {creator_id} WITH "
+                        f"ROLE {creator_role} NOT UPLOADED TO {tableName} TABLE"
+                )
+                self._connection.rollback()
+
+    def upload_new_entity_has_events_record(self, parent_entity: str, parent_id: int, event_id: int):
+        """
+        Creates a new Entity_has_Events record if the parent_id and event_id aren't already related
+        :param parent_entity: the name of the parent entity
+        :param parent_id: The unique ID of the parent resource.
+        :param event_id: The unique ID of the event resource.
+        """
+
+        parentIdName = self.get_parent_id_name(parent_entity)
+
+        if parentIdName is not None:
+            tableName = parent_entity + '_has_' + self.EVENT_ENTITY
+            query = f"INSERT INTO {tableName} ({parentIdName}, eventId) SELECT %s, %s WHERE NOT EXISTS " \
+                    f"(SELECT * FROM {tableName} WHERE {parentIdName}=%s AND eventId=%s);"
+            params = (parent_id, event_id, parent_id, event_id)
+
+            try:
+                self._execute_commit(query, params)
+            except InvalidCursorExecute:
+                print(f"{parent_entity.upper()} : EVENTS M:M RELATIONSHIP {parent_id} : {event_id} NOT UPLOADED TO {tableName} TABLE")
+                self._connection.rollback()
+
+    def upload_new_entity_has_stories_record(self, parent_entity: str, parent_id: int, story_id: int):
+        """
+        Creates a new Entity_has_Stories record if the parent_id and story_id aren't already related
+        :param parent_entity: the name of the parent entity
+        :param parent_id: The unique ID of the parent resource.
+        :param story_id: The unique ID of the parent resource.
+        """
+
+        parentIdName = self.get_parent_id_name(parent_entity)
+        if parentIdName is not None:
+            tableName = parent_entity + '_has_' + self.STORY_ENTITY
+            query = f"INSERT INTO {tableName} ({parentIdName}, storyId) SELECT %s, %s WHERE NOT EXISTS " \
+                    f"(SELECT * FROM {tableName} WHERE {parentIdName}=%s AND storyId=%s);"
+            params = (parent_id, story_id, parent_id, story_id)
+
+            try:
+                self._execute_commit(query, params)
+            except InvalidCursorExecute:
+                print(
+                        f"{parent_entity.upper()} : STORY M:M RELATIONSHIP {parent_id} : {story_id} NOT UPLOADED TO {tableName} TABLE"
+                )
+                self._connection.rollback()
+
+    def upload_new_entity_has_urls_record(self, parent_entity: str, parent_id: int, url: str):
+        """
+        Creates a new Entity_has_Stories record if the comic_id and story_id aren't already related
+        :param parent_entity: the name of the parent entity
+        :param parent_id: The unique ID of the parent resource.
+        :param url: A full URL (including scheme, domain, and path) related to the entity.
+        """
+        parentIdName = self.get_parent_id_name(parent_entity)
+        if parentIdName is not None:
+            tableName = parent_entity + '_has_' + self.URL_ENTITY
+            query = f"INSERT INTO {tableName} ({parentIdName}, url) SELECT %s, %s WHERE NOT EXISTS " \
+                    f"(SELECT * FROM {tableName} WHERE {parentIdName}=%s AND url=%s);"
+            params = (parent_id, url, parent_id, url)
+
+            try:
+                self._execute_commit(query, params)
+            except InvalidCursorExecute:
+                print(
+                    f"{parent_entity.upper()} : URL M:M RELATIONSHIP {parent_id} : {url} WITH NOT UPLOADED TO {tableName} TABLE")
+                self._connection.rollback()
 
     ####################################################################################################################
     #
@@ -657,12 +597,32 @@ class DB:
         params = (upc_code,)
 
         try:
-            print("Executing %s with %s" % (query, params))
-            self.cursor.execute(query, params)
-            self._commit_to_db()
+            self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"DELETE {upc_code} NOT DELETED FROM scanned_upc_codes TABLE")
             self._connection.rollback()
+
+    ####################################################################################################################
+    #
+    #                                   UTILITIES
+    #
+    ####################################################################################################################
+    def get_parent_id_name(self, parent_entity):
+        if parent_entity == self.CHARACTER_ENTITY:
+            return "characterId"
+        elif parent_entity == self.COMIC_ENTITY:
+            return "comicId"
+        elif parent_entity == self.CREATOR_ENTITY:
+            return "creatorId"
+        elif parent_entity == self.EVENT_ENTITY:
+            return "eventId"
+        elif parent_entity == self.SERIES_ENTITY:
+            return "seriesId"
+        elif parent_entity == self.STORY_ENTITY:
+            return "storyId"
+        else:
+            print(f"{parent_entity} HAS NO CREATOR RELATION... ") if self.DB_DEBUG else 0
+            return None
 
     ####################################################################################################################
     #
@@ -694,3 +654,14 @@ class DB:
         else:
             print("DB NOT CONNECTED...")
             return None
+
+    def _execute_commit(self, query, params=None):
+        if params is None:
+            print("Executing %s", query) if self.DB_DEBUG else 0
+            self.cursor.execute(query)
+        else:
+            print("Executing %s with %s" % (query, params)) if self.DB_DEBUG else 0
+            self.cursor.execute(query, params)
+
+        self._commit_to_db()
+

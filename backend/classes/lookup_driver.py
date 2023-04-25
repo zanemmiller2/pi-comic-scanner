@@ -13,6 +13,7 @@ import keys.private_keys
 import keys.pub_keys
 from backend.models.ComicBook import ComicBook
 from backend.models.Creators import Creator
+from backend.models.Series import Series
 
 COMICS_URL = "https://gateway.marvel.com/v1/public/comics"
 CHARACTERS_URL = "https://gateway.marvel.com/v1/public/characters"
@@ -30,24 +31,23 @@ class Lookup:
         """
         Object represents a lookup object with a dictionary of barcodes, comic books and a db connection
         """
-
         self.queued_barcodes = {}  # (queued_barcodes[barcode] = {prefix: barcode_prefix, upload_date: ''})
         self.lookedUp_barcodes = {}  # (lookedUp_barcodes[barcode] = {cb: comic_books[barcode], prefix: ''})
         self.committed_barcodes = {}  # (committed_barcodes[barcode] = {cb: comic_books[barcode], prefix: ''})
+
         self.comic_books = {}  # (comic_books[barcode] = {cb: ComicBook(), prefix: ''})
         self.creators = {}  # (creators[creatorId] = Creator())
+        self.series = {}  # (series[seriesId] = Series())
+
         self.db = lookup_db
         self.LOOKUP_DEBUG = True
         self.marvel_comic_data = None
 
-    '''
     ####################################################################################################################
     #
     #                                           HTTPS INTERACTIONS
     #
     ####################################################################################################################
-    '''
-
     def lookup_marvel_comic_by_upc(self, barcode: str):
         """
         Sends the http request to /comics&upc= endpoint and store response as comic_books object
@@ -59,7 +59,7 @@ class Lookup:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {
-                'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str, 'upc': barcode
+                    'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str, 'upc': barcode
             }
             request = requests.get(COMICS_URL, PARAMS)
             self.marvel_comic_data = request.json()
@@ -95,13 +95,37 @@ class Lookup:
             else:
                 self._make_creator_object(data['data']['results'][0], creator_id)
 
-    '''
+    def lookup_marvel_series_by_id(self, series_id: int):
+        """
+        Pulls creator information from SERIES_URL + '/{creatorId}'
+        :param series_id: the integer id of the series resource
+        """
+
+        if series_id in self.series:
+            hash_str, timestamp = self._get_marvel_api_hash()
+
+            PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
+            endpoint = SERIES_URL + '/' + str(series_id)
+
+            request = requests.get(endpoint, PARAMS)
+            data = request.json()
+
+            if data['data']['count'] == 0:
+                print(f"No Series found with {series_id} series id") if self.LOOKUP_DEBUG else 0
+            elif data['data']['count'] > 1:
+                print("TOO MANY SERIES FOUND...") if self.LOOKUP_DEBUG else 0
+            else:
+                self._make_series_object(data['data']['results'][0], series_id)
+
     ####################################################################################################################
     #
     #                                       OBJECT INTERACTIONS
     #
     ####################################################################################################################
-    '''
+
+    ################################################################
+    #  MAKE COMIC
+    ################################################################
 
     def get_purchased_details(self) -> tuple[str, float, str]:
         """ Gets the purchase details from the user """
@@ -166,14 +190,14 @@ class Lookup:
         # save the comic book object in a dictionary with the barcode as the key identifier and the
         # ComicBook() object as the value
         self.comic_books[barcode] = {
-            'cb': cb,
-            'prefix': self.queued_barcodes[barcode]['prefix']
+                'cb'    : cb,
+                'prefix': self.queued_barcodes[barcode]['prefix']
         }
 
         # move the barcode from the queued_barcodes to the lookedUp_barcodes
         self.lookedUp_barcodes[barcode] = {
-            'cb': self.comic_books[barcode]['cb'],
-            'prefix': self.comic_books[barcode]['prefix']
+                'cb'    : self.comic_books[barcode]['cb'],
+                'prefix': self.comic_books[barcode]['prefix']
         }
 
     def upload_comic_book(self, barcode: str):
@@ -199,13 +223,16 @@ class Lookup:
 
             # move the ComicBook() object from the lookedUp_barcodes to the committed_barcodes
             self.committed_barcodes[barcode] = {
-                'cb': self.comic_books[barcode]['cb'],
-                'prefix': self.comic_books[barcode]['prefix']
+                    'cb'    : self.comic_books[barcode]['cb'],
+                    'prefix': self.comic_books[barcode]['prefix']
             }
 
         else:
             print("BARCODE ALREADY COMMITTED TO DATABASE...") if self.LOOKUP_DEBUG else 0
 
+    ################################################################
+    #  MAKE CREATOR
+    ################################################################
     def _make_creator_object(self, marvel_creator_data, creator_id: int):
         """
         Create a Creator() object with the api response data and the creator_id
@@ -246,14 +273,54 @@ class Lookup:
         else:
             print(f"INVALID CREATOR ID {creator_id}...") if self.LOOKUP_DEBUG else 0
 
-    '''
+    ################################################################
+    #  MAKE SERIES
+    ################################################################
+    def _make_series_object(self, marvel_series_data, series_id):
+        """
+        Create a Series() object with the api response data and the series_id
+        :param marvel_series_data: json response from the marvel lookup api
+        :param series_id: id of the series
+        """
+
+        # establish a connection with the Series() object and pass database control to the Series() object
+        seriesObj = Series(self.db, marvel_series_data)
+
+        # Saves the series objects to its member variables
+        seriesObj.save_properties()
+
+        # link the seriesObj to the appropriate series_id
+        self.series[series_id] = seriesObj
+
+    def update_complete_series(self, series_id: int):
+        """
+        Create a new database record for the looked up Series() Object. First uploads any non-existent foreign key
+        dependencies and then uploads the entire Series object.
+        :param series_id: series's identification number
+        """
+
+        # Valid creator id
+        if series_id in self.series:
+            # Create new records for the different member variables that also represent database entities.
+            # For example, create a new series if it does not already exist so that the Series() seriesId
+            # foreign key dependency can be established.
+            self.series[series_id].upload_new_records()
+
+            # Once all the foreign key dependencies have been established, go ahead and create the
+            # Creator entity with all of its foreign key dependencies
+            self.series[series_id].upload_series()
+
+            # Once the Series() has been uploaded, go ahead and create the entity_has_relationships
+            self.series[series_id].upload_series_has_relationships()
+
+        else:
+            print(f"INVALID SERIES ID {series_id}...") if self.LOOKUP_DEBUG else 0
+
     ####################################################################################################################
     #
     #                                         DATABASE INTERACTIONS
     #
     ####################################################################################################################
-    '''
-
     def get_barcodes_from_db(self):
         """
         Queries the database for any queued_barcodes in the scanned_upc_codes table.
@@ -272,7 +339,7 @@ class Lookup:
             # Conflicting dates
             elif self.queued_barcodes[upc_code]['upload_date'] != upload_date:
                 self.queued_barcodes[upc_code]['upload_date'] = self._reconcile_duplicate_upc(
-                    self.queued_barcodes[upc_code]['upload_date'], upload_date
+                        self.queued_barcodes[upc_code]['upload_date'], upload_date
                 )
 
             # duplicate with same date
@@ -296,6 +363,23 @@ class Lookup:
             else:
                 print("DUPLICATE CREATOR FOUND...") if self.LOOKUP_DEBUG else 0
 
+    def get_stale_series_from_db(self):
+        """
+        Queries the database for any stale series. A stale series is one with a modified date more than a year
+        old or no modified date. No modified date is usually a result of uploading a series to satisfy a foreign key
+        dependency for some other entity.
+        """
+
+        res_data = self.db.get_stale_series()
+
+        for series in res_data:
+            series_id = series['id']
+            if series_id not in self.series:
+                self.series[series_id] = None
+            # duplicate with same date
+            else:
+                print("DUPLICATE SERIES FOUND...") if self.LOOKUP_DEBUG else 0
+
     def remove_committed_from_buffer_db(self):
         """
         Deletes the barcodes that have been committed to the database from the scanned_upc_codes table
@@ -307,13 +391,11 @@ class Lookup:
 
         self.committed_barcodes = {}
 
-    '''
     ####################################################################################################################
     #
     #                                       GETTERS AND SETTERS
     #
     ####################################################################################################################
-    '''
 
     def get_num_queued_barcodes(self) -> int:
         """
@@ -346,6 +428,13 @@ class Lookup:
         """
         return len(self.creators)
 
+    def get_num_stale_series(self) -> int:
+        """
+        Gets the number of stale series.
+        :return: integer number of stale series.
+        """
+        return len(self.series)
+
     def print_queued_barcodes(self):
         """
         Prints the formatted list of barcodes in the queued_barcodes dictionary
@@ -373,13 +462,23 @@ class Lookup:
             print(f"({i})\t{committed_barcode}")
             i += 1
 
-    '''
+    def print_creator_ids(self):
+        i = 1
+        for creator in self.creators:
+            print(f"({i})\t{creator}")
+            i += 1
+
+    def print_series_ids(self):
+        i = 1
+        for series in self.series:
+            print(f"({i})\t{series}")
+            i += 1
+
     ####################################################################################################################
     #
     #                                               UTILITIES
     #
     ####################################################################################################################
-    '''
 
     @staticmethod
     def _get_marvel_api_hash():
@@ -390,9 +489,9 @@ class Lookup:
 
         timestamp = int(time.time())
         input_string = str(
-            str(timestamp)
-            + keys.private_keys.marvel_developer_priv_key
-            + keys.pub_keys.marvel_developer_pub_key
+                str(timestamp)
+                + keys.private_keys.marvel_developer_priv_key
+                + keys.pub_keys.marvel_developer_pub_key
         )
 
         return hashlib.md5(input_string.encode("utf-8")).hexdigest(), timestamp
@@ -406,9 +505,9 @@ class Lookup:
         """
 
         print(
-            f"Duplicate found with conflicting date. Which one do you want to keep:"
-            f"\n\t(1) {og_date}"
-            f"\n\t(2) {conflict_date}"
+                f"Duplicate found with conflicting date. Which one do you want to keep:"
+                f"\n\t(1) {og_date}"
+                f"\n\t(2) {conflict_date}"
         )
         keep_res = input(">>> ")
 

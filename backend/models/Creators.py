@@ -19,6 +19,8 @@ class Creator(Entity):
         self.middleName = None
         self.lastName = None
         self.suffix = None
+
+        self.ENTITY_NAME = self.CREATOR_ENTITY
         self.CREATOR_DEBUG = True
 
     ####################################################################################################################
@@ -78,10 +80,10 @@ class Creator(Entity):
         """
         Runs through and creates all the comics_has_relationships
         """
-        self._creators_has_events()
+        self._entity_has_events()
+        self._entity_has_stories()
+        self._entity_has_urls()
         self._creators_has_series()
-        self._creators_has_stories()
-        self._creators_has_URLs()
         self._creators_has_comics()
 
     ####################################################################################################################
@@ -119,33 +121,12 @@ class Creator(Entity):
     #
     ####################################################################################################################
 
-    def _creators_has_stories(self):
-        """
-        Upload new record in Creators_has_Stories table
-        """
-        for story in self.storyDetail:
-            self.db.upload_new_creators_has_stories_record(int(self.id), int(story))
-
-    def _creators_has_URLs(self):
-        """
-        Upload new record in Creators_has_URLs table
-        """
-        for url_type, url_str in self.urls:
-            self.db.upload_new_creators_has_urls_record(int(self.id), str(url_str))
-
     def _creators_has_comics(self):
         """
         Upload new record in Comics_has_Creators table
         """
         for comic in self.comicDetail:
             self.db.upload_new_comics_has_creators_record(int(comic), int(self.id))
-
-    def _creators_has_events(self):
-        """
-        Upload new record in Creators_has_events table
-        """
-        for event in self.eventDetail:
-            self.db.upload_new_creators_has_events_record(int(self.id), int(event))
 
     def _creators_has_series(self):
         """
