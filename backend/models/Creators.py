@@ -84,6 +84,7 @@ class Creator(Entity):
         Runs through and creates all the comics_has_relationships
         """
         self._entity_has_urls()
+
         self._creators_has_events()  # Events_has_Series
         self._creators_has_series()  # Series_has_Creators
         self._creators_has_comics()  # Comics_has_Creators
@@ -129,11 +130,19 @@ class Creator(Entity):
         Upload new record in Comics_has_Creators table
         """
         for comic in self.comicDetail:
-            self.db.upload_new_comics_has_creators_record(int(comic), int(self.id))
+            self.db.upload_new_entity_has_creators_record(self.COMIC_ENTITY, int(comic), int(self.id))
+
+    def _creators_has_events(self):
+        """
+        Upload a new record to the Events_has_Creators table
+        """
+
+        for event in self.eventDetail:
+            self.db.upload_new_entity_has_creators_record(self.EVENT_ENTITY, int(event), int(self.id))
 
     def _creators_has_series(self):
         """
-        Upload new record in Series_has_creators table
+        Upload new record in Series_has_Creators table
         """
         for series in self.seriesDetail:
             self.db.upload_new_entity_has_creators_record(self.SERIES_ENTITY, int(series), int(self.id))
@@ -145,10 +154,4 @@ class Creator(Entity):
         for story in self.storyDetail:
             self.db.upload_new_entity_has_creators_record(self.STORY_ENTITY, int(story), int(self.id))
 
-    def _creators_has_events(self):
-        """
-        Upload a new record to the Events_has_Creators table
-        """
 
-        for event in self.eventDetail:
-            self.db.upload_new_entity_has_creators_record(self.EVENT_ENTITY, int(event), int(self.id))

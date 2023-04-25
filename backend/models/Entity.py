@@ -28,7 +28,6 @@ class Entity:
     IMAGE_ENTITY = "Images"
     URL_ENTITY = "URLs"
     PURCHASED_COMICS_ENTITY = 'PurchasedComics'
-    CREATORS_URL = "https://gateway.marvel.com/v1/public/creators"
     MAX_RESOURCE_LIMIT = 100
 
     def __init__(self, db_connection, response_data):
@@ -72,6 +71,19 @@ class Entity:
     def upload_new_records(self):
         """
         Uploads new records to the database before uploading the entire comic book with relevant foreign keys
+        """
+        pass
+
+    def upload_entity(self):
+        """
+        Compiles the Entity() entities into params tuple to pass to database function for uploading
+        complete Entity()
+        """
+        pass
+
+    def upload_entity_has_relationships(self):
+        """
+        Runs through and creates all the Entities_has_relationships
         """
         pass
 
@@ -122,6 +134,7 @@ class Entity:
             for creator in self.data['creators']['items']:
                 creator_resource_uri = creator['resourceURI']
                 creator_name = creator['name']
+
                 creator_role = creator['role']
                 creator_id = self.get_id_from_resourceURI(creator_resource_uri)
                 creator_first_name, creator_middle_name, creator_last_name = self.get_split_name(creator_name)
@@ -147,7 +160,7 @@ class Entity:
         """
         The preferred description of the comic.
         """
-        if 'description' in self.data:
+        if 'description' in self.data and self.data['description'] is not None:
             self.description = str(self.data['description'])
 
     def _save_events(self):
@@ -398,6 +411,13 @@ class Entity:
         for eventId in self.eventDetail:
             self.db.upload_new_entity_has_events_record(self.ENTITY_NAME, int(self.id), int(eventId))
 
+    def _entity_has_images(self):
+        """
+        Upload new record in Entity_has_Images table
+        """
+        for image_path, image_extension in self.image_paths:
+            self.db.upload_new_entity_has_images_record(self.ENTITY_NAME, int(self.id), str(image_path))
+
     def _entity_has_stories(self):
         """
         Upload new record in Entity_has_Stories table
@@ -475,6 +495,19 @@ class Entity:
 
         try:
             converted_date = datetime.datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S%z")
+            return converted_date
+        except ValueError:
+            print(f"ERROR WITH {date_string} CONVERSION ... RETURNING NONE")
+            return None
+
+    @staticmethod
+    def convert_eventStartEndDate_to_SQL_date(date_string: str) -> Date | None:
+        """
+        Converts Date string formatted "%Y-%m-%d %H:%M:%S" to datetime object compatible with SQL database
+        """
+
+        try:
+            converted_date = datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S")
             return converted_date
         except ValueError:
             print(f"ERROR WITH {date_string} CONVERSION ... RETURNING NONE")

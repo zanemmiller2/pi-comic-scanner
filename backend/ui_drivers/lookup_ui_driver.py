@@ -12,6 +12,18 @@ from backend.database.db_driver import DB
 class LookupUI:
     """ UI Driver class that handles menu navigation and control functions """
 
+    CHARACTER_ENTITY = "Characters"
+    COMIC_ENTITY = "Comics"
+    CREATOR_ENTITY = "Creators"
+    EVENT_ENTITY = "Events"
+    IMAGE_ENTITY = "Images"
+    SERIES_ENTITY = "Series"
+    STORY_ENTITY = "Stories"
+    URL_ENTITY = "URLs"
+    PURCHASED_COMICS_ENTITY = 'PurchasedComics'
+    ENTITIES = (CHARACTER_ENTITY, COMIC_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, IMAGE_ENTITY,
+                SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY)
+
     def __init__(self):
         """
         LookupUI Object with db and lookup object
@@ -31,13 +43,16 @@ class LookupUI:
         Initial start up menu asks user if they want to get the barcodes from the database to lookup
         """
         start_res = input(
-            "Would you like to:\n"
-            "\t(1) Lookup barcodes\n"
-            "\t(2) Update Creators records\n"
-            "\t(3) Update Series records\n"
-            "\t(4) Update Story records\n"
-            "\t(5) Quit\n: "
-            )
+                "Would you like to:\n"
+                "\t(1) Lookup barcodes\n"
+                "\t(2) Update Creators records\n"
+                "\t(3) Update Series records\n"
+                "\t(4) Update Story records\n"
+                "\t(5) Update Character records\n"
+                "\t(6) Update Event records\n"
+                "\t(7) Update Comic records\n"
+                "\t(8) Quit\n: "
+        )
 
         if start_res == '1':
             self.lookup_comics_by_barcode()
@@ -48,6 +63,12 @@ class LookupUI:
         elif start_res == '4':
             self.lookup_stories()
         elif start_res == '5':
+            self.lookup_characters()
+        elif start_res == '6':
+            self.lookup_events()
+        elif start_res == '7':
+            self.lookup_comics_by_id()
+        elif start_res == '8':
             print("NOTHING FOR ME TO DO THEN...GOODBYE")
             self.exit_program()
         else:
@@ -71,9 +92,9 @@ class LookupUI:
             print("NOTHING TO LOOKUP...GOODBYE")
             self.exit_program()
         else:
-            self.process_comics()
+            self.process_comics_by_barcode()
 
-    def process_comics(self):
+    def process_comics_by_barcode(self):
         """
         Processes comics
         """
@@ -88,13 +109,47 @@ class LookupUI:
         # 2) Upload each ComicBook() to database
         print("Uploading ComicBook()s to database")
         for barcode in self.lookup.lookedUp_barcodes:
-            self.lookup.upload_comic_book(barcode)
+            self.lookup.upload_complete_comic_book_byUPC(barcode)
 
         print("UPLOADED THE FOLLOWING COMIC BOOKS")
         self.lookup.print_committed_barcodes()
 
         print("CLEANING UP COMMITTED COMICS FROM scanned_upc_codes")
         self.lookup.remove_committed_from_buffer_db()
+
+    def lookup_comics_by_id(self):
+        """
+        Updates the Comic records that already exist in the database
+        """
+        self.lookup.get_stale_comics_from_db()
+
+        if self.lookup.get_num_stale_entity(self.COMIC_ENTITY) == 0:
+            print("NOTHING TO LOOKUP...GOODBYE")
+            self.exit_program()
+        else:
+            self.process_comics_by_id()
+
+    def process_comics_by_id(self):
+        """
+        Processes Comics by ID
+        """
+        print("SUCCESSFULLY GOT STALE COMICS FROM Comics")
+
+        # 1) Lookup each stale comic and save as Comic() Object
+        print("Creating Comic() for each comicId")
+        for comic in self.lookup.comic_books:
+            self.lookup.lookup_marvel_comic_by_id(comic)
+
+        # 2) Upload each COmic() to database
+        print("Uploading Comic()s to database")
+        for comic in self.lookup.comic_books:
+            if self.lookup.comic_books[comic] is not None:
+                self.lookup.update_complete_comic_book_byID(comic)
+            else:
+                print(f"SELF.LOOKUP.COMICS[{comic}] HAS NO Comic() OBJECT")
+
+        print("UPLOADED THE FOLLOWING Comics")
+        self.lookup.print_entity_ids(self.COMIC_ENTITY)
 
     ####################################################################################################################
     #
@@ -107,7 +162,7 @@ class LookupUI:
         """
         self.lookup.get_stale_creators_from_db()
 
-        if self.lookup.get_num_stale_creators() == 0:
+        if self.lookup.get_num_stale_entity(self.CREATOR_ENTITY) == 0:
             print("NOTHING TO LOOKUP...GOODBYE")
             self.exit_program()
         else:
@@ -120,7 +175,7 @@ class LookupUI:
         print("SUCCESSFULLY GOT STALE CREATORS FROM Creators")
 
         # 1) Lookup each stale creator and save as Creator() Object
-        print("Creating Creator() for each creatorid")
+        print("Creating Creator() for each creatorId")
         for creator in self.lookup.creators:
             self.lookup.lookup_marvel_creator_by_id(creator)
 
@@ -133,7 +188,7 @@ class LookupUI:
                 print(f"SELF.LOOKUP.CREATORS[{creator}] HAS NO Creator() OBJECT")
 
         print("UPLOADED THE FOLLOWING Creators")
-        self.lookup.print_creator_ids()
+        self.lookup.print_entity_ids(self.CREATOR_ENTITY)
 
     ####################################################################################################################
     #
@@ -146,7 +201,7 @@ class LookupUI:
         """
         self.lookup.get_stale_series_from_db()
 
-        if self.lookup.get_num_stale_series() == 0:
+        if self.lookup.get_num_stale_entity(self.SERIES_ENTITY) == 0:
             print("NOTHING TO LOOKUP...GOODBYE")
             self.exit_program()
         else:
@@ -172,7 +227,7 @@ class LookupUI:
                 print(f"SELF.LOOKUP.SERIES[{series}] HAS NO Series() OBJECT")
 
         print("UPLOADED THE FOLLOWING SERIES")
-        self.lookup.print_series_ids()
+        self.lookup.print_entity_ids(self.SERIES_ENTITY)
 
     ####################################################################################################################
     #
@@ -185,7 +240,7 @@ class LookupUI:
         """
         self.lookup.get_stale_stories_from_db()
 
-        if self.lookup.get_num_stale_stories() == 0:
+        if self.lookup.get_num_stale_entity(self.STORY_ENTITY) == 0:
             print("NOTHING TO LOOKUP...GOODBYE")
             self.exit_program()
         else:
@@ -211,7 +266,85 @@ class LookupUI:
                 print(f"SELF.LOOKUP.STORIES[{story}] HAS NO Story() OBJECT")
 
         print("UPLOADED THE FOLLOWING STORIES")
-        self.lookup.print_story_ids()
+        self.lookup.print_entity_ids(self.STORY_ENTITY)
+
+    ####################################################################################################################
+    #
+    #               CHARACTERS
+    #
+    ####################################################################################################################
+    def lookup_characters(self):
+        """
+        Updates the Characters records that already exist in the database
+        """
+        self.lookup.get_stale_characters_from_db()
+
+        if self.lookup.get_num_stale_entity(self.CHARACTER_ENTITY) == 0:
+            print("NOTHING TO LOOKUP...GOODBYE")
+            self.exit_program()
+        else:
+            self.process_characters()
+
+    def process_characters(self):
+        """
+        Processes Character
+        """
+        print("SUCCESSFULLY GOT STALE CHARACTERS FROM Characters")
+
+        # 1) Lookup each stale character
+        print("Creating Character() for each characterId")
+        for character in self.lookup.characters:
+            self.lookup.lookup_marvel_character_by_id(character)
+
+        # 2) Upload each Character() to database
+        print("Uploading Character() to database")
+        for character in self.lookup.characters:
+            if self.lookup.characters[character] is not None:
+                self.lookup.update_complete_character(character)
+            else:
+                print(f"SELF.LOOKUP.CHARACTERS[{character}] HAS NO Character() OBJECT")
+
+        print("UPLOADED THE FOLLOWING CHARACTERS")
+        self.lookup.print_entity_ids(self.CHARACTER_ENTITY)
+
+    ####################################################################################################################
+    #
+    #               CHARACTERS
+    #
+    ####################################################################################################################
+    def lookup_events(self):
+        """
+        Updates the Events records that already exist in the database
+        """
+        self.lookup.get_stale_events_from_db()
+
+        if self.lookup.get_num_stale_entity(self.EVENT_ENTITY) == 0:
+            print("NOTHING TO LOOKUP...GOODBYE")
+            self.exit_program()
+        else:
+            self.process_events()
+
+    def process_events(self):
+        """
+        Processes Events
+        """
+        print("SUCCESSFULLY GOT STALE EVENTS FROM Events")
+
+        # 1) Lookup each stale event
+        print("Creating Events() for each eventId")
+        for event in self.lookup.events:
+            self.lookup.lookup_marvel_event_by_id(event)
+
+        # 2) Upload each Event() to database
+        print("Uploading Event() to database")
+        for event in self.lookup.events:
+            if self.lookup.events[event] is not None:
+                self.lookup.update_complete_event(event)
+            else:
+                print(f"SELF.LOOKUP.EVENTS[{event}] HAS NO Event() OBJECT")
+
+        print("UPLOADED THE FOLLOWING Events")
+        self.lookup.print_entity_ids(self.EVENT_ENTITY)
 
     ####################################################################################################################
     #

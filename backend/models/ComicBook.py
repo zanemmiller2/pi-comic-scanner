@@ -49,9 +49,10 @@ class ComicBook(Entity):
         self.variantDetail = {}  # (variantDetail[variant_id] = {title: '', uri: ''})
 
         self.isPurchased = is_purchased
-        self.isPurchasedDate = self.convert_to_SQL_date(is_purchased_date)
-        self.isPurchasedPrice = is_purchased_price
-        self.isPurchasedType = is_purchased_type.title()
+        if self.isPurchased is True:
+            self.isPurchasedDate = self.convert_to_SQL_date(is_purchased_date)
+            self.isPurchasedPrice = is_purchased_price
+            self.isPurchasedType = is_purchased_type.title()
 
         self.ENTITY_NAME = self.COMIC_ENTITY
 
@@ -138,7 +139,12 @@ class ComicBook(Entity):
                   self.pageCount, json.dumps(self.textObjects), self.resourceURI, comic_detailURL, comic_purchaseURL,
                   comic_readerURL, comic_inAppLinkURL, self.onSaleDate, self.focDate, self.unlimitedDate,
                   self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice, self.seriesId, self.thumbnail,
-                  self.thumbnailExtension, self.originalIssueId)
+                  self.thumbnailExtension, self.originalIssueId, self.digitalId, self.title, self.issueNumber,
+                  self.variantDescription, self.description, self.modified, self.isbn, self.upc, self.diamondCode,
+                  self.ean, self.issn, self.format, self.pageCount, json.dumps(self.textObjects), self.resourceURI,
+                  comic_detailURL, comic_purchaseURL, comic_readerURL, comic_inAppLinkURL, self.onSaleDate,
+                  self.focDate, self.unlimitedDate, self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice,
+                  self.seriesId, self.thumbnail, self.thumbnailExtension, self.originalIssueId)
 
         self.db.upload_complete_comic_book(params)
 
@@ -146,13 +152,15 @@ class ComicBook(Entity):
         """
         Runs through and creates all the comics_has_relationships
         """
+        self._comics_has_variants()
+
         self._entity_has_characters()
         self._entity_has_creators()
         self._entity_has_events()
         self._entity_has_stories()
         self._entity_has_urls()
-        self._comics_has_images()
-        self._comics_has_variants()
+        self._entity_has_images()
+
 
         if self.isPurchased is True:
             self._upload_purchasedComic()
@@ -264,17 +272,16 @@ class ComicBook(Entity):
         """
         A summary representation of the series to which this comic belongs.
         """
-        if self.data['series']['available'] > 0:
-            if 'series' in self.data and self.data['series']:
-                series_uri = self.data['series']['resourceURI']
-                series_title = self.data['series']['name']
-                series_id = self.get_id_from_resourceURI(series_uri)
+        if 'series' in self.data and self.data['series']:
+            series_uri = self.data['series']['resourceURI']
+            series_title = self.data['series']['name']
+            series_id = self.get_id_from_resourceURI(series_uri)
 
-                if series_id != -1:
-                    if series_id not in self.seriesDetail:
-                        self.seriesDetail[series_id] = {'title': str(series_title), 'uri': str(series_uri)}
+            if series_id != -1:
+                if series_id not in self.seriesDetail:
+                    self.seriesDetail[series_id] = {'title': str(series_title), 'uri': str(series_uri)}
 
-                self.seriesId = series_id
+            self.seriesId = series_id
 
     def _save_textObjects(self):
         """
@@ -301,14 +308,16 @@ class ComicBook(Entity):
         """
         The UPC barcode number for the comic (generally only populated for periodical formats).
         """
-        self.upc = str(self.data['upc'])
+        if 'upc' in self.data and self.data['upc'] is not None:
+            self.upc = str(self.data['upc'])
 
     def _save_variantDescription(self):
         """
         If the issue is a variant (e.g. an alternate cover, second printing, or director’s cut),
         a text description of the variant.
         """
-        self.variantDescription = str(self.data['variantDescription'])
+        if 'variantDescription' in self.data and self.data['variantDescription'] is not None:
+            self.variantDescription = str(self.data['variantDescription'])
 
     def _save_variants(self):
         """
@@ -352,13 +361,6 @@ class ComicBook(Entity):
     #                               Comics_has_Relationships
     #
     ####################################################################################################################
-    def _comics_has_images(self):
-        """
-        Upload new record in Comics_has_Events table
-        """
-        for image_path, image_extension in self.image_paths:
-            self.db.upload_new_comics_has_images_record(int(self.id), str(image_path))
-
     def _comics_has_variants(self):
         """
         Upload new record in Comics_has_Events table

@@ -27,6 +27,8 @@ class DB:
     STORY_ENTITY = "Stories"
     URL_ENTITY = "URLs"
     PURCHASED_COMICS_ENTITY = 'PurchasedComics'
+    ENTITIES = (CHARACTER_ENTITY, COMIC_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, IMAGE_ENTITY,
+                SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY)
 
     def __init__(self):
         """
@@ -73,60 +75,26 @@ class DB:
 
         return self.cursor.fetchall()
 
-    def get_stale_creators(self):
+    def get_stale_entity(self, entity_name: str):
         """
-        Selects the Creators records that have a modified date older than a year ago or no modified date at all.
-        Creators with no modified date were most likely added as a bare bones foreign key dependency.
-        :return: set of creator ids to update
+        Selects the Entity records that have a modified date older than a year ago or no modified date at all.
+        Entities with no modified date were most likely added as a bare bones foreign key dependency.
+        :return: set of entity ids to update
         """
-        query = "SELECT id from Creators " \
-                "WHERE " \
-                "Creators.modified IS NULL OR " \
-                "YEAR(CURRENT_TIMESTAMP) - YEAR(Creators.modified) > 1;"
+        if entity_name in self.ENTITIES:
 
-        try:
-            self._execute_commit(query)
-        except InvalidCursorExecute:
-            print(f"GET STALE CREATORS ERROR")
-            self._connection.rollback()
+            query = f"SELECT id from {entity_name} " \
+                    f"WHERE " \
+                    f"{entity_name}.modified IS NULL OR " \
+                    f"YEAR(CURRENT_TIMESTAMP) - YEAR({entity_name}.modified) > 1 LIMIT 10;"
 
-        return self.cursor.fetchall()
+            try:
+                self._execute_commit(query)
+            except InvalidCursorExecute:
+                print(f"GET STALE {entity_name.upper()} ERROR")
+                self._connection.rollback()
 
-    def get_stale_series(self):
-        """
-        Selects the Series records that have a modified date older than a year ago or no modified date at all.
-        Series with no modified date were most likely added as a bare bones foreign key dependency.
-        :return: set of series ids to update
-        """
-        query = "SELECT id FROM Series " \
-                "WHERE " \
-                "Series.modified IS NULL OR " \
-                "YEAR(CURRENT_TIMESTAMP) - YEAR(Series.modified) > 1;"
-
-        try:
-            self._execute_commit(query)
             return self.cursor.fetchall()
-        except InvalidCursorExecute:
-            print(f"GET STALE SERIES ERROR")
-            self._connection.rollback()
-
-    def get_stale_stories(self):
-        """
-        Selects the Story records that have a modified date older than a year ago or no modified date at all.
-        Stories with no modified date were most likely added as a bare bones foreign key dependency.
-        :return: set of story ids to update
-        """
-        query = "SELECT id FROM Stories " \
-                "WHERE " \
-                "Stories.modified IS NULL OR " \
-                "YEAR(CURRENT_TIMESTAMP) - YEAR(Stories.modified) > 1 LIMIT 10;"
-
-        try:
-            self._execute_commit(query)
-            return self.cursor.fetchall()
-        except InvalidCursorExecute:
-            print(f"GET STALE STORY ERROR")
-            self._connection.rollback()
 
     ####################################################################################################################
     #
@@ -165,7 +133,37 @@ class DB:
                 f"thumbnail, thumbnailExtension, originalIssue) " \
                 f"VALUES " \
                 f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                f"%s, %s, %s, %s, %s);"
+                f"%s, %s, %s, %s, %s) " \
+                f"ON DUPLICATE KEY UPDATE " \
+                f"digitalId = COALESCE (%s, VALUES(digitalId)), " \
+                f"title = COALESCE (%s, VALUES(title)), " \
+                f"issueNumber = COALESCE (%s, VALUES(issueNumber)), " \
+                f"variantDescription = COALESCE (%s, VALUES(variantDescription)), " \
+                f"description = COALESCE (%s, VALUES(description)), " \
+                f"modified = COALESCE (%s, VALUES(modified)), " \
+                f"isbn = COALESCE (%s, VALUES(isbn)), " \
+                f"upc = COALESCE (%s, VALUES(upc)), " \
+                f"diamondCode = COALESCE (%s, VALUES(diamondCode)), " \
+                f"ean = COALESCE (%s, VALUES(ean)), " \
+                f"issn = COALESCE (%s, VALUES(issn)), " \
+                f"format = COALESCE (%s, VALUES(format)), " \
+                f"pageCount = COALESCE (%s, VALUES(pageCount)), " \
+                f"textObjects = COALESCE (%s, VALUES(textObjects)), " \
+                f"resourceURI = COALESCE (%s, VALUES(resourceURI)), " \
+                f"detailURL = COALESCE (%s, VALUES(detailURL)), " \
+                f"purchaseURL = COALESCE (%s, VALUES(purchaseURL)), " \
+                f"readerURL = COALESCE (%s, VALUES(readerURL)), " \
+                f"inAppLink = COALESCE (%s, VALUES(inAppLink)), " \
+                f"onSaleDate = COALESCE (%s, VALUES(onSaleDate)), " \
+                f"focDate = COALESCE (%s, VALUES(focDate)), " \
+                f"unlimitedDate = COALESCE (%s, VALUES(unlimitedDate)), " \
+                f"digitalPurchaseDate = COALESCE (%s, VALUES(digitalPurchaseDate)), " \
+                f"printPrice = COALESCE (%s, VALUES(printPrice)), " \
+                f"digitalPurchasePrice = COALESCE (%s, VALUES(digitalPurchasePrice)), " \
+                f"seriesId = COALESCE (%s, VALUES(seriesId)), " \
+                f"thumbnail = COALESCE (%s, VALUES(thumbnail)), " \
+                f"thumbnailExtension = COALESCE (%s, VALUES(thumbnailExtension)), " \
+                f"originalIssue = COALESCE (%s, VALUES(originalIssue));"
 
         try:
             self._execute_commit(query, params)
@@ -264,6 +262,51 @@ class DB:
             print(f"STORY {params[0]} NOT UPLOADED TO Stories TABLE")
             self._connection.rollback()
 
+    def upload_complete_character(self, params: tuple):
+        """
+        Uploads a complete record to the Characters Table
+        """
+        query = f"INSERT INTO Characters " \
+                f"(id, Characters.name, description, modified, resourceURI, thumbnail) " \
+                f"VALUES " \
+                f"(%s, %s, %s, %s, %s, %s) " \
+                f"ON DUPLICATE KEY UPDATE " \
+                f"Characters.name = COALESCE(%s, VALUES(Characters.name)), " \
+                f"description = COALESCE(%s, VALUES(description))," \
+                f"modified = COALESCE(%s, VALUES(modified)), " \
+                f"resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
+                f"thumbnail = COALESCE(%s, VALUES(thumbnail));"
+        try:
+            self._execute_commit(query, params)
+        except InvalidCursorExecute:
+            print(f"STORY {params[0]} NOT UPLOADED TO Stories TABLE")
+            self._connection.rollback()
+
+    def upload_complete_event(self, params: tuple):
+        """
+        Uploads a complete record to the Events Table
+        """
+        query = f"INSERT INTO Events " \
+                f"(id, title, description, resourceURI, modified, Events.start, Events.end, " \
+                f"thumbnail, nextEventId, previousEventId) " \
+                f"VALUES " \
+                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+                f"ON DUPLICATE KEY UPDATE " \
+                f"title = COALESCE(%s, VALUES(title)), " \
+                f"description = COALESCE(%s, VALUES(description))," \
+                f"resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
+                f"modified = COALESCE(%s, VALUES(modified)), " \
+                f"Events.start = COALESCE(%s, VALUES(Events.start)), " \
+                f"Events.end = COALESCE(%s, VALUES(Events.end)), " \
+                f"thumbnail = COALESCE(%s, VALUES(thumbnail)), " \
+                f"nextEventId = COALESCE(%s, VALUES(nextEventId)), " \
+                f"previousEventId = COALESCE(%s, VALUES(previousEventId));"
+        try:
+            self._execute_commit(query, params)
+        except InvalidCursorExecute:
+            print(f"EVENT {params[0]} NOT UPLOADED TO Events TABLE")
+            self._connection.rollback()
+
     ################################################################
     #  Foreign Key Dependencies -- partial records
     ################################################################
@@ -275,8 +318,13 @@ class DB:
         :param image_extension: extension for the image path
         """
 
-        query = "INSERT INTO Images (path, pathExtension) SELECT %s, %s WHERE NOT EXISTS(SELECT * FROM Images WHERE path=%s);"
-        params = (image_path, image_extension, image_path)
+        query = "INSERT INTO Images " \
+                "(Images.path, pathExtension) " \
+                "VALUES " \
+                "(%s, %s) " \
+                "ON DUPLICATE KEY UPDATE " \
+                "pathExtension = COALESCE(%s, VALUES(pathExtension));"
+        params = (image_path, image_extension, image_extension)
 
         try:
             self._execute_commit(query, params)
@@ -291,8 +339,13 @@ class DB:
         :param url_path: string of the full url to upload
         """
 
-        query = "INSERT INTO URLs (type, url) SELECT %s, %s WHERE NOT EXISTS (SELECT * FROM URLs WHERE type=%s AND url=%s);"
-        params = (url_type, url_path, url_type, url_path)
+        query = "INSERT INTO URLs " \
+                "(URLs.type, url) " \
+                "VALUES " \
+                "(%s, %s) " \
+                "ON DUPLICATE KEY UPDATE " \
+                "URLs.type = COALESCE(%s, VALUES(URLs.type));"
+        params = (url_type, url_path, url_type)
 
         try:
             self._execute_commit(query, params)
@@ -311,10 +364,18 @@ class DB:
         :param resource_uri: The canonical URL identifier for this resource.
         """
 
-        query = "INSERT INTO Creators (id, firstName, MiddleName, LastName, resourceURI) " \
-                "SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM Creators WHERE id=%s);"
+        query = "INSERT INTO Creators " \
+                "(id, firstName, middleName, lastName, resourceURI) " \
+                "VALUES " \
+                "(%s, %s, %s, %s, %s) " \
+                "ON DUPLICATE KEY UPDATE " \
+                "firstName = COALESCE(%s, VALUES(firstName)), " \
+                "middleName = COALESCE(%s, VALUES(middleName)), " \
+                "lastName = COALESCE(%s, VALUES(lastName)), " \
+                "resourceURI = COALESCE(%s, VALUES(resourceURI));"
 
-        params = (creator_id, first_name, middle_name, last_name, resource_uri, creator_id)
+        params = (creator_id, first_name, middle_name, last_name, resource_uri,
+                  first_name, middle_name, last_name, resource_uri)
 
         try:
             self._execute_commit(query, params)
@@ -330,10 +391,15 @@ class DB:
         :param character_uri: The canonical URL identifier for this resource.
         """
 
-        query = "INSERT INTO Characters (id, name, resourceURI) " \
-                "SELECT %s, %s, %s WHERE NOT EXISTS (SELECT * FROM Characters WHERE id=%s);"
+        query = "INSERT INTO Characters " \
+                "(id, Characters.name, resourceURI) " \
+                "VALUES " \
+                "(%s, %s, %s) " \
+                "ON DUPLICATE KEY UPDATE " \
+                "Characters.name = COALESCE(%s, VALUES(Characters.name)), " \
+                "resourceURI = COALESCE(%s, VALUES(resourceURI));"
 
-        params = (character_id, character_name, character_uri, character_id)
+        params = (character_id, character_name, character_uri, character_name, character_uri)
 
         try:
             self._execute_commit(query, params)
@@ -350,10 +416,16 @@ class DB:
         :param story_type: The story type e.g. interior story, cover, text story.
         """
 
-        query = "INSERT INTO Stories (id, title, resourceURI, type) " \
-                "SELECT %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM Stories WHERE id=%s);"
+        query = "INSERT INTO Stories " \
+                "(id, title, resourceURI, Stories.type) " \
+                "VALUES " \
+                "(%s, %s, %s, %s) " \
+                "ON DUPLICATE KEY UPDATE " \
+                "title = COALESCE(%s, VALUES(title)), " \
+                "resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
+                "Stories.type = COALESCE(%s, VALUES(Stories.type));"
 
-        params = (story_id, story_title, story_uri, story_type, story_id)
+        params = (story_id, story_title, story_uri, story_type, story_title, story_uri, story_type)
 
         try:
             self._execute_commit(query, params)
@@ -372,10 +444,18 @@ class DB:
         :param is_variant: boolean value denoting if the comic is a variant
         """
 
-        query = "INSERT INTO Comics (id, title, resourceURI, issueNumber, isVariant) " \
-                "SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM Comics WHERE id=%s);"
+        query = "INSERT INTO Comics " \
+                "(id, title, resourceURI, issueNumber, isVariant) " \
+                "VALUES " \
+                "(%s, %s, %s, %s, %s) " \
+                "ON DUPLICATE KEY UPDATE " \
+                "title = COALESCE(%s, VALUES(title)), " \
+                "resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
+                "issueNumber = COALESCE(%s, VALUES(issueNumber)), " \
+                "isVariant = COALESCE(%s, VALUES(isVariant));"
 
-        params = (variant_id, variant_title, variant_uri, issue_number, is_variant, variant_id)
+        params = (variant_id, variant_title, variant_uri, issue_number, is_variant,
+                  variant_title, variant_uri, issue_number, is_variant)
 
         try:
             self._execute_commit(query, params)
@@ -390,10 +470,15 @@ class DB:
         :param comic_title: The comic title.
         :param comic_uri: The canonical URL identifier for this resource.
         """
-        query = "INSERT INTO Comics (id, title, resourceURI) " \
-                "SELECT %s, %s, %s WHERE NOT EXISTS (SELECT * FROM Comics WHERE id=%s);"
+        query = "INSERT INTO Comics " \
+                "(id, title, resourceURI) " \
+                "VALUES " \
+                "(%s, %s, %s) " \
+                "ON DUPLICATE KEY UPDATE " \
+                "title = COALESCE(%s, VALUES(title)), " \
+                "resourceURI = COALESCE(%s, VALUES(resourceURI));"
 
-        params = (comic_id, comic_title, comic_uri, comic_id)
+        params = (comic_id, comic_title, comic_uri, comic_title, comic_uri)
 
         try:
             self._execute_commit(query, params)
@@ -433,24 +518,6 @@ class DB:
     ################################################################
     #  COMICS_has
     ################################################################
-    def upload_new_comics_has_images_record(self, comic_id: int, image_path: str):
-        """
-        Creates a new Comics_has_Creators record if the comic_id and image_path aren't already related
-        :param comic_id: The unique ID of the comic resource.
-        :param image_path: The full path of the image resource
-        """
-
-        query = "INSERT INTO Comics_has_Images (comicId, imagePath) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_Images WHERE comicId=%s AND imagePath=%s);"
-        params = (comic_id, image_path, comic_id, image_path)
-
-        try:
-            self._execute_commit(query, params)
-        except InvalidCursorExecute:
-            print(
-                    f"COMIC : IMAGE M:M RELATIONSHIP {comic_id} : {image_path} WITH NOT UPLOADED TO Comics_has_Images TABLE"
-            )
-            self._connection.rollback()
 
     def upload_new_comics_has_variants_record(self, comic_id: int, variant_id: int):
         """
@@ -514,8 +581,12 @@ class DB:
         if parentIdName is not None:
             tableName = parent_entity + '_has_' + self.CREATOR_ENTITY
 
-            query = f"INSERT INTO {tableName} ({parentIdName}, creatorId, creatorRole) VALUES (%s, %s, %s)" \
-                    f"ON DUPLICATE KEY UPDATE creatorRole = COALESCE (VALUES(creatorRole), %s);"
+            query = f"INSERT INTO {tableName} " \
+                    f"({parentIdName}, creatorId, creatorRole) " \
+                    f"VALUES " \
+                    f"(%s, %s, %s)" \
+                    f"ON DUPLICATE KEY UPDATE " \
+                    f"creatorRole = COALESCE (VALUES(creatorRole), %s);"
             params = (parent_id, creator_id, creator_role, creator_role)
 
             try:
@@ -548,6 +619,35 @@ class DB:
             except InvalidCursorExecute:
                 print(
                     f"{parent_entity.upper()} : EVENTS M:M RELATIONSHIP {parent_id} : {event_id} NOT UPLOADED TO {tableName} TABLE")
+                self._connection.rollback()
+
+    def upload_new_entity_has_images_record(self, parent_entity: str, parent_id: int, image_path: str):
+        """
+        Creates a new parent_entity_has_Images record if the parent_id and image_path aren't already related
+        :param parent_entity: the name of the parent entity
+        :param parent_id: The unique ID of the parent resource.
+        :param image_path: The full path of the image resource
+        """
+        parentIdName = self.get_parent_id_name(parent_entity)
+
+        if parentIdName is not None:
+            tableName = parent_entity + '_has_' + self.IMAGE_ENTITY
+
+            query = f"INSERT INTO {tableName} ({parentIdName}, imagePath) " \
+                    f"SELECT %s, %s WHERE NOT EXISTS " \
+                    f"(SELECT * FROM {tableName} " \
+                    f"WHERE " \
+                    f"{parentIdName}=%s " \
+                    f"AND " \
+                    f"imagePath=%s);"
+
+            params = (parent_id, image_path, parent_id, image_path)
+
+            try:
+                self._execute_commit(query, params)
+            except InvalidCursorExecute:
+                print(f"{parent_entity.upper()} : IMAGE M:M RELATIONSHIP {parent_id} : {image_path} NOT UPLOADED TO "
+                      f"{tableName} TABLE")
                 self._connection.rollback()
 
     def upload_new_entity_has_stories_record(self, parent_entity: str, parent_id: int, story_id: int):
@@ -599,7 +699,6 @@ class DB:
     #                                           DELETE RECORDS
     #
     ####################################################################################################################
-
     def delete_from_scanned_upc_codes_table(self, upc_code: str):
         """
         Deletes records from the scanned_upc_codes table based on the upc_code provided.
@@ -642,7 +741,6 @@ class DB:
     #                                       DATABASE MANAGEMENT
     #
     ####################################################################################################################
-
     def close_cursor(self):
         """
         Closes the db connection

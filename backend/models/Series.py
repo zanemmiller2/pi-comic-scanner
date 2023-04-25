@@ -34,11 +34,9 @@ class Series(Entity):
         """
         if self.data:
             # Unique to Series() class
-            self._save_end_year()
-            self._save_next_series()
-            self._save_previous_series()
+            self._save_next_previous_series()
             self._save_rating()
-            self._save_start_year()
+            self._save_start_end_year()
             # From Parent class
             self._save_characters()
             self._save_comics()
@@ -59,6 +57,7 @@ class Series(Entity):
         Uploads new records to the database before uploading the entire comic book with relevant foreign keys
         """
         # Unique to Series() class
+        self._add_new_series()  # modified for next series and previous series
 
         # From parent class
         self._add_new_character()
@@ -66,7 +65,6 @@ class Series(Entity):
         self._add_new_comic()
         self._add_new_event()
         self._add_new_image()
-        self._add_new_series()
         self._add_new_story()
         self._add_new_url()
 
@@ -110,18 +108,22 @@ class Series(Entity):
     #
     ####################################################################################################################
 
-    def _save_end_year(self):
+    def _save_start_end_year(self):
         """
         The last year of publication for the series (conventionally, 2099 for ongoing series).
         """
-        self.endYear = int(self.data['endYear'])
+        if 'startYear' in self.data and self.data['startYear'] is not None:
+            self.startYear = int(self.data['startYear'])
 
-    def _save_next_series(self):
+        if 'endYear' in self.data and self.data['endYear'] is not None:
+            self.endYear = int(self.data['endYear'])
+
+    def _save_next_previous_series(self):
         """
-        A summary representation of the series which follows this series.,
+        A summary representation of the series which precedes and follows this series.,
         """
 
-        if self.data['next']:
+        if 'next' in self.data and self.data['next'] is not None:
             next_uri = self.data['next']['resourceURI']
             next_title = self.data['next']['name']
             next_id = self.get_id_from_resourceURI(next_uri)
@@ -133,11 +135,7 @@ class Series(Entity):
 
                 self.nextSeriesId = int(next_id)
 
-    def _save_previous_series(self):
-        """
-        A summary representation of the series which preceded this series.
-        """
-        if self.data['previous']:
+        if 'previous' in self.data and self.data['previous'] is not None:
             previous_uri = self.data['previous']['resourceURI']
             previous_title = self.data['previous']['name']
             previous_id = self.get_id_from_resourceURI(previous_uri)
@@ -154,12 +152,6 @@ class Series(Entity):
         The age-appropriateness rating for the series.
         """
         self.rating = str(self.data['rating'])
-
-    def _save_start_year(self):
-        """
-        The first year of publication for the series.
-        """
-        self.startYear = int(self.data['startYear'])
 
     ####################################################################################################################
     #
