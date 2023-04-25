@@ -1,0 +1,85 @@
+{
+  "code": 200,
+  "status": "Ok",
+  "copyright": "© 2023 MARVEL",
+  "attributionText": "Data provided by Marvel. © 2023 MARVEL",
+  "attributionHTML": "<a href=\"http://marvel.com\">Data provided by Marvel. © 2023 MARVEL</a>",
+  "etag": "0200f57471ddf2f998511d3bd81febac5771a3e3",
+  "data": {
+    "offset": 0,
+    "limit": 20,
+    "total": 1,
+    "count": 1,
+    "results": [
+      {
+        "id": 228917,
+        "title": "cover from Star Wars: The High Republic - Blade of Bastara (2022) #4",
+        "description": "",
+        "resourceURI": "http://gateway.marvel.com/v1/public/stories/228917",
+        "type": "cover",
+        "modified": "2022-03-22T09:06:56-0400",
+        "thumbnail": null,
+        "creators": {
+          "available": 3,
+          "collectionURI": "http://gateway.marvel.com/v1/public/stories/228917/creators",
+          "items": [
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/1141",
+              "name": "Giuseppe Camuncoli",
+              "role": "penciler (cover)"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/13646",
+              "name": "Daniel Khazem",
+              "role": "editor"
+            },
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/creators/4991",
+              "name": "Frank Martin",
+              "role": "colorist (cover)"
+            }
+          ],
+          "returned": 3
+        },
+        "characters": {
+          "available": 0,
+          "collectionURI": "http://gateway.marvel.com/v1/public/stories/228917/characters",
+          "items": [],
+          "returned": 0
+        },
+        "series": {
+          "available": 1,
+          "collectionURI": "http://gateway.marvel.com/v1/public/stories/228917/series",
+          "items": [
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/series/35704",
+              "name": "Star Wars: The High Republic - The Blade (2022 - Present)"
+            }
+          ],
+          "returned": 1
+        },
+        "comics": {
+          "available": 1,
+          "collectionURI": "http://gateway.marvel.com/v1/public/stories/228917/comics",
+          "items": [
+            {
+              "resourceURI": "http://gateway.marvel.com/v1/public/comics/103907",
+              "name": "Star Wars: The High Republic - The Blade (2022) #4"
+            }
+          ],
+          "returned": 1
+        },
+        "events": {
+          "available": 0,
+          "collectionURI": "http://gateway.marvel.com/v1/public/stories/228917/events",
+          "items": [],
+          "returned": 0
+        },
+        "originalIssue": {
+          "resourceURI": "http://gateway.marvel.com/v1/public/comics/103907",
+          "name": "Star Wars: The High Republic - The Blade (2022) #4"
+        }
+      }
+    ]
+  }
+}

@@ -1,3 +1,10 @@
+"""
+Author: Zane Miller
+Email: millerzanem@gmail.com
+Date: 04/17/2023
+Description: Class drivers for looking up marvel comics with marvel public api
+"""
+
 from __future__ import annotations
 
 import datetime
@@ -21,29 +28,32 @@ class Entity:
     IMAGE_ENTITY = "Images"
     URL_ENTITY = "URLs"
     PURCHASED_COMICS_ENTITY = 'PurchasedComics'
+    CREATORS_URL = "https://gateway.marvel.com/v1/public/creators"
+    MAX_RESOURCE_LIMIT = 100
 
     def __init__(self, db_connection, response_data):
 
         self.db = db_connection
         self.data = response_data
 
-        self.id = None
-        self.modified = None
-        self.image_paths = set()  # {image_paths} ... includes thumbnail path as well ...entity_has...
-        self.resourceURI = None
-        self.thumbnail = None
-        self.thumbnailExtension = None
-        self.urls = set()  # set of tuples (type, url)
+        self.characterDetail = {}  # (characterDetail[character_id] = {name: '', uri: ''})
+        self.comicDetail = {}  # (comicDetail[comicId] = {title: '', uri: ''})
+        self.creatorDetail = {}  # (creatorDetail[creator_id] = {f_name: '', m_name: '', l_name: '', uri: ''})
+        self.creatorsRoles = {}  # (creatorsRoles[creator_id] = [roles]}) ...entity_has...
+        self.description = None  # string, optional
         self.eventDetail = {}  # (eventDetail[eventId] = {title: '', uri: ''})
+        self.id = None
+        self.image_paths = set()  # {image_paths} ... includes thumbnail path as well ...entity_has...
+        self.modified = None
+        self.originalIssueId = None
+        self.resourceURI = None
         self.seriesDetail = {}  # (seriesDetail[seriesId] = {title: '', uri: ''})
         self.storyDetail = {}  # (storyDetail[story_id] = {title: '', type: '', uri: ''})
-        self.creatorDetail = {}  # (creatorDetail[creator_id] = {f_name: '', m_name: '', l_name: '', uri: ''})
-        self.comicDetail = {}  # (comicDetail[comicId] = {title: '', uri: ''})
-
-        self.characterDetail = {}  # (characterDetail[character_id] = {name: '', uri: ''})
-        self.creatorsRoles = {}  # (creatorsRoles[creator_id] = [roles]}) ...entity_has...
-
-        self.description = None  # string, optional
+        self.thumbnail = None
+        self.thumbnailExtension = None
+        self.title = None
+        self.type = None
+        self.urls = set()  # set of tuples (type, url)
 
         self.ENTITY_NAME = None  # assigned in subclass __init__
 
@@ -137,7 +147,7 @@ class Entity:
         """
         The preferred description of the comic.
         """
-        if 'description' in self.data and self.data['description'] is not None:
+        if 'description' in self.data:
             self.description = str(self.data['description'])
 
     def _save_events(self):
@@ -171,6 +181,21 @@ class Entity:
 
         self.modified = self.convert_to_SQL_date(self.data['modified'])
 
+    def _save_originalIssueId(self):
+        """
+        Saves the original issue id of the resource
+        """
+
+        if 'originalIssue' in self.data and self.data['originalIssue'] is not None:
+            og_resourceURI = self.data['originalIssue']['resourceURI']
+            og_title = self.data['originalIssue']['name']
+            og_id = self.get_id_from_resourceURI(og_resourceURI)
+
+            if og_id != -1 and og_id not in self.comicDetail and og_id != self.id:
+                self.comicDetail[og_id] = {'title': str(og_title), 'uri': str(og_resourceURI)}
+
+            self.originalIssueId = og_id
+
     def _save_resourceURI(self):
         """
         The canonical URL identifier for this resource.
@@ -181,17 +206,15 @@ class Entity:
         """
         A summary representation of the series to which this comic belongs.
         """
-        if self.data['series']['available'] > 0:
-            if 'series' in self.data and self.data['series']:
-                series_uri = self.data['series']['resourceURI']
-                series_title = self.data['series']['name']
+        if 'series' in self.data and self.data['series']['available'] > 0:
+            for series in self.data['series']['items']:
+                series_uri = series['resourceURI']
+                series_title = series['name']
                 series_id = self.get_id_from_resourceURI(series_uri)
 
                 if series_id != -1:
                     if series_id not in self.seriesDetail:
                         self.seriesDetail[series_id] = {'title': str(series_title), 'uri': str(series_uri)}
-
-                self.seriesId = series_id
 
     def _save_stories(self):
         """
@@ -219,14 +242,18 @@ class Entity:
         """
         The representative image for this comic.
         """
-        thumbnail_path = self.data['thumbnail']['path']
-        thumbnail_extension = '.' + self.data['thumbnail']['extension']
+        if ('thumbnail' in self.data
+                and self.data['thumbnail'] is not None
+                and self.data['thumbnail']['path'] is not None):
 
-        self.thumbnail = str(thumbnail_path)
-        self.thumbnailExtension = str(thumbnail_extension)
+            thumbnail_path = self.data['thumbnail']['path']
+            thumbnail_extension = '.' + self.data['thumbnail']['extension']
 
-        if self.thumbnail not in self.image_paths:
-            self.image_paths.add((self.thumbnail, self.thumbnailExtension))
+            self.thumbnail = str(thumbnail_path)
+            self.thumbnailExtension = str(thumbnail_extension)
+
+            if self.thumbnail not in self.image_paths:
+                self.image_paths.add((self.thumbnail, self.thumbnailExtension))
 
     def _save_title(self):
         """
@@ -234,6 +261,15 @@ class Entity:
         """
         if 'title' in self.data:
             self.title = str(self.data['title'])
+
+    def _save_type(self):
+        """
+        The type of the resource.
+        """
+        if ('type' in self.data
+                and self.data['type'] is not None):
+
+            self.type = str(self.data['type'])
 
     def _save_urls(self):
         """

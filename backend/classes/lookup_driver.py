@@ -14,6 +14,7 @@ import keys.pub_keys
 from backend.models.ComicBook import ComicBook
 from backend.models.Creators import Creator
 from backend.models.Series import Series
+from backend.models.Stories import Story
 
 COMICS_URL = "https://gateway.marvel.com/v1/public/comics"
 CHARACTERS_URL = "https://gateway.marvel.com/v1/public/characters"
@@ -38,10 +39,10 @@ class Lookup:
         self.comic_books = {}  # (comic_books[barcode] = {cb: ComicBook(), prefix: ''})
         self.creators = {}  # (creators[creatorId] = Creator())
         self.series = {}  # (series[seriesId] = Series())
+        self.stories = {}  # (stories[storyId] = Story())
 
         self.db = lookup_db
         self.LOOKUP_DEBUG = True
-        self.marvel_comic_data = None
 
     ####################################################################################################################
     #
@@ -97,7 +98,7 @@ class Lookup:
 
     def lookup_marvel_series_by_id(self, series_id: int):
         """
-        Pulls creator information from SERIES_URL + '/{creatorId}'
+        Pulls series information from SERIES_URL + '/{seriesId}'
         :param series_id: the integer id of the series resource
         """
 
@@ -116,6 +117,28 @@ class Lookup:
                 print("TOO MANY SERIES FOUND...") if self.LOOKUP_DEBUG else 0
             else:
                 self._make_series_object(data['data']['results'][0], series_id)
+
+    def lookup_marvel_story_by_id(self, story_id: int):
+        """
+        Pulls story information from STORIES_URL + '/{storyId}'
+        :param story_id: the integer id of the story resource
+        """
+
+        if story_id in self.stories:
+            hash_str, timestamp = self._get_marvel_api_hash()
+
+            PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
+            endpoint = STORIES_URL + '/' + str(story_id)
+
+            request = requests.get(endpoint, PARAMS)
+            data = request.json()
+
+            if data['data']['count'] == 0:
+                print(f"No Stories found with {story_id} story id") if self.LOOKUP_DEBUG else 0
+            elif data['data']['count'] > 1:
+                print("TOO MANY STORIES FOUND...") if self.LOOKUP_DEBUG else 0
+            else:
+                self._make_story_object(data['data']['results'][0], story_id)
 
     ####################################################################################################################
     #
@@ -307,7 +330,7 @@ class Lookup:
             self.series[series_id].upload_new_records()
 
             # Once all the foreign key dependencies have been established, go ahead and create the
-            # Creator entity with all of its foreign key dependencies
+            # Series entity with all of its foreign key dependencies
             self.series[series_id].upload_series()
 
             # Once the Series() has been uploaded, go ahead and create the entity_has_relationships
@@ -315,6 +338,49 @@ class Lookup:
 
         else:
             print(f"INVALID SERIES ID {series_id}...") if self.LOOKUP_DEBUG else 0
+
+    ################################################################
+    #  MAKE STORIES
+    ################################################################
+    def _make_story_object(self, marvel_story_data, story_id):
+        """
+        Create a Story() object with the api response data and the story_id
+        :param marvel_story_data: json response from the marvel lookup api
+        :param story_id: id of the story
+        """
+
+        # establish a connection with the Series() object and pass database control to the Series() object
+        storyObj = Story(self.db, marvel_story_data)
+
+        # Saves the series objects to its member variables
+        storyObj.save_properties()
+
+        # link the seriesObj to the appropriate series_id
+        self.stories[story_id] = storyObj
+
+    def update_complete_story(self, story_id: int):
+        """
+        Create a new database record for the looked up Story() Object. First uploads any non-existent foreign key
+        dependencies and then uploads the entire Story object.
+        :param story_id: story's identification number
+        """
+
+        # Valid creator id
+        if story_id in self.stories:
+            # Create new records for the different member variables that also represent database entities.
+            # For example, create a new series if it does not already exist so that the Story() storyId
+            # foreign key dependency can be established.
+            self.stories[story_id].upload_new_records()
+
+            # Once all the foreign key dependencies have been established, go ahead and create the
+            # Story entity with all of its foreign key dependencies
+            self.stories[story_id].upload_story()
+
+            # Once the Story() has been uploaded, go ahead and create the entity_has_relationships
+            self.stories[story_id].upload_story_has_relationships()
+
+        else:
+            print(f"INVALID STORY ID {story_id}...") if self.LOOKUP_DEBUG else 0
 
     ####################################################################################################################
     #
@@ -380,6 +446,23 @@ class Lookup:
             else:
                 print("DUPLICATE SERIES FOUND...") if self.LOOKUP_DEBUG else 0
 
+    def get_stale_stories_from_db(self):
+        """
+        Queries the database for any stale stories. A stale stories is one with a modified date more than a year
+        old or no modified date. No modified date is usually a result of uploading a stories to satisfy a foreign key
+        dependency for some other entity.
+        """
+
+        res_data = self.db.get_stale_stories()
+
+        for story in res_data:
+            story_id = story['id']
+            if story_id not in self.stories:
+                self.stories[story_id] = None
+            # duplicate with same date
+            else:
+                print("DUPLICATE STORY FOUND...") if self.LOOKUP_DEBUG else 0
+
     def remove_committed_from_buffer_db(self):
         """
         Deletes the barcodes that have been committed to the database from the scanned_upc_codes table
@@ -435,6 +518,13 @@ class Lookup:
         """
         return len(self.series)
 
+    def get_num_stale_stories(self) -> int:
+        """
+        Gets the number of stale stories.
+        :return: integer number of stale stories.
+        """
+        return len(self.stories)
+
     def print_queued_barcodes(self):
         """
         Prints the formatted list of barcodes in the queued_barcodes dictionary
@@ -472,6 +562,12 @@ class Lookup:
         i = 1
         for series in self.series:
             print(f"({i})\t{series}")
+            i += 1
+
+    def print_story_ids(self):
+        i = 1
+        for story in self.stories:
+            print(f"({i})\t{story}")
             i += 1
 
     ####################################################################################################################

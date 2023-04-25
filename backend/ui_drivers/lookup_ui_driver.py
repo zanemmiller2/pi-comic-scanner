@@ -35,7 +35,8 @@ class LookupUI:
             "\t(1) Lookup barcodes\n"
             "\t(2) Update Creators records\n"
             "\t(3) Update Series records\n"
-            "\t(4) Quit\n: "
+            "\t(4) Update Story records\n"
+            "\t(5) Quit\n: "
             )
 
         if start_res == '1':
@@ -45,6 +46,8 @@ class LookupUI:
         elif start_res == '3':
             self.lookup_series()
         elif start_res == '4':
+            self.lookup_stories()
+        elif start_res == '5':
             print("NOTHING FOR ME TO DO THEN...GOODBYE")
             self.exit_program()
         else:
@@ -160,7 +163,7 @@ class LookupUI:
         for series in self.lookup.series:
             self.lookup.lookup_marvel_series_by_id(series)
 
-        # 2) Upload each ComicBook() to database
+        # 2) Upload each Series() to database
         print("Uploading Series() to database")
         for series in self.lookup.series:
             if self.lookup.series[series] is not None:
@@ -170,6 +173,45 @@ class LookupUI:
 
         print("UPLOADED THE FOLLOWING SERIES")
         self.lookup.print_series_ids()
+
+    ####################################################################################################################
+    #
+    #               STORIES
+    #
+    ####################################################################################################################
+    def lookup_stories(self):
+        """
+        Updates the Stories records that already exist in the database
+        """
+        self.lookup.get_stale_stories_from_db()
+
+        if self.lookup.get_num_stale_stories() == 0:
+            print("NOTHING TO LOOKUP...GOODBYE")
+            self.exit_program()
+        else:
+            self.process_stories()
+
+    def process_stories(self):
+        """
+        Processes Series
+        """
+        print("SUCCESSFULLY GOT STALE STORIES FROM Stories")
+
+        # 1) Lookup each stale story
+        print("Creating Story() for each storyId")
+        for story in self.lookup.stories:
+            self.lookup.lookup_marvel_story_by_id(story)
+
+        # 2) Upload each Story() to database
+        print("Uploading Story() to database")
+        for story in self.lookup.stories:
+            if self.lookup.stories[story] is not None:
+                self.lookup.update_complete_story(story)
+            else:
+                print(f"SELF.LOOKUP.STORIES[{story}] HAS NO Story() OBJECT")
+
+        print("UPLOADED THE FOLLOWING STORIES")
+        self.lookup.print_story_ids()
 
     ####################################################################################################################
     #

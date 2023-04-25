@@ -25,7 +25,6 @@ class ComicBook(Entity):
         super().__init__(db_connection, response_data)
         self.count = None  # int, optional
         self.digitalId = None  # int, optional
-        self.title = None  # string, optional
         self.issueNumber = None  # double, optional
         self.variantDescription = None  # string, optional
         self.isbn = None  # string, optional
@@ -41,7 +40,6 @@ class ComicBook(Entity):
         #     'text': string, optional
         # }
         self.seriesId = None
-        self.originalIssueId = None
         self.onSaleDate = None
         self.focDate = None
         self.unlimitedDate = None
@@ -92,6 +90,7 @@ class ComicBook(Entity):
             self._save_events()
             self._save_id()
             self._save_modified()
+            self._save_originalIssueId()
             self._save_resourceURI()
             self._save_series()
             self._save_stories()
@@ -260,6 +259,22 @@ class ComicBook(Entity):
                 self.digitalPurchasePrice = float(price['price'])
             else:
                 print(f"{price['type']} PRICE TYPE NOT CATEGORIZED")
+
+    def _save_series(self):
+        """
+        A summary representation of the series to which this comic belongs.
+        """
+        if self.data['series']['available'] > 0:
+            if 'series' in self.data and self.data['series']:
+                series_uri = self.data['series']['resourceURI']
+                series_title = self.data['series']['name']
+                series_id = self.get_id_from_resourceURI(series_uri)
+
+                if series_id != -1:
+                    if series_id not in self.seriesDetail:
+                        self.seriesDetail[series_id] = {'title': str(series_title), 'uri': str(series_uri)}
+
+                self.seriesId = series_id
 
     def _save_textObjects(self):
         """

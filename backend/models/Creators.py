@@ -1,8 +1,11 @@
+"""
+Author: Zane Miller
+Email: millerzanem@gmail.com
+Date: 04/17/2023
+Description: Class drivers for looking up marvel comics with marvel public api
+"""
+
 from backend.models.Entity import Entity
-
-CREATORS_URL = "https://gateway.marvel.com/v1/public/creators"
-
-MAX_RESOURCE_LIMIT = 100
 
 
 class Creator(Entity):
@@ -80,11 +83,11 @@ class Creator(Entity):
         """
         Runs through and creates all the comics_has_relationships
         """
-        self._entity_has_events()
-        self._entity_has_stories()
         self._entity_has_urls()
-        self._creators_has_series()
-        self._creators_has_comics()
+        self._creators_has_events()  # Events_has_Series
+        self._creators_has_series()  # Series_has_Creators
+        self._creators_has_comics()  # Comics_has_Creators
+        self._creators_has_stories()  # Stories_has_Creators
 
     ####################################################################################################################
     #
@@ -130,7 +133,22 @@ class Creator(Entity):
 
     def _creators_has_series(self):
         """
-        Upload new record in Creators_has_series table
+        Upload new record in Series_has_creators table
         """
         for series in self.seriesDetail:
-            self.db.upload_new_creators_has_series_record(int(self.id), int(series))
+            self.db.upload_new_entity_has_creators_record(self.SERIES_ENTITY, int(series), int(self.id))
+
+    def _creators_has_stories(self):
+        """
+        Upload a new record to the Stories_has_Creators table
+        """
+        for story in self.storyDetail:
+            self.db.upload_new_entity_has_creators_record(self.STORY_ENTITY, int(story), int(self.id))
+
+    def _creators_has_events(self):
+        """
+        Upload a new record to the Events_has_Creators table
+        """
+
+        for event in self.eventDetail:
+            self.db.upload_new_entity_has_creators_record(self.EVENT_ENTITY, int(event), int(self.id))

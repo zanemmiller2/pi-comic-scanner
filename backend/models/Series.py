@@ -11,15 +11,14 @@ class Series(Entity):
 
     def __init__(self, db_connection, response_data):
         super().__init__(db_connection, response_data)
-        self.title = None
-        self.startYear = None
         self.endYear = None
-        self.rating = None
-        self.type = None
         self.nextSeriesDetail = {}  # (nextSeries[seriesId] = {title: '', uri: ''})
         self.nextSeriesId = None
         self.previousSeriesDetail = {}  # (previousSeries[seriesId] = {title: '', uri: ''})
         self.previousSeriesId = None
+        self.rating = None
+        self.startYear = None
+
 
         self.ENTITY_NAME = self.SERIES_ENTITY
 
@@ -40,7 +39,6 @@ class Series(Entity):
             self._save_previous_series()
             self._save_rating()
             self._save_start_year()
-            self._save_type()
             # From Parent class
             self._save_characters()
             self._save_comics()
@@ -53,6 +51,7 @@ class Series(Entity):
             self._save_stories()
             self._save_thumbnail()
             self._save_title()
+            self._save_type()
             self._save_urls()
 
     def upload_new_records(self):
@@ -162,18 +161,11 @@ class Series(Entity):
         """
         self.startYear = int(self.data['startYear'])
 
-    def _save_type(self):
-        """
-        The type of the series.
-        """
-        self.type = str(self.data['type'])
-
     ####################################################################################################################
     #
     #                                   ADD NEW RECORDS TO DATABASE
     #
     ####################################################################################################################
-
     def _add_new_series(self):
         """
         Overrides the parent method to upload nextSeries and previousSeries unique to the
