@@ -300,10 +300,8 @@ class DB:
             print(f"URL {url_type} : {url_path} NOT UPLOADED TO URLs TABLE")
             self._connection.rollback()
 
-    def upload_new_creator_record(
-            self, creator_id: int, first_name: str, middle_name: str,
-            last_name: str, resource_uri: str
-    ):
+    def upload_new_creator_record(self, creator_id: int, first_name: str, middle_name: str,
+                                  last_name: str, resource_uri: str):
         """
         Uploads a new creator record to comic_books.creators if Creator does not already exist in database
         :param creator_id: The unique ID of the creator resource.
@@ -363,9 +361,8 @@ class DB:
             print(f"STORY {story_id} : {story_title} NOT UPLOADED TO Stories TABLE")
             self._connection.rollback()
 
-    def upload_new_variants_record(
-            self, variant_id: int, variant_title: str, variant_uri: str, issue_number: float, is_variant: bool
-    ):
+    def upload_new_variants_record(self, variant_id: int, variant_title: str, variant_uri: str, issue_number: float,
+                                   is_variant: bool):
         """
         Uploads a new story record to comic_books.stories if story does not already exist in database
         :param variant_id: The unique ID of the comic resource.
@@ -501,7 +498,8 @@ class DB:
                 )
                 self._connection.rollback()
 
-    def upload_new_entity_has_creators_record(self, parent_entity: str, parent_id: int, creator_id: int, creator_role: str = None):
+    def upload_new_entity_has_creators_record(self, parent_entity: str, parent_id: int, creator_id: int,
+                                              creator_role: str = None):
         """
         Creates a new Comics_has_Creators record if the comic_id and character_id aren't already related with the
         creator_role

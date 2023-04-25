@@ -544,9 +544,6 @@ class Lookup:
             i += 1
 
     def print_committed_barcodes(self):
-        """
-        Prints the formatted list of barcodes in the committed_barcodes dictionary
-        """
         i = 1
         for committed_barcode in self.committed_barcodes:
             print(f"({i})\t{committed_barcode}")
