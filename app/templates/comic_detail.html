@@ -19,6 +19,11 @@
                 <img src="{{ comic_data.thumbnail + '/portrait_uncanny' + comic_data.thumbnailExtension }}"
                      alt="{{ comic_data.title }} 300px x 450px thumbnail image"
                      class="comic-thumbnail-responsive">
+                <div class="detail-url">
+                    <div>
+                        <a href="{{ comic_data.detailURL }}">Detail URL</a>
+                    </div>
+                </div>
             </div>
 
             <!-- ROW 1, COL 2 -->
@@ -77,16 +82,6 @@
                                         {{ "N/A" }}
                                     {% endif %}
                                 </li>
-                                <li class="list-group-item">
-                                    {% if comic_data.purchaseURL %}
-                                        <a href="{{ comic_data.purchaseURL }}">
-                                            <strong>Purchase URL</strong>
-                                        </a>
-                                    {% else %}
-                                        {{ "Purchase URL: N/A" }}
-                                    {% endif %}
-
-                                </li>
                             </ul>
                         </div>
                     </div>
@@ -112,16 +107,6 @@
                                         {{ "N/A" }}
                                     {% endif %}
                                 </li>
-                                <li class="list-group-item">
-                                    {% if comic_data.readerURL %}
-                                        <a href="{{ comic_data.readerURL }}">
-                                            <strong>Reader URL</strong>
-                                        </a>
-                                    {% else %}
-                                        {{ "Reader URL: N/A" }}
-                                    {% endif %}
-
-                                </li>
                             </ul>
                         </div>
                     </div>
@@ -131,116 +116,126 @@
 
             <!-- ROW 1, COL3 -->
             <div class="comic-details2">
-
-                <!-- COL3, ROW 1 - ISSUE NUMBER -->
-                {% if comic_data.description.decode() and comic_data.description.decode() != "None" %}
-                    <div>
-                        <div class="issue-number-box"
-                             style="float: left; margin-right: 20px">
-                            <div class="issue-number-box-text">
-                                {% if comic_data.issueNumber %}
-                                    {{ "# " ~comic_data.issueNumber | int }}
-                                {% else %}
-                                    {{ "N/A" }}
-                                {% endif %}
+                <div>
+                    <!-- COL3, ROW 1 - ISSUE NUMBER -->
+                    {% if comic_data.description.decode() and comic_data.description.decode() != "None" %}
+                        <div style="margin: 0">
+                            <div class="issue-number-box">
+                                <div class="issue-number-box-text">
+                                    {% if comic_data.issueNumber %}
+                                        {{ "# " ~comic_data.issueNumber | int }}
+                                    {% else %}
+                                        {{ "N/A" }}
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- COL3, ROW 2 - COMIC DESCRIPTION -->
-                    <div class="comic-description comic-description-text">
-                        {{ comic_data.description.decode() }}
-                    </div>
+                        <!-- COL3, ROW 2 - COMIC DESCRIPTION -->
+                        <div class="comic-description">
+                            {{ comic_data.description.decode() }}
+                        </div>
 
-                {% else %}
-                    <div>
-                        <div class="issue-number-box" style="align-items: center">
-                            <div class="issue-number-box-text">
-                                {% if comic_data.issueNumber %}
-                                    {{ "# " ~comic_data.issueNumber | int }}
-                                {% else %}
-                                    {{ "N/A" }}
-                                {% endif %}
+                    {% else %}
+                        <div>
+                            <div class="issue-number-box">
+                                <div class="issue-number-box-text">
+                                    {% if comic_data.issueNumber %}
+                                        {{ "# " ~comic_data.issueNumber | int }}
+                                    {% else %}
+                                        {{ "N/A" }}
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                {% endif %}
+                    {% endif %}
+                </div>
+                <div>
 
-                <!-- COL3, ROW 3 - NUMERIC DESCRIPTORS -->
-                <table class="comic-number-descriptors comic-numbers-text">
-                    <tbody>
-                    <tr>
-                        <td><strong>ISBN:</strong>{{ comic_data.isbn if comic_data.isbn else "N/A" }}</td>
-                        <td><strong>ISSN:</strong>{{ comic_data.issn if comic_data.issn else "N/A" }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>EAN:</strong>{{ comic_data.ean if comic_data.ean else "N/A" }}</td>
-                        <td><strong>Diamond Code:</strong>{{ comic_data.diamondCode if comic_data.diamondCode else "N/A" }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>UPC:</strong>{{ comic_data.upc if comic_data.upc else "N/A" }}</td>
-                        <td><strong>Modified:</strong>{{ comic_data.modified if comic_data.modified else "N/A" }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Foc Date:</strong>{{ comic_data.focDate if comic_data.focDate else "N/A" }}</td>
-                        <td><strong>Unltd. Date:</strong>{{ comic_data.unlimitedDate if comic_data.unlimitedDate else "N/A" }}</td>
-                    </tr>
-                    </tbody>
-                </table>
+                    <!-- COL3, ROW 3 - NUMERIC DESCRIPTORS -->
+                    <table class="comic-number-descriptors">
+                        <tbody>
+                        <tr>
+                            <td>
+                                <strong>ISBN:</strong>{{ comic_data.isbn if comic_data.isbn else "N/A" }}
+                            </td>
+                            <td>
+                                <strong>ISSN:</strong>{{ comic_data.issn if comic_data.issn else "N/A" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>EAN:</strong>{{ comic_data.ean if comic_data.ean else "N/A" }}
+                            </td>
+                            <td><strong>Diamond
+                                Code:</strong>{{ comic_data.diamondCode if comic_data.diamondCode else "N/A" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>UPC:</strong>{{ comic_data.upc if comic_data.upc else "N/A" }}
+                            </td>
+                            <td>
+                                <strong>Modified:</strong>{{ comic_data.modified if comic_data.modified else "N/A" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Foc
+                                Date:</strong>{{ comic_data.focDate if comic_data.focDate else "N/A" }}
+                            </td>
+                            <td><strong>Unltd.
+                                Date:</strong>{{ comic_data.unlimitedDate if comic_data.unlimitedDate else "N/A" }}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- ROW 2 SERIES AND STORIES-->
         <div class="comic-series-stories-row">
-            <div class="row">
 
-                <!-- ROW 2, COL 1 SERIES DETAIL -->
-                <div class="series-story-col">
-                    <div class="comic-series-story-card"><img
-                            class="series-story-thumbnail"
-                            src=""
-                            alt="Card image cap">
-                        <div class="card-body">
-                            <h5 class="card-title">Series Title</h5>
-                            <p class="card-text">Series Description text&nbsp;Series
-                                Description textSeries Description textSeries
-                                Description textSeries Description textSeries
-                                Description textSeries Description text</p>
-                        </div>
-                    </div>
+            <!-- ROW 2, COL 1 SERIES DETAIL -->
+            <div class="comic-series-story-card">
+
+                <img
+                        class="series-story-thumbnail"
+                        src="{{ comic_data['Series.thumbnail'] + '/portrait_xlarge' + comic_data.thumbnailExtension }}"
+                        alt="Comic Series Thumbnail"
+                >
+                <div class="series-story-body">
+                    <h5 class="comic-series-story-card-text">{{ comic_data['Series.title'] }}</h5>
+                    <p class="comic-series-story-card-text">{{ comic_data['Series.description'].decode() }}</p>
                 </div>
+            </div>
 
-                <!-- ROW 2, COL 2 INTERIOR STORY DETAIL -->
-                <div class="series-story-col">
-                    <div class="comic-series-story-card"><img
-                            class="series-story-thumbnail"
-                            src=""
-                            alt="Card image cap">
-                        <div class="card-body">
-                            <h5 class="card-title">Interior Story Title</h5>
-                            <p class="card-text">Interior story description&nbsp;Interior
-                                story description&nbsp;Interior story
-                                descriptionInterior story description&nbsp;Interior
-                                story description Interior story description
-                                Interior story</p>
-                        </div>
-                    </div>
+            <!-- ROW 2, COL 2 INTERIOR STORY DETAIL -->
+            <div class="comic-series-story-card"><img
+                    class="series-story-thumbnail"
+                    src=""
+                    alt="Card image cap">
+                <div class="series-story-body">
+                    <h5 class="card-title">Interior Story Title</h5>
+                    <p class="card-text">Interior story description&nbsp;Interior
+                        story description&nbsp;Interior story
+                        descriptionInterior story description&nbsp;Interior
+                        story description Interior story description
+                        Interior story</p>
                 </div>
+            </div>
 
-                <!-- ROW 2, COL 3 COVER STORY DETAIL DETAIL -->
-                <div class="series-story-col">
-                    <div class="comic-series-story-card"><img
-                            src=""
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Cover Story title</h5>
-                            <p class="card-text">Cover Story Description&nbsp;Cover
-                                Story DescriptionCover Story DescriptionCover
-                                Story
-                                DescriptionCover Story DescriptionCover Story
-                                Description</p>
-                        </div>
-                    </div>
+            <!-- ROW 2, COL 3 COVER STORY DETAIL DETAIL -->
+            <div class="comic-series-story-card"><img
+                    src=""
+                    alt="Card image cap"
+                    class="series-story-thumbnail">
+                <div class="card-body">
+                    <h5 class="card-title">Cover Story title</h5>
+                    <p class="card-text">Cover Story Description&nbsp;Cover
+                        Story DescriptionCover Story DescriptionCover
+                        Story
+                        DescriptionCover Story DescriptionCover Story
+                        Description</p>
                 </div>
             </div>
         </div>
@@ -257,7 +252,6 @@
                         <h5 class="card-title">Character 1</h5>
                     </div>
                 </div>
-                &nbsp;
             </div>
 
             <!-- ROW 3, COL 2 CHARACTER 2 DETAIL -->
@@ -270,7 +264,6 @@
                         <h5 class="card-title">Character2</h5>
                     </div>
                 </div>
-                &nbsp;
             </div>
 
             <!-- ROW 3, COL 3 CHARACTER 3 DETAIL -->
@@ -327,7 +320,6 @@
                             <h5 class="card-title">Events 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
 
                 <!-- EVENTS 2 -->
@@ -340,7 +332,6 @@
                             <h5 class="card-title">Events 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
 
                 <!-- EVENTS 3 -->
@@ -353,7 +344,6 @@
                             <h5 class="card-title">Events 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
 
                 <!-- EVENTS 4 -->
@@ -366,20 +356,19 @@
                             <h5 class="card-title">Events 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
 
                 <!-- EVENTS 5 -->
                 <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
+                    <div class="character-card">
+                        <img
+                                src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
+                                alt="Card image cap"
+                                class="series-story-thumbnail">
                         <div class="card-body">
                             <h5 class="card-title">Events 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
             </div>
         </div>
@@ -398,7 +387,6 @@
                             <h5 class="card-title">Creators 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
 
                 <!-- CREATORS 2 -->
@@ -411,7 +399,6 @@
                             <h5 class="card-title">Creators 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
 
                 <!-- CREATORS 3 -->
@@ -437,7 +424,6 @@
                             <h5 class="card-title">Creators 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
 
                 <!-- CREATORS 5 -->
@@ -450,7 +436,6 @@
                             <h5 class="card-title">Creators 1</h5>
                         </div>
                     </div>
-                    &nbsp;
                 </div>
             </div>
         </div>

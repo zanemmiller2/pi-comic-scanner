@@ -2,7 +2,6 @@
 *::before,
 *::after {
     box-sizing: border-box;
-    margin: 5px;
 
 }
 
@@ -222,35 +221,59 @@ ul ol {
 
 /* ----------------------------------------------------------------------------
 
+                                BROWSE COMICS PAGE
+
+---------------------------------------------------------------------------- */
+.all-comics-table {
+    text-align: center;
+    width: 100%;
+}
+
+.all-comics-table > tr {
+    text-align: center;
+}
+
+/* ----------------------------------------------------------------------------
+
                                 COMIC HEADER ROW
 
 ---------------------------------------------------------------------------- */
 .comic-header-row {
     display: flex;
     flex-wrap: nowrap;
-    margin-right: -5px;
-    margin-left: -5px;
-    min-width: 1800px;
-    flex: 1 1 100%;
-    height: 100%;
+    justify-content: space-evenly;
+    min-width: 1600px;
     border: 10px solid black;
+    margin-bottom: 25px;
 }
 
 .comic-thumbnail-column {
-    max-width: 100%;
-    max-height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: space-evenly;
     border: 5px solid aqua;
+    margin: 0;
+    width: 30%;
+}
 
+.detail-url {
+    display: flex;
+    border: 5px solid black;
+    height: 10%;
+    justify-content: space-evenly;
+    align-items: center;
+    font-size: min(calc(2vw + 2vh + 2vmin), 50px);
+    font-weight: bolder;
 }
 
 img.comic-thumbnail-responsive {
-    max-width: 600px;
-    max-height: 900px;
     border: 5px solid red;
-    position: relative;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    margin: 0;
+    aspect-ratio: 2 / 3;
+    max-height: 85%;
+    width: 100%;
+    height: auto;
 }
 
 /* ----------------------------------------------------------------------------
@@ -259,38 +282,34 @@ img.comic-thumbnail-responsive {
 
 ---------------------------------------------------------------------------- */
 .comic-details1 {
-    position: relative;
-    flex: 1 1 50%;
-    border: 5px solid orange;
-    min-height: 100%;
-}
-
-.comic-details1 > div {
-    border: 5px solid yellow;
     display: flex;
-    align-items: center;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 5px solid orange;
+    margin: 0;
 }
 
 .comic-title {
-    text-align: center;
-    height: 30%;
+    margin: 0;
+    border: 5px solid purple;
 }
 
 .comic-title-text {
     font-size: min(calc(2vw + 2vh + 2vmin), 70px);
     color: #000000;
     font-weight: bolder;
-    margin: 10px;
+    margin: 0;
     text-align: center;
-    border: 5px solid purple;
-
 }
 
 .comic-detail-basic {
     display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    height: 10%;
+    flex-wrap: nowrap;
+    margin: 0;
+    border: 5px solid yellow;
+    width: 100%;
+    justify-content: space-evenly;
 }
 
 .comic-detail-basic-text {
@@ -305,24 +324,24 @@ img.comic-thumbnail-responsive {
 .comic-print-digital-detail {
     display: flex;
     flex-wrap: nowrap;
-    height: 55%;
-    flex: 1 1 100%;
+    margin: 0;
 }
 
 .comic-print-detail-card {
     margin: 0;
-    flex: 1 1 100%;
     flex-direction: column;
     word-wrap: break-word;
     background-color: #fff;
     background-clip: border-box;
     border: 5px solid rgba(100, 0, 0, 100);
     border-radius: 0.25em;
+    width: 100%;
 }
 
 .comic-print-detail-card-text {
     font-size: min(calc(.75vw + .75vh + .75vmin), 20px);
     border: 5px solid blueviolet;
+    margin: 0;
 }
 
 /* ----------------------------------------------------------------------------
@@ -331,20 +350,25 @@ img.comic-thumbnail-responsive {
 
 ---------------------------------------------------------------------------- */
 .comic-details2 {
-    position: relative;
-    flex: 1 1 30%;
+    display: flex;
+    flex-direction: column;
+    width: 30%;
     border: 5px solid brown;
+    margin: 0;
+    justify-content: space-between;
 }
 
 .issue-number-box {
     position: relative;
     width: 30%;
-    height: 0;
-    padding-bottom: 30%;
+    height: auto;
+    aspect-ratio: 1 / 1;
     background-color: #fff;
     background-clip: border-box;
     border: 10px solid deeppink;
     border-radius: 0.25em;
+    margin: 0 2px 0 0;
+    float: left;
 }
 
 .issue-number-box-text {
@@ -360,38 +384,20 @@ img.comic-thumbnail-responsive {
 }
 
 .comic-description {
-    flex-wrap: wrap;
-    flex: 1 1 100%;
     border: 5px solid mediumseagreen;
-}
-
-.comic-description-text {
     font-size: max(calc(.7vw + .7vh + .7vmin), 1.5em);
     text-align: justify;
-    line-height: max(calc(.9vw + .9vh + .9vmin), 2em);
-    border: 5px solid mediumseagreen;
-
+    line-height: calc(.9vw + .9vh + .9vmin);
+    margin: 0;
 }
+
 
 .comic-number-descriptors {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    text-align: justify-all;
     border: 5px solid fuchsia;
-}
-
-table.comic-number-descriptors {
-    border-spacing: 40px 15px;
-    display: flex;
-    flex-wrap: nowrap;
-    flex: 1 1 100%;
-    border: 5px solid fuchsia;
-
-}
-
-.comic-numbers-text {
-    font-size: min(calc(.6vw + .6vh + .6vmin), 1.7em);
-
+    margin: 0;
+    font-size: calc(.5vw + .5vh + .5vmin);
+    border-spacing: 20px 10px;
+    width: 100%;
 }
 
 
@@ -401,39 +407,36 @@ table.comic-number-descriptors {
 
 ---------------------------------------------------------------------------- */
 .comic-series-stories-row {
-    flex: 1 1 100%;
-}
-
-.series-story-col {
-   flex: 1 1 30%;
-}
-
-.comic-series-story-card {
-    flex: 1 1 100%;
-}
-
-.series-story-thumbnail {
-    min-width: 100px;
-    min-height: 150px;
-    text-align: justify;
-    float: none;
-}
-
-.comic-series-card {
-}
-
-.comic-cover-story-card {
+    display: flex;
+    flex-wrap: nowrap;
+    min-width: 1600px;
+    border: 10px solid black;
+    margin-bottom: 25px;
 }
 
 .comic-series-story-card {
+    width: 33.33333333%;
+    border: 5px solid blue;
+    float: left;
+    display: flex;
 }
 
-.series-story-thumbnail {
-    max-width: 100px;
-    max-height: 150px;
+.series-story-body {
     text-align: justify;
-    float: none;
 }
+
+img.series-story-thumbnail {
+    border: 5px solid yellow;
+    margin: 0;
+    aspect-ratio: 2 / 3;
+    max-width: 150px;
+    height: auto;
+}
+
+p.comic-series-story-card-text {
+    font-size: calc(.5vw + .5vh + .5vmin);
+}
+
 
 /* ----------------------------------------------------------------------------
 
@@ -492,10 +495,8 @@ table.comic-number-descriptors {
 }
 
 .card-body {
-    -ms-flex: 1 1 auto;
     flex: 1 1 auto;
     min-height: 1px;
-    padding: 1.25rem;
 }
 
 .card-title {

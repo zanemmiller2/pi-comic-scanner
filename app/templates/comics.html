@@ -11,18 +11,18 @@
 
 {% block content %}
 
-    <div id="browse">
-        <table class="center">
+    <div>
+        <table class="all-comics-table">
             <!-- Check that there is comics data data to  -->
             {% if comics_data %}
 
                 <!-- Display the header rows -->
-                <thead>
-                <tr>
+                <thead class="all-comics-table">
+                <tr class="all-comics-table">
                     <th>Thumbnail</th>
                     <th>Comic ID</th>
                     <th>Title</th>
-                    <th>Issue Number</th>
+                    <th>Issue #</th>
                     <th>View Detail</th>
                 </tr>
                 </thead>
