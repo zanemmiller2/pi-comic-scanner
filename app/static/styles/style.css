@@ -136,11 +136,11 @@ h4, .h4 {
 }
 
 h5, .h5 {
-    font-size: 1.25rem;
+    font-size: 1.4rem;
 }
 
 h6, .h6 {
-    font-size: 1rem;
+    font-size: 1.2rem;
 }
 
 ol,
@@ -354,7 +354,6 @@ img.comic-thumbnail-responsive {
     flex-direction: column;
     width: 30%;
     border: 5px solid brown;
-    margin: 0;
     justify-content: space-between;
 }
 
@@ -364,7 +363,6 @@ img.comic-thumbnail-responsive {
     height: auto;
     aspect-ratio: 1 / 1;
     background-color: #fff;
-    background-clip: border-box;
     border: 10px solid deeppink;
     border-radius: 0.25em;
     margin: 0 2px 0 0;
@@ -388,7 +386,6 @@ img.comic-thumbnail-responsive {
     font-size: max(calc(.7vw + .7vh + .7vmin), 1.5em);
     text-align: justify;
     line-height: calc(.9vw + .9vh + .9vmin);
-    margin: 0;
 }
 
 
@@ -406,71 +403,37 @@ img.comic-thumbnail-responsive {
                                 COMIC-SERIES-STORIES
 
 ---------------------------------------------------------------------------- */
-.comic-series-stories-row {
+.comic-entity-row {
     display: flex;
     flex-wrap: nowrap;
     min-width: 1600px;
     border: 10px solid black;
     margin-bottom: 25px;
+    justify-content: space-between;
 }
 
-.comic-series-story-card {
-    width: 33.33333333%;
+.comic-entity-card {
+    flex: 1 1 100%;
     border: 5px solid blue;
+}
+
+.comic-entity-body {
+}
+
+img.comic-entity-thumbnail {
+    border: 5px solid yellow;
+    margin: 0;
+    aspect-ratio: 2 / 3;
+    max-width: 180px;
+    height: auto;
+    position: relative;
     float: left;
     display: flex;
 }
 
-.series-story-body {
-    text-align: justify;
-}
-
-img.series-story-thumbnail {
-    border: 5px solid yellow;
-    margin: 0;
-    aspect-ratio: 2 / 3;
-    max-width: 150px;
-    height: auto;
-}
-
-p.comic-series-story-card-text {
+p.comic-entity-card-text {
     font-size: calc(.5vw + .5vh + .5vmin);
-}
-
-
-/* ----------------------------------------------------------------------------
-
-                                GALLERIES
-
----------------------------------------------------------------------------- */
-
-.characters-gallery {
-    display: flex;
-    flex-wrap: nowrap;
-    flex: 1 1 100%;
-}
-
-.gallery-card-col {
-    padding: 0;
-    margin: 0;
-    flex: 1 1 20%;
-    text-align: left;
-}
-
-.events-gallery {
-    flex: 1 1 100%;
-}
-
-.creators-gallery {
-    flex: 1 1 100%;
-}
-
-.variants-gallery {
-    flex: 1 1 100%;
-}
-
-.images-gallery {
-    flex: 1 1 100%;
+    text-align: justify;
 }
 
 

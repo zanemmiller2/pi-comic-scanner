@@ -13,7 +13,7 @@ COPY requirements.txt /app
 COPY templates /app/templates
 RUN pip install -r requirements.txt
 
-# Run app.py when the container launches
-COPY app.py /app
+# Run webapp.py when the container launches
+COPY webapp.py /app
 ENTRYPOINT ["python"]
 CMD ["app.py"]

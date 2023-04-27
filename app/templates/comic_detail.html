@@ -118,8 +118,8 @@
             <div class="comic-details2">
                 <div>
                     <!-- COL3, ROW 1 - ISSUE NUMBER -->
-                    {% if comic_data.description.decode() and comic_data.description.decode() != "None" %}
-                        <div style="margin: 0">
+                    {% if comic_data.description and comic_data.description.decode() != "None" %}
+                        <div>
                             <div class="issue-number-box">
                                 <div class="issue-number-box-text">
                                     {% if comic_data.issueNumber %}
@@ -193,251 +193,225 @@
         </div>
 
         <!-- ROW 2 SERIES AND STORIES-->
-        <div class="comic-series-stories-row">
+        <div class="comic-entity-row">
 
             <!-- ROW 2, COL 1 SERIES DETAIL -->
-            <div class="comic-series-story-card">
-
-                <img
-                        class="series-story-thumbnail"
-                        src="{{ comic_data['Series.thumbnail'] + '/portrait_xlarge' + comic_data.thumbnailExtension }}"
-                        alt="Comic Series Thumbnail"
-                >
-                <div class="series-story-body">
-                    <h5 class="comic-series-story-card-text">{{ comic_data['Series.title'] }}</h5>
-                    <p class="comic-series-story-card-text">{{ comic_data['Series.description'].decode() }}</p>
+            <div class="comic-entity-card">
+                <img class="comic-entity-thumbnail"
+                        {% if series_data.thumbnail %}
+                     src="{{ series_data.thumbnail + series_data.thumbnailExtension }}"
+                        {% else %}
+                     src=""
+                        {% endif %}
+                     alt="Comic Series Thumbnail">
+                <div class="comic-entity-body">
+                    <h5 class="comic-entity-card-text">
+                        {% if series_data.title %}
+                            {{ 'Series Title: ' + series_data.title }}
+                        {% else %}
+                            Series Title: N/A
+                        {% endif %}
+                    </h5>
+                    <h6 class="comic-entity-card-text">
+                        {% if series_data.id %}
+                            {{ 'Series ID: (' ~series_data.id + ')' }}
+                        {% else %}
+                            ID: N/A
+                        {% endif %}
+                    </h6>
+                    <p class="comic-entity-card-text">
+                        {% if series_data.description %}
+                            {{ 'Series Description: ' + series_data.description.decode() }}
+                        {% else %}
+                            Series Description: N/A
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
-            <!-- ROW 2, COL 2 INTERIOR STORY DETAIL -->
-            <div class="comic-series-story-card"><img
-                    class="series-story-thumbnail"
-                    src=""
-                    alt="Card image cap">
-                <div class="series-story-body">
-                    <h5 class="card-title">Interior Story Title</h5>
-                    <p class="card-text">Interior story description&nbsp;Interior
-                        story description&nbsp;Interior story
-                        descriptionInterior story description&nbsp;Interior
-                        story description Interior story description
-                        Interior story</p>
+            <!-- ROW 2, COL 2 COVER STORY DETAIL -->
+            <div class="comic-entity-card">
+                <img class="comic-entity-thumbnail"
+                        {% if story_data.thumbnail %}
+                     src="{{ story_data.thumbnail + story_data.thumbnailExtension }}"
+                        {% else %}
+                     src=""
+                        {% endif %}
+                     alt="Comic Cover Story Thumbnail">
+                <div class="comic-entity-body">
+                    <h5 class="comic-entity-card-text">
+                        {% if story_data.title %}
+                            {{ 'Cover Story Title: ' + story_data.title }}
+                        {% else %}
+                            Cover Story Title: N/A
+                        {% endif %}
+                    </h5>
+                    <h6 class="comic-entity-story-card-text">
+                        {% if story_data.id %}
+                            {{ 'Cover Story ID: (' ~story_data.id + ')' }}
+                        {% else %}
+                            Cover Story ID: N/A
+                        {% endif %}
+                    </h6>
+                    <p class="comic-entity-card-text">
+                        {% if story_data.description %}
+                            {{ 'Cover Story Description: ' + story_data.description.decode() }}
+                        {% else %}
+                            Cover Story Description: N/A
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
-            <!-- ROW 2, COL 3 COVER STORY DETAIL DETAIL -->
-            <div class="comic-series-story-card"><img
-                    src=""
-                    alt="Card image cap"
-                    class="series-story-thumbnail">
-                <div class="card-body">
-                    <h5 class="card-title">Cover Story title</h5>
-                    <p class="card-text">Cover Story Description&nbsp;Cover
-                        Story DescriptionCover Story DescriptionCover
-                        Story
-                        DescriptionCover Story DescriptionCover Story
-                        Description</p>
+            <!-- ROW 2, COL 3 INTERIOR STORY DETAIL DETAIL -->
+            <div class="comic-entity-card">
+                <img class="comic-entity-thumbnail"
+                        {% if story_data['interiorStory.thumbnail'] %}
+                     src="{{ story_data['interiorStory.thumbnail'] + story_data['interiorStory.thumbnailExtension'] }}"
+                        {% else %}
+                     src=""
+                        {% endif %}
+                     alt="Comic Interior Story Thumbnail">
+                <div class="comic-entity-body">
+                    <h5 class="comic-series-story-card-text">
+                        {% if story_data['interiorStory.title'] %}
+                            {{ 'Interior Story Title: ' + story_data['interiorStory.title'] }}
+                        {% else %}
+                            Interior Story Title: N/A
+                        {% endif %}
+                    </h5>
+                    <h6 class="comic-entity-card-text">
+                        {% if story_data['interiorStory.id'] %}
+                            {{ 'Interior Story ID: (' ~story_data['interiorStory.id'] + ')' }}
+                        {% else %}
+                            Interior Story ID: N/A
+                        {% endif %}
+                    </h6>
+                    <p class="comic-entity-card-text">
+                        {% if story_data['interiorStory.description'] %}
+                            {{ 'Interior Story Description: ' + story_data['interiorStory.description'].decode() }}
+                        {% else %}
+                            Interior Story Description: N/A
+                        {% endif %}
+                    </p>
                 </div>
             </div>
         </div>
 
         <!-- ROW 3 CHARACTERS -->
-        <div class="characters-gallery">
-            <!-- ROW 3, COL 1 CHARACTER 1 DETAIL -->
-            <div class="gallery-card-col">
-                <div class="character-card"><img
-                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                        alt="Card image cap"
-                        class="series-story-thumbnail">
-                    <div class="card-body">
-                        <h5 class="card-title">Character 1</h5>
+        <div class="comic-entity-row">
+            {% for character in character_data %}
+                <div class="comic-entity-card">
+                    <img class="comic-entity-thumbnail"
+                            {% if character.thumbnail %}
+                         src="{{ character.thumbnail + character.thumbnailExtension }}"
+                            {% else %}
+                         src=""
+                            {% endif %}
+                         alt="Character Thumbnail">
+                    <div class="comic-entity-body">
+                        <h6 class="comic-entity-card-text">
+                            {{ 'Name: ' + character.name }}
+                        </h6>
+                        <h6 class="comic-entity-card-text">
+                            {% if character.id %}
+                                {{ 'Character ID: (' ~character.id + ')' }}
+                            {% else %}
+                                Character ID: N/A
+                            {% endif %}
+                        </h6>
+                        <p class="comic-entity-card-text">
+                            {% if character.description %}
+                                {{ 'Character Description: ' + character.description }}
+                            {% else %}
+                                Character Description: N/A
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
-            </div>
-
-            <!-- ROW 3, COL 2 CHARACTER 2 DETAIL -->
-            <div class="gallery-card-col">
-                <div class="character-card"><img
-                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                        alt="Card image cap"
-                        class="series-story-thumbnail">
-                    <div class="card-body">
-                        <h5 class="card-title">Character2</h5>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ROW 3, COL 3 CHARACTER 3 DETAIL -->
-            <div class="gallery-card-col">
-                <div class="character-card"><img
-                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                        alt="Card image cap"
-                        class="series-story-thumbnail">
-                    <div class="card-body">
-                        <h5 class="card-title">Character3</h5>
-                    </div>
-                </div>
-                &nbsp;
-            </div>
-
-            <!-- ROW 3, COL 4 CHARACTER 4 DETAIL -->
-            <div class="gallery-card-col">
-                <div class="character-card"><img
-                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                        alt="Card image cap"
-                        class="series-story-thumbnail">
-                    <div class="card-body">
-                        <h5 class="card-title">Character4</h5>
-                    </div>
-                </div>
-                &nbsp;
-            </div>
-
-            <!-- ROW 3, COL 5 CHARACTER 5 DETAIL -->
-            <div class="gallery-card-col">
-                <div class="character-card"><img
-                        src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                        alt="Card image cap"
-                        class="series-story-thumbnail">
-                    <div class="card-body">
-                        <h5 class="card-title">Character5</h5>
-                    </div>
-                </div>
-                &nbsp;
-            </div>
+            {% endfor %}
         </div>
 
         <!-- ROW 4 EVENTS -->
-        <div class="events-gallery">
-            <div class="row">
-
-                <!-- EVENTS 1 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Events 1</h5>
-                        </div>
+        <div class="comic-entity-row">
+            {% for event in event_data %}
+                <div class="comic-entity-card">
+                    <img class="comic-entity-thumbnail"
+                            {% if event.thumbnail %}
+                         src="{{ event.thumbnail + event.thumbnailExtension }}"
+                            {% else %}
+                         src=""
+                            {% endif %}
+                         alt="Event Thumbnail">
+                    <div class="comic-entity-body">
+                        <h6 class="comic-entity-card-text">
+                            {{ 'Title: ' + event.title }}
+                        </h6>
+                        <h6 class="comic-entity-card-text">
+                            {% if event.id %}
+                                {{ 'Event ID: (' ~event.id + ')' }}
+                            {% else %}
+                                Event ID: N/A
+                            {% endif %}
+                        </h6>
+                        <h6 class="comic-entity-card-text">
+                            {% if event.start %}
+                                {{ 'Event Start: ' ~event.start }}
+                            {% else %}
+                                Event Start: N/A
+                            {% endif %}
+                        </h6>
+                        <h6 class="comic-entity-card-text">
+                            {% if event.end %}
+                                {{ 'Event End: ' ~event.end }}
+                            {% else %}
+                                Event End: N/A
+                            {% endif %}
+                        </h6>
+                        <p class="comic-entity-card-text">
+                            {% if event.description %}
+                                {{ 'Event Description: ' + event.description }}
+                            {% else %}
+                                Event Description: N/A
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
-
-                <!-- EVENTS 2 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Events 1</h5>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- EVENTS 3 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Events 1</h5>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- EVENTS 4 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Events 1</h5>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- EVENTS 5 -->
-                <div class="gallery-card-col">
-                    <div class="character-card">
-                        <img
-                                src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                                alt="Card image cap"
-                                class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Events 1</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
 
         <!-- ROW 5 - CREATORS -->
-        <div class="creators-gallery">
-            <div class="row">
-
-                <!-- CREATORS 1 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Creators 1</h5>
-                        </div>
+        <div class="comic-entity-row">
+            {% for creator in creator_data %}
+                <div class="comic-entity-card">
+                    <img class="comic-entity-thumbnail"
+                            {% if creator.thumbnail %}
+                         src="{{ creator.thumbnail + creator.thumbnailExtension }}"
+                            {% else %}
+                         src=""
+                            {% endif %}
+                         alt="Creator Thumbnail">
+                    <div class="comic-entity-body">
+                        <h6 class="comic-entity-card-text">
+                            {{ 'Name: ' + creator.firstName.strip() + ' ' + creator.middleName.strip() + ' ' + creator.lastName.strip() }}
+                        </h6>
+                        <h6 class="comic-entity-card-text">
+                            {% if creator.id %}
+                                {{ 'Creator ID: (' ~creator.id + ')' }}
+                            {% else %}
+                                ID: N/A
+                            {% endif %}
+                        </h6>
+                        <p class="comic-entity-card-text">
+                            {% if creator.role %}
+                                {{ 'Creator Role: ' + creator.role }}
+                            {% else %}
+                                Role: N/A
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
-
-                <!-- CREATORS 2 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Creators 1</h5>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CREATORS 3 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Creators 1</h5>
-                        </div>
-                    </div>
-                    &nbsp;
-                </div>
-
-                <!-- CREATORS 4 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Creators 1</h5>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CREATORS 5 -->
-                <div class="gallery-card-col">
-                    <div class="character-card"><img
-                            src="file:///Macintosh HD/Users/zanemiller/Library/Application Support/Adobe/Dreamweaver 2021/en_US/Configuration/Temp/Assets/eam2cd5a215.TMP/images/card-img.png"
-                            alt="Card image cap"
-                            class="series-story-thumbnail">
-                        <div class="card-body">
-                            <h5 class="card-title">Creators 1</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
 
         <!-- ROW 6 VARIANTS -->
