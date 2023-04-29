@@ -58,6 +58,8 @@ def view_comic(comic_id):
     character_list = db.get_comic_characters(comic_id)
     variant_list = db.get_comic_variants(comic_id)
     image_list = db.get_comic_images(comic_id)
+    for character in character_list:
+        print(character)
 
     return render_template(
         "comic_detail.html",

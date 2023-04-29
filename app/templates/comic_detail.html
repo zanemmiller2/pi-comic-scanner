@@ -16,9 +16,15 @@
 
             <!-- ROW1, COL 1 - THUMBNAIL -->
             <div class="comic-thumbnail-column">
-                <img src="{{ comic_data.thumbnail + '/portrait_uncanny' + comic_data.thumbnailExtension }}"
-                     alt="{{ comic_data.title }} 300px x 450px thumbnail image"
-                     class="comic-thumbnail-responsive">
+                {% if comic_data.thumbnail and comic_data.thumbnailExtension %}
+                    <img src="{{ comic_data.thumbnail + '/portrait_uncanny' + comic_data.thumbnailExtension }}"
+                         alt="{{ comic_data.title }} 300px x 450px thumbnail image"
+                         class="comic-thumbnail-responsive">
+                {% else %}
+                    <img src=""
+                         alt="Comic thumbnail N/A"
+                         class="comic-thumbnail-responsive">
+                {% endif %}
                 <div class="detail-url">
                     <div>
                         <a href="{{ comic_data.detailURL }}">Detail URL</a>
@@ -228,8 +234,10 @@
                                 Series Description: N/A
                             {% endif %}
                         </p>
-                        <div>
-                            <a href="#">[SERIES LINK]</a>
+
+                        <div class="comic-entity-detail-url">
+                            <a href="{{ series_data.detailURL }}">Series Detail
+                                URL</a>
                         </div>
                     </div>
                 </div>
@@ -265,9 +273,6 @@
                                 Cover Story Description: N/A
                             {% endif %}
                         </p>
-                        <div>
-                            <a href="#">[COVER STORY LINK]</a>
-                        </div>
                     </div>
                 </div>
 
@@ -302,9 +307,6 @@
                                 Interior Story Description: N/A
                             {% endif %}
                         </p>
-                        <div>
-                            <a href="#">[INTERIOR STORY LINK]</a>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -336,18 +338,41 @@
                             </h6>
                             <p class="comic-entity-card-text">
                                 {% if character.description %}
-                                    {{ 'Character Description: ' + character.description }}
+                                    {{ 'Character Description: ' + character.description.decode() }}
                                 {% else %}
                                     Character Description: N/A
                                 {% endif %}
                             </p>
-                            <div>
-                                <a href="#">[CHARACTER LINK]</a>
+
+                            <div class="comic-entity-detail-url">
+                                {% if character.detailURL %}
+                                    <a href="{{ character.detailURL }}">Character
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if character.wiki %}
+                                    <a href="{{ character.wiki }}">Character
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if character.comicLink %}
+                                    <a href="{{ character.comicLink }}">Character
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
+
         </div>
 
         <!-- ROW 4 EVENTS -->
@@ -390,18 +415,40 @@
                             </h6>
                             <p class="comic-entity-card-text">
                                 {% if event.description %}
-                                    {{ 'Event Description: ' + event.description }}
+                                    {{ 'Event Description: ' + event.description.decode() }}
                                 {% else %}
                                     Event Description: N/A
                                 {% endif %}
                             </p>
-                            <div>
-                                <a href="#">[EVENT LINK]</a>
+                            <div class="comic-entity-detail-url">
+                                {% if event.detailURL %}
+                                    <a href="{{ event.detailURL }}">Event
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if event.wiki %}
+                                    <a href="{{ event.wiki }}">Event
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if event.comicLink %}
+                                    <a href="{{ event.comicLink }}">Event
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
+
         </div>
 
         <!-- ROW 5 - CREATORS -->
@@ -436,13 +483,35 @@
                                     Role: N/A
                                 {% endif %}
                             </p>
-                            <div>
-                                <a href="#">[CREATOR LINK]</a>
+                            <div class="comic-entity-detail-url">
+                                {% if creator.detailURL %}
+                                    <a href="{{ creator.detailURL }}">Creator
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if creator.wiki %}
+                                    <a href="{{ creator.wiki }}">Creator
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if creator.comicLink %}
+                                    <a href="{{ creator.comicLink }}">Creator
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
+
         </div>
 
         <!-- ROW 6 - VARIANTS -->
@@ -479,13 +548,35 @@
                                     Variant Description: N/A
                                 {% endif %}
                             </p>
-                            <div>
-                                <a href="#">[VARIANT LINK]</a>
+                            <div class="comic-entity-detail-url">
+                                {% if variant.detailURL %}
+                                    <a href="{{ variant.detailURL }}">Variant
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if variant.wiki %}
+                                    <a href="{{ variant.wiki }}">Variant
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if variant.comicLink %}
+                                    <a href="{{ variant.comicLink }}">Variant
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
+
         </div>
 
         <!-- ROW 7 - IMAGES -->
@@ -502,8 +593,13 @@
                              src=""
                                 {% endif %}
                              alt="Comic Image Thumbnail">
-                        <div>
-                            <a href="#">[IMAGE LINK]</a>
+                        <div class="comic-entity-detail-url">
+                            {% if image.thumbnail and image.thumbnailExtension %}
+                                <a href="{{ image.thumbnail + image.thumbnailExtension }}">Image
+                                    URL</a>
+                            {% else %}
+                                <a></a>
+                            {% endif %}
                         </div>
 
                     </div>

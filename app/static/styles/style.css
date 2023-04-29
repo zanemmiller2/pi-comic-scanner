@@ -395,6 +395,7 @@ img.comic-thumbnail-responsive {
     font-size: calc(.5vw + .5vh + .5vmin);
     border-spacing: 20px 10px;
     width: 100%;
+    clear: both;
 }
 
 
@@ -409,7 +410,6 @@ img.comic-thumbnail-responsive {
     min-width: 1600px;
     border: 10px solid black;
     margin-bottom: 25px;
-    justify-content: space-between;
 }
 
 .comic-entity-card {
@@ -429,12 +429,19 @@ img.comic-entity-thumbnail {
     height: auto;
     position: relative;
     float: left;
-    display: flex;
 }
 
 p.comic-entity-card-text {
     font-size: calc(.5vw + .5vh + .5vmin);
     text-align: left;
+}
+
+.comic-entity-detail-url {
+    display: flex;
+    border: 5px solid black;
+    font-size: min(calc(1vw + 1vh + 1vmin), 20px);
+    font-weight: bolder;
+    clear: both;
 }
 
 

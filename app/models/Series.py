@@ -3,7 +3,7 @@ from app.models.Entity import Entity
 
 class Series(Entity):
     """
-    DOCSTRING
+    Series Entity class model
     """
 
     def __init__(self, entity_detail_dict):
