@@ -1,7 +1,8 @@
-from app.models.Entity import Entity
+from app.models.FrontEndEntity import FrontEndEntity
 
 
-class Comic(Entity):
+class FrontEndComic(FrontEndEntity):
+    """ Comic Entity class model for front end Comic """
 
     def __init__(self, entity_detail_dict):
         super().__init__(entity_detail_dict)

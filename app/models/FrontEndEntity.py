@@ -1,10 +1,11 @@
-class Entity:
+class FrontEndEntity:
     """ Generic entity class model """
 
     def __init__(self, entity_detail_dict):
         self.id = None
         self.title = None
         self.description = None
+        self.seriesId = None
 
         self.ENTITY = None
 

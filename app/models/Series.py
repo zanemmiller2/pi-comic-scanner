@@ -1,7 +1,7 @@
-from app.models.Entity import Entity
+from app.models.FrontEndEntity import FrontEndEntity
 
 
-class Series(Entity):
+class FrontEndSeries(FrontEndEntity):
     """
     Series Entity class model
     """

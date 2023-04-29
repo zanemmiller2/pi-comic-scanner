@@ -1,7 +1,7 @@
-from app.models.Entity import Entity
+from app.models.FrontEndEntity import FrontEndEntity
 
 
-class Image(Entity):
+class FrontEndImage(FrontEndEntity):
     """
     Image Entity CLass model
     """

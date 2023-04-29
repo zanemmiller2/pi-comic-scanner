@@ -1,7 +1,7 @@
-from app.models.Entity import Entity
+from app.models.FrontEndEntity import FrontEndEntity
 
 
-class Character(Entity):
+class FrontEndCharacter(FrontEndEntity):
     """
     DOCSTRING
     """

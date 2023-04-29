@@ -1,9 +1,9 @@
-from app.models.Entity import Entity
+from app.models.FrontEndEntity import FrontEndEntity
 
 
-class Creator(Entity):
+class FrontEndCreator(FrontEndEntity):
     """
-    DOCSTRING
+    Creator Entity CLass Model for front end Creator
     """
 
     def __init__(self, entity_detail_dict):

@@ -15,9 +15,9 @@ class InvalidCursorExecute(Exception):
     pass
 
 
-class DB:
+class BackEndDB:
     """
-    DB Object that represents a connection and cursor for the provided database and credentials
+    BackEndDB Object that represents a connection and cursor for the provided database and credentials
     """
     CHARACTER_ENTITY = "Characters"
     COMIC_ENTITY = "Comics"
@@ -34,12 +34,12 @@ class DB:
 
     def __init__(self):
         """
-        Represents a DB object with username, hostname, password, database name, cursor, and connection
+        Represents a BackEndDB object with username, hostname, password, database name, cursor, and connection
         """
-        # self._host = input("DB Host: ")
-        # self._user = input("DB User: ")
-        # self._passwd = input("DB Password: ")
-        # self._db_name = input("DB Name: ")
+        # self._host = input("BackEndDB Host: ")
+        # self._user = input("BackEndDB User: ")
+        # self._passwd = input("BackEndDB Password: ")
+        # self._db_name = input("BackEndDB Name: ")
 
         self._host = db_credentials.host
         self._user = db_credentials.user
@@ -850,10 +850,10 @@ class DB:
         """
         db_connection = MySQLdb.connect(self._host, self._user, self._passwd, self._db)
         if db_connection:
-            print("DB CONNECTED...")
+            print("BackEndDB CONNECTED...")
             return db_connection
         else:
-            print("DB NOT CONNECTED...")
+            print("BackEndDB NOT CONNECTED...")
             return None
 
     def _execute_commit(self, query, params=None):

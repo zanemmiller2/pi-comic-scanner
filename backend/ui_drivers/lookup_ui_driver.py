@@ -6,7 +6,7 @@ Description: Command Line interface driver
 """
 
 from backend.classes.lookup_driver import Lookup
-from backend.database.db_driver import DB
+from backend.database.db_driver import BackEndDB
 
 
 class LookupUI:
@@ -30,7 +30,7 @@ class LookupUI:
         LookupUI Object with db and lookup object
         scanner if scanner mode active
         """
-        self.db = DB()  # DB object controller passed to Lookup class
+        self.db = BackEndDB()  # BackEndDB object controller passed to Lookup class
         self.lookup = Lookup(self.db)  # lookup controller
 
     ####################################################################################################################
@@ -57,19 +57,19 @@ class LookupUI:
         )
 
         if start_res == '1':
-            self.lookup_comics_by_barcode()
+            self.get_comic_barcodes()
         elif start_res == '2':
-            self.lookup_creators()
+            self.lookup_existing_creators()
         elif start_res == '3':
-            self.lookup_series()
+            self.lookup_existing_series()
         elif start_res == '4':
-            self.lookup_stories()
+            self.lookup_existing_stories()
         elif start_res == '5':
-            self.lookup_characters()
+            self.lookup_existing_characters()
         elif start_res == '6':
-            self.lookup_events()
+            self.lookup_existing_events()
         elif start_res == '7':
-            self.lookup_comics_by_id()
+            self.lookup_existing_comics_by_id()
         elif start_res == '8':
             self.lookup_purchased_comics_dependencies()
         elif start_res == '9':
@@ -85,7 +85,7 @@ class LookupUI:
     #
     ####################################################################################################################
 
-    def lookup_comics_by_barcode(self):
+    def get_comic_barcodes(self):
         """
         Lookup barcodes from the available barcodes in the scanned_upc_codes db table
         """
@@ -121,7 +121,7 @@ class LookupUI:
         print("CLEANING UP COMMITTED COMICS FROM scanned_upc_codes")
         self.lookup.remove_committed_from_buffer_db()
 
-    def lookup_comics_by_id(self):
+    def lookup_existing_comics_by_id(self):
         """
         Updates the Comic records that already exist in the database
         """
@@ -159,7 +159,7 @@ class LookupUI:
     #               CREATORS
     #
     ####################################################################################################################
-    def lookup_creators(self):
+    def lookup_existing_creators(self):
         """
         Updates the creator records that already exist in the database
         """
@@ -197,7 +197,7 @@ class LookupUI:
     #               SERIES
     #
     ####################################################################################################################
-    def lookup_series(self):
+    def lookup_existing_series(self):
         """
         Updates the series records that already exist in the database
         """
@@ -235,7 +235,7 @@ class LookupUI:
     #               STORIES
     #
     ####################################################################################################################
-    def lookup_stories(self):
+    def lookup_existing_stories(self):
         """
         Updates the Stories records that already exist in the database
         """
@@ -273,7 +273,7 @@ class LookupUI:
     #               CHARACTERS
     #
     ####################################################################################################################
-    def lookup_characters(self):
+    def lookup_existing_characters(self):
         """
         Updates the Characters records that already exist in the database
         """
@@ -311,7 +311,7 @@ class LookupUI:
     #               EVENTS
     #
     ####################################################################################################################
-    def lookup_events(self):
+    def lookup_existing_events(self):
         """
         Updates the Events records that already exist in the database
         """
@@ -380,20 +380,34 @@ class LookupUI:
         Updates the Purchased Comics records that already exist in the database and all its dependencies
         """
 
+        print(f"GETTING PURCHASED COMIC IDS FROM BackendDb")
         self.lookup.get_purchased_comic_ids_from_db()
+        print(
+            f"SUCCESSFULLY GOT {len(self.lookup.comic_books)} "
+            f"PURCHASED COMICS FROM PurchasedComics"
+            )
 
         if self.lookup.get_num_entity(self.COMIC_ENTITY) > 0:
+            self.process_comics_by_id()
+            print("SUCCESSFULLY PROCESSED PURCHASED COMICS FROM Events")
+
             for comic_id in self.lookup.comic_books:
+                print(f"GETTING {comic_id} CHARACTERS FROM BackendDb")
                 self.lookup.get_comic_has_entity_ids_from_db(self.CHARACTER_ENTITY, comic_id)
 
+                print(f"GETTING {comic_id} CREATORS FROM BackendDb")
                 self.lookup.get_comic_has_entity_ids_from_db(self.CREATOR_ENTITY, comic_id)
 
+                print(f"GETTING {comic_id} EVENTS FROM BackendDb")
                 self.lookup.get_comic_has_entity_ids_from_db(self.EVENT_ENTITY, comic_id)
 
+                print(f"GETTING {comic_id} SERIES FROM BackendDb")
                 self.lookup.get_comic_has_entity_ids_from_db(self.SERIES_ENTITY, comic_id)
 
+                print(f"GETTING {comic_id} STORIES FROM BackendDb")
                 self.lookup.get_comic_has_entity_ids_from_db(self.STORY_ENTITY, comic_id)
 
+                print(f"GETTING {comic_id} VARIANTS FROM BackendDb")
                 self.lookup.get_comic_has_entity_ids_from_db(self.VARIANT_ENTITY, comic_id)
 
             self.process_update_purchased()
@@ -402,26 +416,27 @@ class LookupUI:
         """
         Processes all the dependencies of a purchased comic and the comic itself
         """
-        print("SUCCESSFULLY GOT PURCHASED COMICS FROM Events")
-
+        print(f"PROCESSING {len(self.lookup.characters)} CHARACTERS")
         if self.lookup.get_num_entity(self.CHARACTER_ENTITY) > 0:
             self.process_characters()
 
-        if self.lookup.get_num_entity(self.COMIC_ENTITY) > 0:
-            self.process_comics_by_id()
-
+        print(f"PROCESSING {len(self.lookup.creators)} CREATORS")
         if self.lookup.get_num_entity(self.CREATOR_ENTITY) > 0:
             self.process_creators()
 
+        print(f"PROCESSING {len(self.lookup.events)} EVENTS")
         if self.lookup.get_num_entity(self.EVENT_ENTITY) > 0:
             self.process_events()
 
+        print(f"PROCESSING {len(self.lookup.series)} SERIES")
         if self.lookup.get_num_entity(self.SERIES_ENTITY) > 0:
             self.process_series()
 
+        print(f"PROCESSING {len(self.lookup.stories)} STORIES")
         if self.lookup.get_num_entity(self.STORY_ENTITY) > 0:
             self.process_stories()
 
+        print(f"PROCESSING {len(self.lookup.variants)} VARIANTS")
         if self.lookup.get_num_entity(self.VARIANT_ENTITY) > 0:
             self.process_variants()
 
@@ -435,7 +450,7 @@ class LookupUI:
         Prints exit message and quits
         """
         self.lookup.quit_program()
-        print("CLOSING LOOKUP UI DB CURSOR...")
+        print("CLOSING LOOKUP UI BackEndDB CURSOR...")
         self.db.close_cursor()
         print("QUITTING LOOKUP UI PROGRAM...")
         exit(1)

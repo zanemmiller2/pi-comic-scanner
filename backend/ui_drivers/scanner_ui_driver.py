@@ -7,7 +7,7 @@ Description: Command Line interface driver
 """
 
 from backend.classes.scanner_driver import *
-from backend.database.db_driver import DB
+from backend.database.db_driver import BackEndDB
 
 SCANNER_INPUT_MODE = '1'
 KEYBOARD_INPUT_MODE = '2'
@@ -25,7 +25,7 @@ class ScannerUI:
         """
         self.input_method = None
         self.scanner = None  # Defined in ask_scan_mode (dependent on input method)
-        self.db = DB()  # DB object will be passed to *Scanner class
+        self.db = BackEndDB()  # BackEndDB object will be passed to *Scanner class
 
     '''
     ####################################################
@@ -155,7 +155,7 @@ class ScannerUI:
 
     '''
     ####################################################
-    #               DB UPLOAD MENU
+    #               BackEndDB UPLOAD MENU
     ####################################################
     '''
     def ask_db_upload(self):

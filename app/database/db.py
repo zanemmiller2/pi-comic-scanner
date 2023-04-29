@@ -1,16 +1,16 @@
 from flask_mysqldb import MySQL
 
 from app import app
-from app.models.Character import Character
-from app.models.Comic import Comic
-from app.models.Creator import Creator
-from app.models.Event import Event
-from app.models.Image import Image
-from app.models.Series import Series
-from app.models.Story import Story
+from app.models.Character import FrontEndCharacter
+from app.models.Comic import FrontEndComic
+from app.models.Creator import FrontEndCreator
+from app.models.Event import FrontEndEvent
+from app.models.Image import FrontEndImage
+from app.models.Series import FrontEndSeries
+from app.models.Story import FrontEndStory
 
 
-class DB:
+class FrontEndDB:
     """
     Database Control Class
     """
@@ -18,7 +18,7 @@ class DB:
     def __init__(self):
         self.mysql = MySQL(app)
 
-    def get_purchased_comics(self):
+    def get_purchased_comics(self) -> list[FrontEndComic]:
         """ Gets list of all purchased comics and their id, title, issue number, thumbnail """
         cursor = self.mysql.connection.cursor()
         query = \
@@ -31,14 +31,14 @@ class DB:
 
         params = ()
         cursor.execute(query, params)
-        return [Comic(item) for item in cursor]
+        return [FrontEndComic(item) for item in cursor]
 
     ##################################################################################################
     #
     #           COMIC DETAIL PAGE
     #
     ##################################################################################################
-    def get_comic_characters(self, comic_id: int) -> list[Character]:
+    def get_comic_characters(self, comic_id: int) -> list[FrontEndCharacter]:
         """ Get the Event records for the related comic """
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
@@ -52,7 +52,7 @@ class DB:
             "WHERE ChCha.comicId=%s;"
 
         cursor.execute(characters_query, params)
-        character_details = [Character(item) for item in cursor]
+        character_details = [FrontEndCharacter(item) for item in cursor]
 
         url_query = \
             "SELECT ChCha.characterId, " \
@@ -98,7 +98,7 @@ class DB:
 
         return character_details
 
-    def get_comic_creators(self, comic_id: int) -> list[Creator]:
+    def get_comic_creators(self, comic_id: int) -> list[FrontEndCreator]:
         """ Get the creator records for the related comic """
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
@@ -112,7 +112,7 @@ class DB:
             "WHERE ChCr.comicId=%s;"
 
         cursor.execute(creators_query, params)
-        creator_details = [Creator(item) for item in cursor]
+        creator_details = [FrontEndCreator(item) for item in cursor]
 
         url_query = \
             "SELECT ChCr.creatorId, " \
@@ -159,7 +159,7 @@ class DB:
 
         return creator_details
 
-    def get_single_comic_detail(self, comic_id: int) -> Comic:
+    def get_single_comic_detail(self, comic_id: int) -> FrontEndComic:
         """ Get the comic record by id and the related urls """
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
@@ -172,7 +172,7 @@ class DB:
             "WHERE Comics.id=%s;"
 
         cursor.execute(detail_query, params)
-        comic_details = [Comic(item) for item in cursor]
+        comic_details = [FrontEndComic(item) for item in cursor]
 
         url_query = \
             "SELECT " \
@@ -215,7 +215,7 @@ class DB:
 
         return comic_details[0]
 
-    def get_comic_events(self, comic_id: int) -> list[Event]:
+    def get_comic_events(self, comic_id: int) -> list[FrontEndEvent]:
         """ Get the Event records for the related comic """
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
@@ -229,7 +229,7 @@ class DB:
             "WHERE ChE.comicId=%s;"
 
         cursor.execute(events_query, params)
-        event_details = [Event(item) for item in cursor]
+        event_details = [FrontEndEvent(item) for item in cursor]
 
         url_query = \
             "SELECT ChE.eventId, " \
@@ -276,7 +276,7 @@ class DB:
 
         return event_details
 
-    def get_comic_images(self, comic_id: int) -> list[Image]:
+    def get_comic_images(self, comic_id: int) -> list[FrontEndImage]:
         """ Get the current comics variant comics """
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
@@ -288,9 +288,9 @@ class DB:
             "WHERE ChI.comicId = %s;"
 
         cursor.execute(images_query, params)
-        return [Image(item) for item in cursor]
+        return [FrontEndImage(item) for item in cursor]
 
-    def get_single_series_detail(self, series_id: int) -> Series:
+    def get_single_series_detail(self, series_id: int) -> FrontEndSeries:
         """ Gets the comics related Series's details """
         cursor = self.mysql.connection.cursor()
         params = (series_id,)
@@ -303,7 +303,7 @@ class DB:
             "WHERE Series.id=%s;"
         cursor.execute(detail_query, params)
 
-        series_details = [Series(item) for item in cursor]
+        series_details = [FrontEndSeries(item) for item in cursor]
 
         url_query = \
             "SELECT " \
@@ -346,7 +346,7 @@ class DB:
 
         return series_details[0]
 
-    def get_comic_stories(self, comic_id: int) -> list[Story]:
+    def get_comic_stories(self, comic_id: int) -> list[FrontEndStory]:
         """ Get the stories for a specific comic """
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
@@ -360,7 +360,7 @@ class DB:
             "WHERE ChS.comicId=%s;"
 
         cursor.execute(cover_story_query, params)
-        story_details = [Story(item) for item in cursor]
+        story_details = [FrontEndStory(item) for item in cursor]
 
         interior_story_query = \
             "SELECT Stories.*, I.pathExtension AS thumbnailExtension from Comics_has_Stories ChS " \
@@ -376,7 +376,7 @@ class DB:
 
         return story_details
 
-    def get_comic_variants(self, comic_id: int) -> list[Comic]:
+    def get_comic_variants(self, comic_id: int) -> list[FrontEndComic]:
         """ Get the current comics variant comics """
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
@@ -390,7 +390,7 @@ class DB:
             "WHERE ChV.comicId = %s;"
 
         cursor.execute(variants_query, params)
-        variant_details = [Comic(item) for item in cursor]
+        variant_details = [FrontEndComic(item) for item in cursor]
 
         url_query = \
             "SELECT ChV.variantId, " \
