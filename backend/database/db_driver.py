@@ -4,8 +4,9 @@ Email: millerzanem@gmail.com
 Date: 04/21/2023
 Description: Class drivers for database functions
 """
-import MySQLdb
+from __future__ import annotations
 
+import MySQLdb
 from keys import db_credentials
 
 
@@ -26,6 +27,7 @@ class DB:
     SERIES_ENTITY = "Series"
     STORY_ENTITY = "Stories"
     URL_ENTITY = "URLs"
+    VARIANT_ENTITY = "Variants"
     PURCHASED_COMICS_ENTITY = 'PurchasedComics'
     ENTITIES = (CHARACTER_ENTITY, COMIC_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, IMAGE_ENTITY,
                 SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY)
@@ -69,11 +71,10 @@ class DB:
 
         try:
             self._execute_commit(query)
+            return self.cursor.fetchall()
         except InvalidCursorExecute:
             print(f"GET UPCS ERROR")
             self._connection.rollback()
-
-        return self.cursor.fetchall()
 
     def get_stale_entity(self, entity_name: str):
         """
@@ -86,15 +87,56 @@ class DB:
             query = f"SELECT id from {entity_name} " \
                     f"WHERE " \
                     f"{entity_name}.modified IS NULL OR " \
-                    f"YEAR(CURRENT_TIMESTAMP) - YEAR({entity_name}.modified) > 1 LIMIT 10, 10;"
+                    f"YEAR(CURRENT_TIMESTAMP) - YEAR({entity_name}.modified) > 1 LIMIT 55, 5;"
 
             try:
                 self._execute_commit(query)
+                return self.cursor.fetchall()
             except InvalidCursorExecute:
                 print(f"GET STALE {entity_name.upper()} ERROR")
                 self._connection.rollback()
 
+    def get_comic_purchased_ids(self):
+        """
+        Gets a list of all purchased comic ids
+        :return: list of purchased comic ids
+        """
+
+        query = "SELECT comicId FROM PurchasedComics;"
+        try:
+            self._execute_commit(query)
             return self.cursor.fetchall()
+        except InvalidCursorExecute:
+            print(f"GET PURCHASED COMIC IDS FROM PurchasedComics ERROR")
+            self._connection.rollback()
+
+    def get_comic_has_entity_ids(self, entity: str, comic_id: int):
+        """
+        Get the entity Ids related to the given comic
+        :param entity: the name of the dependent entity
+        :param comic_id: the id of the related comic
+        :return: the entity ids
+        """
+        entity_id_name = self.get_parent_id_name(entity)
+
+        if entity == self.SERIES_ENTITY:
+            table_name = 'Comics'
+            comic_id_name = 'id'
+        else:
+            table_name = f"Comics_has_{entity}"
+            comic_id_name = 'comicId'
+
+        query = f"SELECT {entity_id_name} " \
+                f"FROM {table_name} " \
+                f"WHERE {comic_id_name}=%s;"
+        params = (comic_id,)
+
+        try:
+            self._execute_commit(query, params)
+            return self.cursor.fetchall()
+        except InvalidCursorExecute:
+            print(f"GET {entity} IDS FROM {table_name} ERROR WITH COMIC ID: {comic_id}")
+            self._connection.rollback()
 
     ####################################################################################################################
     #
@@ -113,7 +155,7 @@ class DB:
         :return: cursor object from connection
         """
 
-        query = "INSERT INTO comic_books.scanned_upc_codes(upc_code, date_uploaded) VALUES (%s, %s);"
+        query = "INSERT INTO comic_books.scanned_upc_codes(upc_code, date_uploaded, updated) VALUES (%s, %s, CURRENT_TIMESTAMP);"
 
         try:
             self._execute_commit(query, params)
@@ -130,35 +172,36 @@ class DB:
                 f"(id, digitalId, title, issueNumber, variantDescription, description, modified, isbn, upc, diamondCode, " \
                 f"ean, issn, format, pageCount, textObjects, resourceURI, onSaleDate, focDate, unlimitedDate, " \
                 f"digitalPurchaseDate, printPrice, digitalPurchasePrice, seriesId, " \
-                f"thumbnail, originalIssue) " \
+                f"thumbnail, originalIssue, updated) " \
                 f"VALUES " \
                 f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"digitalId = COALESCE (%s, VALUES(digitalId)), " \
-                f"title = COALESCE (%s, VALUES(title)), " \
-                f"issueNumber = COALESCE (%s, VALUES(issueNumber)), " \
-                f"variantDescription = COALESCE (%s, VALUES(variantDescription)), " \
-                f"description = COALESCE (%s, VALUES(description)), " \
-                f"modified = COALESCE (%s, VALUES(modified)), " \
-                f"isbn = COALESCE (%s, VALUES(isbn)), " \
-                f"upc = COALESCE (%s, VALUES(upc)), " \
-                f"diamondCode = COALESCE (%s, VALUES(diamondCode)), " \
-                f"ean = COALESCE (%s, VALUES(ean)), " \
-                f"issn = COALESCE (%s, VALUES(issn)), " \
-                f"format = COALESCE (%s, VALUES(format)), " \
-                f"pageCount = COALESCE (%s, VALUES(pageCount)), " \
-                f"textObjects = COALESCE (%s, VALUES(textObjects)), " \
-                f"resourceURI = COALESCE (%s, VALUES(resourceURI)), " \
-                f"onSaleDate = COALESCE (%s, VALUES(onSaleDate)), " \
-                f"focDate = COALESCE (%s, VALUES(focDate)), " \
-                f"unlimitedDate = COALESCE (%s, VALUES(unlimitedDate)), " \
-                f"digitalPurchaseDate = COALESCE (%s, VALUES(digitalPurchaseDate)), " \
-                f"printPrice = COALESCE (%s, VALUES(printPrice)), " \
-                f"digitalPurchasePrice = COALESCE (%s, VALUES(digitalPurchasePrice)), " \
-                f"seriesId = COALESCE (%s, VALUES(seriesId)), " \
-                f"thumbnail = COALESCE (%s, VALUES(thumbnail)), " \
-                f"originalIssue = COALESCE (%s, VALUES(originalIssue));"
+                f"digitalId = COALESCE (VALUES(digitalId), digitalId), " \
+                f"title = COALESCE (VALUES(title), title), " \
+                f"issueNumber = COALESCE (VALUES(issueNumber), issueNumber), " \
+                f"variantDescription = COALESCE (VALUES(variantDescription), variantDescription), " \
+                f"description = COALESCE (VALUES(description), description), " \
+                f"modified = COALESCE (VALUES(modified), modified), " \
+                f"isbn = COALESCE (VALUES(isbn), isbn), " \
+                f"upc = COALESCE (VALUES(upc), upc), " \
+                f"diamondCode = COALESCE (VALUES(diamondCode), diamondCode), " \
+                f"ean = COALESCE (VALUES(ean), ean), " \
+                f"issn = COALESCE (VALUES(issn), issn), " \
+                f"format = COALESCE (VALUES(format), format), " \
+                f"pageCount = COALESCE (VALUES(pageCount), pageCount), " \
+                f"textObjects = COALESCE (VALUES(textObjects), textObjects), " \
+                f"resourceURI = COALESCE (VALUES(resourceURI), resourceURI), " \
+                f"onSaleDate = COALESCE (VALUES(onSaleDate), onSaleDate), " \
+                f"focDate = COALESCE (VALUES(focDate), focDate), " \
+                f"unlimitedDate = COALESCE (VALUES(unlimitedDate), unlimitedDate), " \
+                f"digitalPurchaseDate = COALESCE (VALUES(digitalPurchaseDate), digitalPurchaseDate), " \
+                f"printPrice = COALESCE (VALUES(printPrice), printPrice), " \
+                f"digitalPurchasePrice = COALESCE (VALUES(digitalPurchasePrice), digitalPurchasePrice), " \
+                f"seriesId = COALESCE (VALUES(seriesId), seriesId), " \
+                f"thumbnail = COALESCE (VALUES(thumbnail), thumbnail), " \
+                f"originalIssue = COALESCE (VALUES(originalIssue), originalIssue), " \
+                f"updated = CURRENT_TIMESTAMP;"
 
         try:
             self._execute_commit(query, params)
@@ -173,17 +216,18 @@ class DB:
         """
 
         query = f"INSERT INTO Creators " \
-                f"(id, firstName, middleName, lastName, suffix, modified, resourceURI, thumbnail) " \
+                f"(id, firstName, middleName, lastName, suffix, modified, resourceURI, thumbnail, updated) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s, %s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"firstName = COALESCE (%s, VALUES(firstName)), " \
-                f"middleName = COALESCE (%s, VALUES(middleName)), " \
-                f"lastName = COALESCE (%s, VALUES(lastName)), " \
-                f"suffix = COALESCE (%s, VALUES(suffix)), " \
-                f"modified = COALESCE (%s, VALUES(modified)), " \
-                f"resourceURI = COALESCE (%s, VALUES(resourceURI)), " \
-                f"thumbnail = COALESCE (%s, VALUES(thumbnail));"
+                f"firstName = COALESCE (VALUES(firstName), firstName), " \
+                f"middleName = COALESCE (VALUES(middleName), middleName), " \
+                f"lastName = COALESCE (VALUES(lastName), lastName), " \
+                f"suffix = COALESCE (VALUES(suffix), suffix), " \
+                f"modified = COALESCE (VALUES(modified), modified), " \
+                f"resourceURI = COALESCE (VALUES(resourceURI), resourceURI), " \
+                f"thumbnail = COALESCE (VALUES(thumbnail), thumbnail), " \
+                f"updated = CURRENT_TIMESTAMP;"
 
         try:
             self._execute_commit(query, params)
@@ -196,13 +240,14 @@ class DB:
         Uploads a complete record to the PurchasedComics Table
         """
         query = f"INSERT INTO PurchasedComics " \
-                f"(comicId, purchaseDate, purchasePrice, purchaseType) " \
+                f"(comicId, purchaseDate, purchasePrice, purchaseType, updated) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"purchasedDate = COALESCE (%s, VALUES(purchasedDate))," \
-                f"purchasePrice = COALESCE (%s, VALUES(purchasePrice))," \
-                f"purchaseType = COALESCE (%s, VALUES(purchaseType));"
+                f"purchasedDate = COALESCE (VALUES(purchasedDate), purchasedDate)," \
+                f"purchasePrice = COALESCE (VALUES(purchasePrice), purchasePrice)," \
+                f"purchaseType = COALESCE (VALUES(purchaseType), purchaseType), " \
+                f"updated = CURRENT_TIMESTAMP;"
         try:
             self._execute_commit(query, params)
         except InvalidCursorExecute:
@@ -215,21 +260,22 @@ class DB:
         """
         query = f"INSERT INTO Series " \
                 f"(id, title, description, resourceURI, startYear, endYear, rating, modified, thumbnail, " \
-                f"nextSeriesId, previousSeriesId, Series.type) " \
+                f"nextSeriesId, previousSeriesId, Series.type, updated) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"title = COALESCE(%s, VALUES(title)), " \
-                f"description = COALESCE(%s, VALUES(description))," \
-                f"resourceURI = COALESCE(%s, VALUES(resourceURI))," \
-                f"startYear = COALESCE(%s, VALUES(startYear)), " \
-                f"endYear = COALESCE(%s, VALUES(endYear)), " \
-                f"rating = COALESCE(%s, VALUES(rating)), " \
-                f"modified = COALESCE(%s, VALUES(modified)), " \
-                f"thumbnail = COALESCE(%s, VALUES(thumbnail)), " \
-                f"nextSeriesId = COALESCE(%s, VALUES(nextSeriesId)), " \
-                f"previousSeriesId = COALESCE(%s, VALUES(previousSeriesId))," \
-                f"Series.type = COALESCE(%s, VALUES(Series.type));"
+                f"title = COALESCE(VALUES(title), title), " \
+                f"description = COALESCE(VALUES(description), description)," \
+                f"resourceURI = COALESCE(VALUES(resourceURI), resourceURI)," \
+                f"startYear = COALESCE(VALUES(startYear), startYear), " \
+                f"endYear = COALESCE(VALUES(endYear), endYear), " \
+                f"rating = COALESCE(VALUES(rating), rating), " \
+                f"modified = COALESCE(VALUES(modified), modified), " \
+                f"thumbnail = COALESCE(VALUES(thumbnail), thumbnail), " \
+                f"nextSeriesId = COALESCE(VALUES(nextSeriesId), nextSeriesId), " \
+                f"previousSeriesId = COALESCE(VALUES(previousSeriesId), previousSeriesId)," \
+                f"Series.type = COALESCE(VALUES(Series.type), Series.type), " \
+                f"updated = CURRENT_TIMESTAMP;"
         try:
             self._execute_commit(query, params)
         except InvalidCursorExecute:
@@ -241,16 +287,17 @@ class DB:
         Uploads a complete record to the Stories Table
         """
         query = f"INSERT INTO Stories " \
-                f"(id, title, description, resourceURI, Stories.type, modified, thumbnail) " \
+                f"(id, title, description, resourceURI, Stories.type, modified, thumbnail, updated) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"title = COALESCE(%s, VALUES(title)), " \
-                f"description = COALESCE(%s, VALUES(description))," \
-                f"resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
-                f"Stories.type = COALESCE(%s, VALUES(Stories.type))," \
-                f"modified = COALESCE(%s, VALUES(modified)), " \
-                f"thumbnail = COALESCE(%s, VALUES(thumbnail));"
+                f"title = COALESCE(VALUES(title), title), " \
+                f"description = COALESCE(VALUES(description), description)," \
+                f"resourceURI = COALESCE(VALUES(resourceURI), resourceURI), " \
+                f"Stories.type = COALESCE(VALUES(Stories.type), Stories.type)," \
+                f"modified = COALESCE(VALUES(modified), modified), " \
+                f"thumbnail = COALESCE(VALUES(thumbnail), thumbnail), " \
+                f"updated = CURRENT_TIMESTAMP;"
         try:
             self._execute_commit(query, params)
         except InvalidCursorExecute:
@@ -262,15 +309,16 @@ class DB:
         Uploads a complete record to the Characters Table
         """
         query = f"INSERT INTO Characters " \
-                f"(id, Characters.name, description, modified, resourceURI, thumbnail) " \
+                f"(id, Characters.name, description, modified, resourceURI, thumbnail, updated) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"Characters.name = COALESCE(%s, VALUES(Characters.name)), " \
-                f"description = COALESCE(%s, VALUES(description))," \
-                f"modified = COALESCE(%s, VALUES(modified)), " \
-                f"resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
-                f"thumbnail = COALESCE(%s, VALUES(thumbnail));"
+                f"Characters.name = COALESCE(VALUES(Characters.name), Characters.name), " \
+                f"description = COALESCE(VALUES(description), description)," \
+                f"modified = COALESCE(VALUES(modified), modified), " \
+                f"resourceURI = COALESCE(VALUES(resourceURI), resourceURI), " \
+                f"thumbnail = COALESCE(VALUES(thumbnail), thumbnail), " \
+                f"updated = CURRENT_TIMESTAMP;"
         try:
             self._execute_commit(query, params)
         except InvalidCursorExecute:
@@ -283,19 +331,20 @@ class DB:
         """
         query = f"INSERT INTO Events " \
                 f"(id, title, description, resourceURI, modified, Events.start, Events.end, " \
-                f"thumbnail, nextEventId, previousEventId) " \
+                f"thumbnail, nextEventId, previousEventId, updated) " \
                 f"VALUES " \
-                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) " \
+                f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"title = COALESCE(%s, VALUES(title)), " \
-                f"description = COALESCE(%s, VALUES(description))," \
-                f"resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
-                f"modified = COALESCE(%s, VALUES(modified)), " \
-                f"Events.start = COALESCE(%s, VALUES(Events.start)), " \
-                f"Events.end = COALESCE(%s, VALUES(Events.end)), " \
-                f"thumbnail = COALESCE(%s, VALUES(thumbnail)), " \
-                f"nextEventId = COALESCE(%s, VALUES(nextEventId)), " \
-                f"previousEventId = COALESCE(%s, VALUES(previousEventId));"
+                f"title = COALESCE(VALUES(title), title), " \
+                f"description = COALESCE(VALUES(description), description)," \
+                f"resourceURI = COALESCE(VALUES(resourceURI), resourceURI), " \
+                f"modified = COALESCE(VALUES(modified), modified), " \
+                f"Events.start = COALESCE(VALUES(Events.start), Events.start), " \
+                f"Events.end = COALESCE(VALUES(Events.end), Events.end), " \
+                f"thumbnail = COALESCE(VALUES(thumbnail), thumbnail), " \
+                f"nextEventId = COALESCE(VALUES(nextEventId), nextEventId), " \
+                f"previousEventId = COALESCE(VALUES(previousEventId), previousEventId), " \
+                f"updated = CURRENT_TIMESTAMP;"
         try:
             self._execute_commit(query, params)
         except InvalidCursorExecute:
@@ -314,12 +363,13 @@ class DB:
         """
 
         query = "INSERT INTO Images " \
-                "(Images.path, pathExtension) " \
+                "(Images.path, pathExtension, updated) " \
                 "VALUES " \
-                "(%s, %s) " \
+                "(%s, %s, CURRENT_TIMESTAMP) " \
                 "ON DUPLICATE KEY UPDATE " \
-                "pathExtension = COALESCE(%s, VALUES(pathExtension));"
-        params = (image_path, image_extension, image_extension)
+                "pathExtension = COALESCE(VALUES(pathExtension), pathExtension), " \
+                "updated = CURRENT_TIMESTAMP;"
+        params = (image_path, image_extension)
 
         try:
             self._execute_commit(query, params)
@@ -335,12 +385,13 @@ class DB:
         """
 
         query = "INSERT INTO URLs " \
-                "(URLs.type, url) " \
+                "(URLs.type, url, updated) " \
                 "VALUES " \
-                "(%s, %s) " \
+                "(%s, %s, CURRENT_TIMESTAMP) " \
                 "ON DUPLICATE KEY UPDATE " \
-                "URLs.type = COALESCE(%s, VALUES(URLs.type));"
-        params = (url_type, url_path, url_type)
+                "URLs.type = COALESCE(VALUES(URLs.type), URLs.type), " \
+                "updated = CURRENT_TIMESTAMP;"
+        params = (url_type, url_path)
 
         try:
             self._execute_commit(query, params)
@@ -364,13 +415,12 @@ class DB:
                 "VALUES " \
                 "(%s, %s, %s, %s, %s) " \
                 "ON DUPLICATE KEY UPDATE " \
-                "firstName = COALESCE(%s, VALUES(firstName)), " \
-                "middleName = COALESCE(%s, VALUES(middleName)), " \
-                "lastName = COALESCE(%s, VALUES(lastName)), " \
-                "resourceURI = COALESCE(%s, VALUES(resourceURI));"
+                "firstName = COALESCE(VALUES(firstName), firstName), " \
+                "middleName = COALESCE(VALUES(middleName), middleName), " \
+                "lastName = COALESCE(VALUES(lastName), lastName), " \
+                "resourceURI = COALESCE(VALUES(resourceURI), resourceURI);"
 
-        params = (creator_id, first_name, middle_name, last_name, resource_uri,
-                  first_name, middle_name, last_name, resource_uri)
+        params = (creator_id, first_name, middle_name, last_name, resource_uri)
 
         try:
             self._execute_commit(query, params)
@@ -391,10 +441,10 @@ class DB:
                 "VALUES " \
                 "(%s, %s, %s) " \
                 "ON DUPLICATE KEY UPDATE " \
-                "Characters.name = COALESCE(%s, VALUES(Characters.name)), " \
-                "resourceURI = COALESCE(%s, VALUES(resourceURI));"
+                "Characters.name = COALESCE(VALUES(Characters.name), Characters.name), " \
+                "resourceURI = COALESCE(VALUES(resourceURI), resourceURI);"
 
-        params = (character_id, character_name, character_uri, character_name, character_uri)
+        params = (character_id, character_name, character_uri)
 
         try:
             self._execute_commit(query, params)
@@ -416,11 +466,11 @@ class DB:
                 "VALUES " \
                 "(%s, %s, %s, %s) " \
                 "ON DUPLICATE KEY UPDATE " \
-                "title = COALESCE(%s, VALUES(title)), " \
-                "resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
-                "Stories.type = COALESCE(%s, VALUES(Stories.type));"
+                "title = COALESCE(VALUES(title), title), " \
+                "resourceURI = COALESCE(VALUES(resourceURI), resourceURI), " \
+                "Stories.type = COALESCE(VALUES(Stories.type), Stories.type);"
 
-        params = (story_id, story_title, story_uri, story_type, story_title, story_uri, story_type)
+        params = (story_id, story_title, story_uri, story_type)
 
         try:
             self._execute_commit(query, params)
@@ -444,13 +494,12 @@ class DB:
                 "VALUES " \
                 "(%s, %s, %s, %s, %s) " \
                 "ON DUPLICATE KEY UPDATE " \
-                "title = COALESCE(%s, VALUES(title)), " \
-                "resourceURI = COALESCE(%s, VALUES(resourceURI)), " \
-                "issueNumber = COALESCE(%s, VALUES(issueNumber)), " \
-                "isVariant = COALESCE(%s, VALUES(isVariant));"
+                "title = COALESCE(VALUES(title), title), " \
+                "resourceURI = COALESCE(VALUES(resourceURI), resourceURI), " \
+                "issueNumber = COALESCE(VALUES(issueNumber), issueNumber), " \
+                "isVariant = COALESCE(VALUES(isVariant), isVariant);"
 
-        params = (variant_id, variant_title, variant_uri, issue_number, is_variant,
-                  variant_title, variant_uri, issue_number, is_variant)
+        params = (variant_id, variant_title, variant_uri, issue_number, is_variant)
 
         try:
             self._execute_commit(query, params)
@@ -470,10 +519,10 @@ class DB:
                 "VALUES " \
                 "(%s, %s, %s) " \
                 "ON DUPLICATE KEY UPDATE " \
-                "title = COALESCE(%s, VALUES(title)), " \
-                "resourceURI = COALESCE(%s, VALUES(resourceURI));"
+                "title = COALESCE(VALUES(title), title), " \
+                "resourceURI = COALESCE(VALUES(resourceURI), resourceURI);"
 
-        params = (comic_id, comic_title, comic_uri, comic_title, comic_uri)
+        params = (comic_id, comic_title, comic_uri)
 
         try:
             self._execute_commit(query, params)
@@ -494,9 +543,14 @@ class DB:
         :param entity_uri: The canonical URL identifier for this resource.
         """
 
-        query = f"INSERT INTO {table_name} (id, title, resourceURI) " \
-                f"SELECT %s, %s, %s WHERE NOT EXISTS (SELECT * FROM {table_name} WHERE id=%s);"
-        params = (entity_id, entity_title, entity_uri, entity_id)
+        query = f"INSERT INTO {table_name} " \
+                f"(id, title, resourceURI) " \
+                f"VALUES (%s, %s, %s) " \
+                f"ON DUPLICATE KEY UPDATE " \
+                f"title = COALESCE(VALUES(title), title), " \
+                f"resourceURI = COALESCE(VALUES(resourceURI), resourceURI);"
+
+        params = (entity_id, entity_title, entity_uri)
 
         try:
             self._execute_commit(query, params)
@@ -520,16 +574,18 @@ class DB:
         :param comic_id: The unique ID of the comic resource.
         :param variant_id: The unique ID of the variant comic resource.
         """
+        query = "INSERT INTO Comics_has_Variants (comicId, variantId, updated) " \
+                "VALUES (%s, %s, CURRENT_TIMESTAMP) " \
+                "ON DUPLICATE KEY UPDATE " \
+                "updated = CURRENT_TIMESTAMP;"
 
-        query = "INSERT INTO Comics_has_Variants (comicId, variantId) SELECT %s, %s WHERE NOT EXISTS " \
-                "(SELECT * FROM Comics_has_Variants WHERE comicId=%s AND variantId=%s);"
-        params = (comic_id, variant_id, comic_id, variant_id)
+        params = (comic_id, variant_id)
 
         try:
             self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(
-                    f"COMIC : VARIANT M:M RELATIONSHIP {comic_id} : {variant_id} WITH NOT UPLOADED TO Comics_has_Variants TABLE"
+                f"COMIC : VARIANT M:M RELATIONSHIP {comic_id} : {variant_id} WITH NOT UPLOADED TO Comics_has_Variants TABLE"
             )
             self._connection.rollback()
 
@@ -548,15 +604,19 @@ class DB:
         if parentIdName is not None:
             tableName = parent_entity + '_has_' + self.CHARACTER_ENTITY
 
-            query = f"INSERT INTO {tableName} ({parentIdName}, characterId) SELECT %s, %s WHERE NOT EXISTS " \
-                    f"(SELECT * FROM {tableName} WHERE {parentIdName}=%s AND characterId=%s);"
-            params = (parent_id, character_id, parent_id, character_id)
+            query = f"INSERT INTO {tableName} " \
+                    f"({parentIdName}, characterId, updated) " \
+                    f"VALUES (%s, %s, CURRENT_TIMESTAMP) " \
+                    f"ON DUPLICATE KEY UPDATE " \
+                    f"updated = CURRENT_TIMESTAMP;"
+
+            params = (parent_id, character_id)
 
             try:
                 self._execute_commit(query, params)
             except InvalidCursorExecute:
                 print(
-                        f"{parent_entity.upper()} : CHARACTER M:M RELATIONSHIP {parent_id} : {character_id} WITH NOT UPLOADED TO {tableName} TABLE"
+                    f"{parent_entity.upper()} : CHARACTER M:M RELATIONSHIP {parent_id} : {character_id} WITH NOT UPLOADED TO {tableName} TABLE"
                 )
                 self._connection.rollback()
 
@@ -577,19 +637,20 @@ class DB:
             tableName = parent_entity + '_has_' + self.CREATOR_ENTITY
 
             query = f"INSERT INTO {tableName} " \
-                    f"({parentIdName}, creatorId, creatorRole) " \
+                    f"({parentIdName}, creatorId, creatorRole, updated) " \
                     f"VALUES " \
-                    f"(%s, %s, %s)" \
+                    f"(%s, %s, %s, CURRENT_TIMESTAMP)" \
                     f"ON DUPLICATE KEY UPDATE " \
-                    f"creatorRole = COALESCE (VALUES(creatorRole), %s);"
-            params = (parent_id, creator_id, creator_role, creator_role)
+                    f"creatorRole = COALESCE (VALUES(creatorRole), creatorRole), " \
+                    f"updated = CURRENT_TIMESTAMP;"
+            params = (parent_id, creator_id, creator_role)
 
             try:
                 self._execute_commit(query, params)
             except InvalidCursorExecute:
                 print(
-                        f"{parent_entity.upper()} : CREATOR M:M RELATIONSHIP {parent_id} : {creator_id} WITH "
-                        f"ROLE {creator_role} NOT UPLOADED TO {tableName} TABLE"
+                    f"{parent_entity.upper()} : CREATOR M:M RELATIONSHIP {parent_id} : {creator_id} WITH "
+                    f"ROLE {creator_role} NOT UPLOADED TO {tableName} TABLE"
                 )
                 self._connection.rollback()
 
@@ -605,15 +666,21 @@ class DB:
 
         if parentIdName is not None:
             tableName = parent_entity + '_has_' + self.EVENT_ENTITY
-            query = f"INSERT INTO {tableName} ({parentIdName}, eventId) SELECT %s, %s WHERE NOT EXISTS " \
-                    f"(SELECT * FROM {tableName} WHERE {parentIdName}=%s AND eventId=%s);"
-            params = (parent_id, event_id, parent_id, event_id)
+
+            query = f"INSERT INTO {tableName} " \
+                    f"({parentIdName}, eventId, updated) " \
+                    f"VALUES (%s, %s, CURRENT_TIMESTAMP) " \
+                    f"ON DUPLICATE KEY UPDATE " \
+                    f"updated = CURRENT_TIMESTAMP;"
+
+            params = (parent_id, event_id)
 
             try:
                 self._execute_commit(query, params)
             except InvalidCursorExecute:
                 print(
-                    f"{parent_entity.upper()} : EVENTS M:M RELATIONSHIP {parent_id} : {event_id} NOT UPLOADED TO {tableName} TABLE")
+                    f"{parent_entity.upper()} : EVENTS M:M RELATIONSHIP {parent_id} : {event_id} NOT UPLOADED TO {tableName} TABLE"
+                )
                 self._connection.rollback()
 
     def upload_new_entity_has_images_record(self, parent_entity: str, parent_id: int, image_path: str):
@@ -623,27 +690,29 @@ class DB:
         :param parent_id: The unique ID of the parent resource.
         :param image_path: The full path of the image resource
         """
-        parentIdName = self.get_parent_id_name(parent_entity)
+        # comics only entity with has_Images yet
+        if parent_entity == self.COMIC_ENTITY:
+            parentIdName = self.get_parent_id_name(parent_entity)
 
-        if parentIdName is not None:
-            tableName = parent_entity + '_has_' + self.IMAGE_ENTITY
+            if parentIdName is not None:
+                tableName = f"{parent_entity}_has_{self.IMAGE_ENTITY}"
 
-            query = f"INSERT INTO {tableName} ({parentIdName}, imagePath) " \
-                    f"SELECT %s, %s WHERE NOT EXISTS " \
-                    f"(SELECT * FROM {tableName} " \
-                    f"WHERE " \
-                    f"{parentIdName}=%s " \
-                    f"AND " \
-                    f"imagePath=%s);"
+                query = f"INSERT INTO {tableName} " \
+                        f"({parentIdName}, imagePath, updated) " \
+                        f"VALUES (%s, %s, CURRENT_TIMESTAMP) " \
+                        f"ON DUPLICATE KEY UPDATE " \
+                        f"updated = CURRENT_TIMESTAMP;"
 
-            params = (parent_id, image_path, parent_id, image_path)
+                params = (parent_id, image_path)
 
-            try:
-                self._execute_commit(query, params)
-            except InvalidCursorExecute:
-                print(f"{parent_entity.upper()} : IMAGE M:M RELATIONSHIP {parent_id} : {image_path} NOT UPLOADED TO "
-                      f"{tableName} TABLE")
-                self._connection.rollback()
+                try:
+                    self._execute_commit(query, params)
+                except InvalidCursorExecute:
+                    print(
+                        f"{parent_entity.upper()} : IMAGE M:M RELATIONSHIP {parent_id} : {image_path} NOT UPLOADED TO "
+                        f"{tableName} TABLE"
+                        )
+                    self._connection.rollback()
 
     def upload_new_entity_has_stories_record(self, parent_entity: str, parent_id: int, story_id: int):
         """
@@ -655,17 +724,23 @@ class DB:
 
         parentIdName = self.get_parent_id_name(parent_entity)
         if parentIdName is not None:
-            tableName = parent_entity + '_has_' + self.STORY_ENTITY
-            query = f"INSERT INTO {tableName} ({parentIdName}, storyId) SELECT %s, %s WHERE NOT EXISTS " \
-                    f"(SELECT * FROM {tableName} WHERE {parentIdName}=%s AND storyId=%s);"
-            params = (parent_id, story_id, parent_id, story_id)
+            tableName = f"{parent_entity}_has_{self.STORY_ENTITY}"
+
+            query = f"INSERT INTO {tableName} " \
+                    f"({parentIdName}, storyId, updated) " \
+                    f"VALUES (%s, %s, CURRENT_TIMESTAMP) " \
+                    f"ON DUPLICATE KEY UPDATE " \
+                    f"updated = CURRENT_TIMESTAMP;"
+
+            params = (parent_id, story_id)
 
             try:
                 self._execute_commit(query, params)
             except InvalidCursorExecute:
                 print(
-                        f"{parent_entity.upper()} : STORY M:M RELATIONSHIP {parent_id} : {story_id} NOT UPLOADED TO {tableName} TABLE"
-                )
+                    f"{parent_entity.upper()} : STORY M:M RELATIONSHIP {parent_id} : {story_id} "
+                    f"NOT UPLOADED TO {tableName} TABLE"
+                    )
                 self._connection.rollback()
 
     def upload_new_entity_has_urls_record(self, parent_entity: str, parent_id: int, url: str):
@@ -675,19 +750,32 @@ class DB:
         :param parent_id: The unique ID of the parent resource.
         :param url: A full URL (including scheme, domain, and path) related to the entity.
         """
-        parentIdName = self.get_parent_id_name(parent_entity)
-        if parentIdName is not None:
-            tableName = parent_entity + '_has_' + self.URL_ENTITY
-            query = f"INSERT INTO {tableName} ({parentIdName}, url) SELECT %s, %s WHERE NOT EXISTS " \
-                    f"(SELECT * FROM {tableName} WHERE {parentIdName}=%s AND url=%s);"
-            params = (parent_id, url, parent_id, url)
 
-            try:
-                self._execute_commit(query, params)
-            except InvalidCursorExecute:
-                print(
-                        f"{parent_entity.upper()} : URL M:M RELATIONSHIP {parent_id} : {url} WITH NOT UPLOADED TO {tableName} TABLE")
-                self._connection.rollback()
+        if (parent_entity == self.SERIES_ENTITY
+                or parent_entity == self.COMIC_ENTITY
+                or parent_entity == self.EVENT_ENTITY
+                or parent_entity == self.CREATOR_ENTITY):
+
+            parentIdName = self.get_parent_id_name(parent_entity)
+            if parentIdName is not None:
+                tableName = parent_entity + '_has_' + self.URL_ENTITY
+
+                query = f"INSERT INTO {tableName} " \
+                        f"({parentIdName}, url, updated) " \
+                        f"VALUES (%s, %s, CURRENT_TIMESTAMP) " \
+                        f"ON DUPLICATE KEY UPDATE " \
+                        f"updated = CURRENT_TIMESTAMP;"
+
+                params = (parent_id, url)
+
+                try:
+                    self._execute_commit(query, params)
+                except InvalidCursorExecute:
+                    print(
+                        f"{parent_entity.upper()} : URL M:M RELATIONSHIP {parent_id} : {url} "
+                        f"NOT UPLOADED TO {tableName} TABLE"
+                        )
+                    self._connection.rollback()
 
     ####################################################################################################################
     #
@@ -714,7 +802,12 @@ class DB:
     #                                   UTILITIES
     #
     ####################################################################################################################
-    def get_parent_id_name(self, parent_entity):
+    def get_parent_id_name(self, parent_entity) -> str | None:
+        """
+        Gets the id name in the Entity_has_relation table
+        :param parent_entity: the name of the entity for which to return the id name
+        :return: string or none if no entity not valid
+        """
         if parent_entity == self.CHARACTER_ENTITY:
             return "characterId"
         elif parent_entity == self.COMIC_ENTITY:
@@ -727,8 +820,10 @@ class DB:
             return "seriesId"
         elif parent_entity == self.STORY_ENTITY:
             return "storyId"
+        elif parent_entity == self.VARIANT_ENTITY:
+            return "variantId"
         else:
-            print(f"{parent_entity} HAS NO CREATOR RELATION... ") if self.DB_DEBUG else 0
+            print(f"{parent_entity} HAS NO RELATION... ") if self.DB_DEBUG else 0
             return None
 
     ####################################################################################################################

@@ -11,10 +11,9 @@ import datetime
 import hashlib
 import time
 
-from MySQLdb.times import Date
-
 import keys.private_keys
 import keys.pub_keys
+from MySQLdb.times import Date
 
 
 class Entity:
@@ -27,6 +26,7 @@ class Entity:
     CREATOR_ENTITY = "Creators"
     IMAGE_ENTITY = "Images"
     URL_ENTITY = "URLs"
+    VARIANT_ENTITY = "Variants"
     PURCHASED_COMICS_ENTITY = 'PurchasedComics'
     MAX_RESOURCE_LIMIT = 100
 
@@ -53,6 +53,7 @@ class Entity:
         self.title = None
         self.type = None
         self.urls = set()  # set of tuples (type, url)
+        self.seriesId = None
 
         self.ENTITY_NAME = None  # assigned in subclass __init__
 

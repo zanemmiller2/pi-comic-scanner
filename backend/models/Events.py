@@ -77,9 +77,7 @@ class Event(Entity):
         complete Event()
         """
         params = (self.id, self.title, self.description, self.resourceURI, self.modified, self.eventStart,
-                  self.eventEnd, self.thumbnail, self.nextEventId, self.previousEventId, self.title, self.description,
-                  self.resourceURI, self.modified, self.eventStart, self.eventEnd, self.thumbnail, self.nextEventId,
-                  self.previousEventId)
+                  self.eventEnd, self.thumbnail, self.nextEventId, self.previousEventId)
 
         self.db.upload_complete_event(params)
 

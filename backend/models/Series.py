@@ -75,9 +75,7 @@ class Series(Entity):
         """
 
         params = (self.id, self.title, self.description, self.resourceURI, self.startYear, self.endYear, self.rating,
-                  self.modified, self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type, self.title,
-                  self.description, self.resourceURI, self.startYear, self.endYear, self.rating, self.modified,
-                  self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type)
+                  self.modified, self.thumbnail, self.nextSeriesId, self.previousSeriesId, self.type)
 
         self.db.upload_complete_series(params)
 

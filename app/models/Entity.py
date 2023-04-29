@@ -1,19 +1,7 @@
 class Entity:
 
     def __init__(self, entity_detail_dict):
-        self.description = None
-        self.thumbnail = None
-        self.description = None
-        self.thumbnailExtension = None
-        self.name = None
-        self.title = None
-        self.id = None
-        self.modified = None
-        self.resourceURI = None
-        self.detailURL = None
-        self.type = None
-        self.purchaseURL = None
-        self.seriesId = None
+
         self.ENTITY = None
 
         for key in entity_detail_dict:

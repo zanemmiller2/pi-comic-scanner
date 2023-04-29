@@ -63,8 +63,7 @@ class Character(Entity):
         Compiles the character entities into params tuple to pass to database function for uploading complete character
         """
 
-        params = (self.id, self.name, self.description, self.modified, self.resourceURI, self.thumbnail, self.name,
-                  self.description, self.modified, self.resourceURI, self.thumbnail)
+        params = (self.id, self.name, self.description, self.modified, self.resourceURI, self.thumbnail)
 
         self.db.upload_complete_character(params)
 

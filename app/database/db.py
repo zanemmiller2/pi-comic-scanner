@@ -107,32 +107,32 @@ class DB:
             "SELECT " \
             "(SELECT ShUL.url " \
             "FROM Series_has_URLs ShUL " \
-            "LEFT OUTER JOIN URLs UL " \
+            "LEFT JOIN URLs UL " \
             "ON ShUL.url = UL.url " \
             "WHERE ShUL.seriesId = S.id AND UL.type = 'purchase') as purchaseURL, " \
             "(SELECT ShUL.url " \
             "FROM Series_has_URLs ShUL " \
-            "LEFT OUTER JOIN URLs UL " \
+            "LEFT JOIN URLs UL " \
             "ON ShUL.url = UL.url " \
             "WHERE ShUL.seriesId = S.id AND UL.type = 'detail') as detailURL, " \
             "(SELECT ShUL.url " \
             "FROM Series_has_URLs ShUL " \
-            "LEFT OUTER JOIN URLs UL " \
+            "LEFT JOIN URLs UL " \
             "ON ShUL.url = UL.url " \
             "WHERE ShUL.seriesId = S.id AND UL.type = 'comiclink') as comicLink, " \
             "(SELECT ShUL.url " \
             "FROM Series_has_URLs ShUL " \
-            "LEFT OUTER JOIN URLs UL " \
+            "LEFT JOIN URLs UL " \
             "ON ShUL.url = UL.url " \
             "WHERE ShUL.seriesId = S.id AND UL.type = 'reader') as readerURL, " \
             "(SELECT ShUL.url " \
             "FROM Series_has_URLs ShUL " \
-            "LEFT OUTER JOIN URLs UL " \
+            "LEFT JOIN URLs UL " \
             "ON ShUL.url = UL.url " \
             "WHERE ShUL.seriesId = S.id AND UL.type = 'inAppLink') as inAppLink, " \
             "(SELECT ShUL.url " \
             "FROM Series_has_URLs ShUL " \
-            "LEFT OUTER JOIN URLs UL " \
+            "LEFT JOIN URLs UL " \
             "ON ShUL.url = UL.url " \
             "WHERE ShUL.seriesId = S.id AND UL.type = 'wiki') as wiki " \
             "FROM Series S " \
@@ -153,7 +153,7 @@ class DB:
             "SELECT Stories.*, I.pathExtension AS thumbnailExtension from Comics_has_Stories ChS " \
             "INNER JOIN Stories " \
             "ON ChS.storyId = Stories.id AND Stories.type = 'cover' " \
-            "LEFT OUTER JOIN Images I " \
+            "LEFT JOIN Images I " \
             "on Stories.thumbnail = I.path " \
             "WHERE ChS.comicId=%s;"
 
@@ -163,8 +163,8 @@ class DB:
         interior_story_query = \
             "SELECT Stories.*, I.pathExtension AS thumbnailExtension from Comics_has_Stories ChS " \
             "INNER JOIN Stories " \
-            "ON ChS.storyId = Stories.id AND Stories.type = 'interiorStory' " \
-            "LEFT OUTER JOIN Images I " \
+            "ON ChS.storyId = Stories.id AND (Stories.type = 'interiorStory' OR Stories.type = 'story') " \
+            "LEFT JOIN Images I " \
             "on Stories.thumbnail = I.path " \
             "WHERE ChS.comicId=%s;"
 
@@ -179,11 +179,11 @@ class DB:
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
         creators_query = \
-            "SELECT ChCr.creatorRole, Cr.*, I.pathExtension as thumbnailExtension " \
+            "SELECT ChCr.creatorRole as role, Cr.*, I.pathExtension as thumbnailExtension " \
             "FROM Comics_has_Creators ChCr " \
             "INNER JOIN Creators Cr " \
             "ON ChCr.creatorId = Cr.id " \
-            "INNER JOIN Images I " \
+            "LEFT JOIN Images I " \
             "ON Cr.thumbnail = I.path " \
             "WHERE ChCr.comicId=%s;"
 
@@ -199,7 +199,7 @@ class DB:
             "FROM Comics_has_Events ChE " \
             "INNER JOIN Events E " \
             "ON ChE.eventId = E.id " \
-            "INNER JOIN Images I " \
+            "LEFT JOIN Images I " \
             "ON E.thumbnail = I.path " \
             "WHERE ChE.comicId=%s;"
 
@@ -215,9 +215,39 @@ class DB:
             "FROM Comics_has_Characters ChCha " \
             "INNER JOIN Characters Cha " \
             "ON ChCha.characterId = Cha.id " \
-            "INNER JOIN Images I " \
+            "LEFT JOIN Images I " \
             "ON Cha.thumbnail = I.path " \
             "WHERE ChCha.comicId=%s;"
 
         cursor.execute(characters_query, params)
         return [Character(item) for item in cursor]
+
+    def get_comic_variants(self, comic_id: int) -> list[Comic]:
+        """ Get the current comics variant comics """
+        cursor = self.mysql.connection.cursor()
+        params = (comic_id,)
+        variants_query = \
+            "SELECT C.*, I.pathExtension as thumbnailExtension " \
+            "FROM Comics_has_Variants ChV " \
+            "INNER JOIN Comics C " \
+            "on ChV.variantId = C.id " \
+            "LEFT JOIN Images I " \
+            "on C.thumbnail = I.path " \
+            "WHERE ChV.comicId = %s;"
+
+        cursor.execute(variants_query, params)
+        return [Comic(item) for item in cursor]
+
+    def get_comic_images(self, comic_id: int) -> list[Comic]:
+        """ Get the current comics variant comics """
+        cursor = self.mysql.connection.cursor()
+        params = (comic_id,)
+        images_query = \
+            "SELECT ChI.imagePath as thumbnail, I.pathExtension as thumbnailExtension " \
+            "FROM Comics_has_Images ChI " \
+            "LEFT JOIN Images I " \
+            "on ChI.imagePath = I.path " \
+            "WHERE ChI.comicId = %s;"
+
+        cursor.execute(images_query, params)
+        return [Comic(item) for item in cursor]

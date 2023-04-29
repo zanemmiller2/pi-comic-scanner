@@ -251,7 +251,7 @@ ul ol {
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
-    justify-content: space-evenly;
+    justify-content: space-between;
     border: 5px solid aqua;
     margin: 0;
     width: 30%;
@@ -384,7 +384,7 @@ img.comic-thumbnail-responsive {
 .comic-description {
     border: 5px solid mediumseagreen;
     font-size: max(calc(.7vw + .7vh + .7vmin), 1.5em);
-    text-align: justify;
+    text-align: left;
     line-height: calc(.9vw + .9vh + .9vmin);
 }
 
@@ -425,6 +425,7 @@ img.comic-entity-thumbnail {
     margin: 0;
     aspect-ratio: 2 / 3;
     max-width: 180px;
+    width: 180px;
     height: auto;
     position: relative;
     float: left;
@@ -433,7 +434,7 @@ img.comic-entity-thumbnail {
 
 p.comic-entity-card-text {
     font-size: calc(.5vw + .5vh + .5vmin);
-    text-align: justify;
+    text-align: left;
 }
 
 

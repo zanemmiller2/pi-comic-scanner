@@ -125,12 +125,7 @@ class ComicBook(Entity):
                   self.modified, self.isbn, self.upc, self.diamondCode, self.ean, self.issn, self.format,
                   self.pageCount, json.dumps(self.textObjects), self.resourceURI, self.onSaleDate, self.focDate,
                   self.unlimitedDate, self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice,
-                  self.seriesId, self.thumbnail, self.originalIssueId, self.digitalId,
-                  self.title, self.issueNumber, self.variantDescription, self.description, self.modified, self.isbn,
-                  self.upc, self.diamondCode,self.ean, self.issn, self.format, self.pageCount,
-                  json.dumps(self.textObjects), self.resourceURI, self.onSaleDate, self.focDate, self.unlimitedDate,
-                  self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice, self.seriesId, self.thumbnail,
-                  self.originalIssueId)
+                  self.seriesId, self.thumbnail, self.originalIssueId)
 
         self.db.upload_complete_comic_book(params)
 
@@ -147,15 +142,13 @@ class ComicBook(Entity):
         self._entity_has_urls()
         self._entity_has_images()
 
-
         if self.isPurchased is True:
             self._upload_purchasedComic()
 
     def _upload_purchasedComic(self):
         """ Uploads a purchased comic to the PurchasedComics table """
 
-        params = (self.id, self.isPurchasedDate, self.isPurchasedPrice, self.isPurchasedType, self.isPurchasedDate,
-                  self.isPurchasedPrice, self.isPurchasedType)
+        params = (self.id, self.isPurchasedDate, self.isPurchasedPrice, self.isPurchasedType)
         self.db.upload_complete_purchased_comic(params)
 
     ####################################################################################################################

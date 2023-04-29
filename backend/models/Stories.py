@@ -61,7 +61,7 @@ class Story(Entity):
         """
         Compiles the Creator entities into params tuple to pass to database function for uploading complete Creator
         """
-        params = (self.id, self.title, self.description, self.resourceURI, self.type, self.modified, self.thumbnail, self.title, self.description, self.resourceURI, self.type, self.modified, self.thumbnail)
+        params = (self.id, self.title, self.description, self.resourceURI, self.type, self.modified, self.thumbnail)
 
         self.db.upload_complete_story(params)
 

@@ -7,10 +7,9 @@ Description: Driver class for looking up scanned_barcodes
 import hashlib
 import time
 
-import requests
-
 import keys.private_keys
 import keys.pub_keys
+import requests
 
 from backend.models.Characters import Character
 from backend.models.ComicBook import ComicBook
@@ -18,6 +17,7 @@ from backend.models.Creators import Creator
 from backend.models.Events import Event
 from backend.models.Series import Series
 from backend.models.Stories import Story
+from backend.models.Variants import Variant
 
 
 class Lookup:
@@ -31,9 +31,11 @@ class Lookup:
     SERIES_ENTITY = "Series"
     STORY_ENTITY = "Stories"
     URL_ENTITY = "URLs"
+    VARIANT_ENTITY = "Variants"
     PURCHASED_COMICS_ENTITY = 'PurchasedComics'
-    ENTITIES = (CHARACTER_ENTITY, COMIC_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, IMAGE_ENTITY,
-                SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY)
+    ENTITIES = {CHARACTER_ENTITY, COMIC_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, IMAGE_ENTITY,
+                SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY, VARIANT_ENTITY}
+    COMIC_DEPENDENCIES = {CHARACTER_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, SERIES_ENTITY, STORY_ENTITY, VARIANT_ENTITY}
     COMICS_URL = "https://gateway.marvel.com/v1/public/comics"
     CHARACTERS_URL = "https://gateway.marvel.com/v1/public/characters"
     CREATORS_URL = "https://gateway.marvel.com/v1/public/creators"
@@ -46,7 +48,6 @@ class Lookup:
         """
         Object represents a lookup object with a dictionary of barcodes, comic books and a db connection
         """
-        self.marvel_comic_data = None
         self.queued_barcodes = {}  # (queued_barcodes[barcode] = {prefix: barcode_prefix, upload_date: ''})
         self.lookedUp_barcodes = {}  # (lookedUp_barcodes[barcode] = {cb: comic_books[barcode], prefix: ''})
         self.committed_barcodes = {}  # (committed_barcodes[barcode] = {cb: comic_books[barcode], prefix: ''})
@@ -57,6 +58,7 @@ class Lookup:
         self.stories = {}  # (stories[storyId] = Story())
         self.characters = {}  # (characters[characterId] = Character())
         self.events = {}  # (events[eventId] = Event())
+        self.variants = {}  # (variants[variantId] = Comic())
 
         self.db = lookup_db
         self.LOOKUP_DEBUG = True
@@ -81,12 +83,17 @@ class Lookup:
             request = requests.get(endpoint, PARAMS)
             data = request.json()
 
-            if data['data']['count'] == 0:
-                print(f"No Characters found with {character_id} character id") if self.LOOKUP_DEBUG else 0
-            elif data['data']['count'] > 1:
-                print("TOO MANY CHARACTERS FOUND...") if self.LOOKUP_DEBUG else 0
+            if data['code'] == 200:
+                if data['data']['count'] == 0:
+                    print(f"No Characters found with {character_id} character id") if self.LOOKUP_DEBUG else 0
+                elif data['data']['count'] > 1:
+                    print("TOO MANY CHARACTERS FOUND...") if self.LOOKUP_DEBUG else 0
+                else:
+                    self._make_character_object(data['data']['results'][0], character_id)
+            elif data['code'] == 404:
+                print(data['status'])
             else:
-                self._make_character_object(data['data']['results'][0], character_id)
+                print(f"UNKNOWN ERROR RESPONSE CODE {data['code']}")
 
     def lookup_marvel_comic_by_upc(self, barcode: str):
         """
@@ -104,9 +111,9 @@ class Lookup:
             request = requests.get(self.COMICS_URL, PARAMS)
             data = request.json()
 
-            if self.marvel_comic_data['data']['count'] == 0:
+            if data['data']['count'] == 0:
                 print(f"No comics found with {barcode} upc") if self.LOOKUP_DEBUG else 0
-            elif self.marvel_comic_data['data']['count'] > 1:
+            elif data['data']['count'] > 1:
                 print("TOO MANY COMIC BOOKS FOUND...") if self.LOOKUP_DEBUG else 0
             else:
                 self._make_comic_book_object_byUPC(data['data']['results'][0], barcode)
@@ -128,12 +135,17 @@ class Lookup:
             request = requests.get(endpoint, PARAMS)
             data = request.json()
 
-            if data['data']['count'] == 0:
-                print(f"No Characters found with {comic_id} character id") if self.LOOKUP_DEBUG else 0
-            elif data['data']['count'] > 1:
-                print("TOO MANY CHARACTERS FOUND...") if self.LOOKUP_DEBUG else 0
+            if data['code'] == 200:
+                if data['data']['count'] == 0:
+                    print(f"No Comics found with {comic_id} comic id") if self.LOOKUP_DEBUG else 0
+                elif data['data']['count'] > 1:
+                    print("TOO MANY COMICS FOUND...") if self.LOOKUP_DEBUG else 0
+                else:
+                    self._make_comic_book_object_byID(data['data']['results'][0], comic_id)
+            elif data['code'] == 404:
+                print(data['status'])
             else:
-                self._make_comic_book_object_byID(data['data']['results'][0], comic_id)
+                print(f"UNKNOWN ERROR RESPONSE CODE {data['code']}")
 
     def lookup_marvel_creator_by_id(self, creator_id: int):
         """
@@ -150,12 +162,17 @@ class Lookup:
             request = requests.get(endpoint, PARAMS)
             data = request.json()
 
-            if data['data']['count'] == 0:
-                print(f"No Creator found with {creator_id} creator id") if self.LOOKUP_DEBUG else 0
-            elif data['data']['count'] > 1:
-                print("TOO MANY CREATORS FOUND...") if self.LOOKUP_DEBUG else 0
+            if data['code'] == 200:
+                if data['data']['count'] == 0:
+                    print(f"No Creator found with {creator_id} creator id") if self.LOOKUP_DEBUG else 0
+                elif data['data']['count'] > 1:
+                    print("TOO MANY CREATORS FOUND...") if self.LOOKUP_DEBUG else 0
+                else:
+                    self._make_creator_object(data['data']['results'][0], creator_id)
+            elif data['code'] == 404:
+                print(data['status'])
             else:
-                self._make_creator_object(data['data']['results'][0], creator_id)
+                print(f"UNKNOWN ERROR RESPONSE CODE {data['code']}")
 
     def lookup_marvel_event_by_id(self, event_id: int):
         """
@@ -171,13 +188,17 @@ class Lookup:
 
             request = requests.get(endpoint, PARAMS)
             data = request.json()
-
-            if data['data']['count'] == 0:
-                print(f"No Events found with {event_id} event id") if self.LOOKUP_DEBUG else 0
-            elif data['data']['count'] > 1:
-                print("TOO MANY EVENTS FOUND...") if self.LOOKUP_DEBUG else 0
+            if data['code'] == 200:
+                if data['data']['count'] == 0:
+                    print(f"No Events found with {event_id} event id") if self.LOOKUP_DEBUG else 0
+                elif data['data']['count'] > 1:
+                    print("TOO MANY EVENTS FOUND...") if self.LOOKUP_DEBUG else 0
+                else:
+                    self._make_event_object(data['data']['results'][0], event_id)
+            elif data['code'] == 404:
+                print(data['status'])
             else:
-                self._make_event_object(data['data']['results'][0], event_id)
+                print(f"UNKNOWN ERROR RESPONSE CODE {data['code']}")
 
     def lookup_marvel_series_by_id(self, series_id: int):
         """
@@ -194,12 +215,17 @@ class Lookup:
             request = requests.get(endpoint, PARAMS)
             data = request.json()
 
-            if data['data']['count'] == 0:
-                print(f"No Series found with {series_id} series id") if self.LOOKUP_DEBUG else 0
-            elif data['data']['count'] > 1:
-                print("TOO MANY SERIES FOUND...") if self.LOOKUP_DEBUG else 0
+            if data['code'] == 200:
+                if data['data']['count'] == 0:
+                    print(f"No Series found with {series_id} series id") if self.LOOKUP_DEBUG else 0
+                elif data['data']['count'] > 1:
+                    print("TOO MANY SERIES FOUND...") if self.LOOKUP_DEBUG else 0
+                else:
+                    self._make_series_object(data['data']['results'][0], series_id)
+            elif data['code'] == 404:
+                print(data['status'])
             else:
-                self._make_series_object(data['data']['results'][0], series_id)
+                print(f"UNKNOWN ERROR RESPONSE CODE {data['code']}")
 
     def lookup_marvel_story_by_id(self, story_id: int):
         """
@@ -216,12 +242,44 @@ class Lookup:
             request = requests.get(endpoint, PARAMS)
             data = request.json()
 
-            if data['data']['count'] == 0:
-                print(f"No Stories found with {story_id} story id") if self.LOOKUP_DEBUG else 0
-            elif data['data']['count'] > 1:
-                print("TOO MANY STORIES FOUND...") if self.LOOKUP_DEBUG else 0
+            if data['code'] == 200:
+                if data['data']['count'] == 0:
+                    print(f"No Stories found with {story_id} story id") if self.LOOKUP_DEBUG else 0
+                elif data['data']['count'] > 1:
+                    print("TOO MANY STORIES FOUND...") if self.LOOKUP_DEBUG else 0
+                else:
+                    self._make_story_object(data['data']['results'][0], story_id)
+            elif data['code'] == 404:
+                print(data['status'])
             else:
-                self._make_story_object(data['data']['results'][0], story_id)
+                print(f"UNKNOWN ERROR RESPONSE CODE {data['code']}")
+
+    def lookup_marvel_variant_by_id(self, variant_id: int):
+        """
+        Pulls Comic information from COMICS_URL + '/{comicId}'
+        :param variant_id: the integer id of the comic resource
+        """
+
+        if variant_id in self.variants:
+            hash_str, timestamp = self._get_marvel_api_hash()
+
+            PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
+            endpoint = self.COMICS_URL + '/' + str(variant_id)
+
+            request = requests.get(endpoint, PARAMS)
+            data = request.json()
+
+            if data['code'] == 200:
+                if data['data']['count'] == 0:
+                    print(f"No Variant found with {variant_id} variant id") if self.LOOKUP_DEBUG else 0
+                elif data['data']['count'] > 1:
+                    print("TOO MANY VARIANTS FOUND...") if self.LOOKUP_DEBUG else 0
+                else:
+                    self._make_variant_object(data['data']['results'][0], variant_id)
+            elif data['code'] == 404:
+                print(data['status'])
+            else:
+                print(f"UNKNOWN ERROR RESPONSE CODE {data['code']}")
 
     ####################################################################################################################
     #
@@ -397,7 +455,7 @@ class Lookup:
         """
         Update/Create a new database record for the looked up Comic Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Comic object.
-        :param comic_id: creator's identification number
+        :param comic_id: comic's identification number
         """
 
         # Valid creator id
@@ -411,7 +469,7 @@ class Lookup:
             # ComicBook entity with all of its foreign key dependencies
             self.comic_books[comic_id].upload_comic_book()
 
-            # Once the Creator() has been uploaded, go ahead and create the creators_has_relationships
+            # Once the Comic() has been uploaded, go ahead and create the comics_has_relationships
             self.comic_books[comic_id].upload_comics_has_relationships()
 
         else:
@@ -589,6 +647,49 @@ class Lookup:
         else:
             print(f"INVALID STORY ID {story_id}...") if self.LOOKUP_DEBUG else 0
 
+    ################################################################
+    #  MAKE VARIANT (COMIC)
+    ################################################################
+    def update_complete_variant(self, variant_id: int):
+        """
+        Update/Create a new database record for the looked up Comic Object. First uploads any non-existent foreign key
+        dependencies and then uploads the entire Comic object.
+        :param variant_id: comic's identification number
+        """
+
+        # Valid creator id
+        if variant_id in self.variants:
+            # Create new records for the different member variables that also represent database entities.
+            # For example, create a new series if it does not already exist so that the Creators seriesId
+            # foreign key dependency can be established.
+            self.variants[variant_id].upload_new_records()
+
+            # Once all the foreign key dependencies have been established, go ahead and create the
+            # ComicBook entity with all of its foreign key dependencies
+            self.variants[variant_id].upload_comic_book()
+
+            # Once the Comic() has been uploaded, go ahead and create the comic_has_relationships
+            self.variants[variant_id].upload_comics_has_relationships()
+
+        else:
+            print(f"INVALID VARIANT ID {variant_id}...") if self.LOOKUP_DEBUG else 0
+
+    def _make_variant_object(self, marvel_variant_data, variant_id: int):
+        """
+        Create a Comic() object with the api response data and the creator_id
+        :param marvel_variant_data: json response from the marvel lookup api
+        :param variant_id: id of the comic
+        """
+
+        # establish a connection with the ComicBook object and pass database control to the ComicBook object
+        variantObj = Variant(self.db, marvel_variant_data)
+
+        # Saves the ComicBook objects to its member variables
+        variantObj.save_properties()
+
+        # link the comicObj to the appropriate comic_id
+        self.variants[variant_id] = variantObj
+
     ####################################################################################################################
     #
     #                                         DATABASE INTERACTIONS
@@ -619,105 +720,83 @@ class Lookup:
             else:
                 print("Duplicate barcode found but dates not conflicting...") if self.LOOKUP_DEBUG else 0
 
-    def get_stale_characters_from_db(self):
+    def get_stale_entity_from_db(self, entity: str):
         """
-        Queries the database for any stale characters. A stale character is one with a modified date more than a year
-        old or no modified date. No modified date is usually a result of uploading a character to satisfy a foreign key
+        Queries the database for any stale entity. A stale entity is one with a modified date more than a year
+        old or no modified date. No modified date is usually a result of uploading a entity to satisfy a foreign key
         dependency for some other entity.
         """
-        res_data = self.db.get_stale_entity(self.CHARACTER_ENTITY)
-
-        for character in res_data:
-            character_id = character['id']
-            if character_id not in self.characters:
-                self.characters[character_id] = None
-            # duplicate with same date
+        if entity in self.COMIC_DEPENDENCIES or entity == self.COMIC_ENTITY:
+            if entity == self.CHARACTER_ENTITY:
+                entity_dict = self.characters
+            elif entity == self.COMIC_ENTITY:
+                entity_dict = self.comic_books
+            elif entity == self.CREATOR_ENTITY:
+                entity_dict = self.creators
+            elif entity == self.EVENT_ENTITY:
+                entity_dict = self.events
+            elif entity == self.SERIES_ENTITY:
+                entity_dict = self.series
             else:
-                print("DUPLICATE CHARACTER FOUND...") if self.LOOKUP_DEBUG else 0
+                entity_dict = self.stories
 
-    def get_stale_comics_from_db(self):
-        """
-        Queries the database for any stale comics. A stale comic is one with a modified date more than a year
-        old or no modified date. No modified date is usually a result of uploading a comic to satisfy a foreign key
-        dependency for some other entity.
-        """
+            res_data = self.db.get_stale_entity(entity)
 
-        res_data = self.db.get_stale_entity(self.COMIC_ENTITY)
+            for entity_record in res_data:
+                entity_id = entity_record['id']
+                if entity_id not in entity_dict:
+                    entity_dict[entity_id] = None
+                # duplicate with same date
+                else:
+                    print(f"DUPLICATE {entity_record} FOUND...") if self.LOOKUP_DEBUG else 0
+
+    def get_purchased_comic_ids_from_db(self):
+        """
+        Gets the comic ids of the purchased comics
+        """
+        res_data = self.db.get_comic_purchased_ids()
 
         for comic in res_data:
-            comic_id = comic['id']
+            comic_id = comic['comicId']
             if comic_id not in self.comic_books:
                 self.comic_books[comic_id] = None
             # duplicate with same date
             else:
                 print("DUPLICATE COMIC FOUND...") if self.LOOKUP_DEBUG else 0
 
-    def get_stale_creators_from_db(self):
-        """
-        Queries the database for any stale creators. A stale creator is one with a modified date more than a year
-        old or no modified date. No modified date is usually a result of uploading a creator to satisfy a foreign key
-        dependency for some other entity.
-        """
-
-        res_data = self.db.get_stale_entity(self.CREATOR_ENTITY)
-
-        for creator in res_data:
-            creator_id = creator['id']
-            if creator_id not in self.creators:
-                self.creators[creator_id] = None
-            # duplicate with same date
+    def get_comic_has_entity_ids_from_db(self, dependency: str, comic_id: int):
+        """ Get the given ids of a comic dependent entity """
+        if dependency in self.COMIC_DEPENDENCIES:
+            if dependency == self.CHARACTER_ENTITY:
+                id_name = "characterId"
+                entity_dict = self.characters
+            elif dependency == self.CREATOR_ENTITY:
+                id_name = "creatorId"
+                entity_dict = self.creators
+            elif dependency == self.EVENT_ENTITY:
+                id_name = "eventId"
+                entity_dict = self.events
+            elif dependency == self.SERIES_ENTITY:
+                id_name = "seriesId"
+                entity_dict = self.series
+            elif dependency == self.VARIANT_ENTITY:
+                id_name = "variantId"
+                entity_dict = self.variants
             else:
-                print("DUPLICATE CREATOR FOUND...") if self.LOOKUP_DEBUG else 0
+                id_name = "storyId"
+                entity_dict = self.stories
 
-    def get_stale_events_from_db(self):
-        """
-        Queries the database for any stale events. A stale event is one with a modified date more than a year
-        old or no modified date. No modified date is usually a result of uploading an event to satisfy a foreign key
-        dependency for some other entity.
-        """
-        res_data = self.db.get_stale_entity(self.EVENT_ENTITY)
+            res_data = self.db.get_comic_has_entity_ids(dependency, comic_id)
 
-        for event in res_data:
-            event_id = event['id']
-            if event_id not in self.events:
-                self.events[event_id] = None
-            # duplicate with same date
-            else:
-                print("DUPLICATE EVENT FOUND...") if self.LOOKUP_DEBUG else 0
+            for entity in res_data:
+                entity_id = entity[id_name]
+                if entity_id not in entity_dict:
+                    entity_dict[entity_id] = None
+                else:
+                    print(f"DUPLICATE {entity} FOUND ...") if self.LOOKUP_DEBUG else 0
 
-    def get_stale_series_from_db(self):
-        """
-        Queries the database for any stale series. A stale series is one with a modified date more than a year
-        old or no modified date. No modified date is usually a result of uploading a series to satisfy a foreign key
-        dependency for some other entity.
-        """
-
-        res_data = self.db.get_stale_entity(self.SERIES_ENTITY)
-
-        for series in res_data:
-            series_id = series['id']
-            if series_id not in self.series:
-                self.series[series_id] = None
-            # duplicate with same date
-            else:
-                print("DUPLICATE SERIES FOUND...") if self.LOOKUP_DEBUG else 0
-
-    def get_stale_stories_from_db(self):
-        """
-        Queries the database for any stale stories. A stale stories is one with a modified date more than a year
-        old or no modified date. No modified date is usually a result of uploading a stories to satisfy a foreign key
-        dependency for some other entity.
-        """
-
-        res_data = self.db.get_stale_entity(self.STORY_ENTITY)
-
-        for story in res_data:
-            story_id = story['id']
-            if story_id not in self.stories:
-                self.stories[story_id] = None
-            # duplicate with same date
-            else:
-                print("DUPLICATE STORY FOUND...") if self.LOOKUP_DEBUG else 0
+        else:
+            print("NO SUCH COMIC HAS ENTITY...") if self.LOOKUP_DEBUG else 0
 
     def remove_committed_from_buffer_db(self):
         """
@@ -779,12 +858,15 @@ class Lookup:
             i += 1
 
     def print_committed_barcodes(self):
+        """
+        Print the barcodes committed to the database
+        """
         i = 1
         for committed_barcode in self.committed_barcodes:
             print(f"({i})\t{committed_barcode}")
             i += 1
 
-    def get_num_stale_entity(self, entity_name: str) -> int:
+    def get_num_entity(self, entity_name: str) -> int:
         """
         Gets the number of stale Entities.
         :return: integer number of stale entities.
@@ -802,11 +884,17 @@ class Lookup:
                 return len(self.stories)
             if entity_name == self.COMIC_ENTITY:
                 return len(self.comic_books)
+            if entity_name == self.VARIANT_ENTITY:
+                return len(self.variants)
 
         print(f"ENTITY: {entity_name} DOES NOT EXIST") if self.LOOKUP_DEBUG else 0
         return 0
 
     def print_entity_ids(self, entity_name: str):
+        """
+        Print a list of the entity ids
+        :param entity_name: the name of the entity list to print
+        """
         i = 1
         entity_dict = {}
         if entity_name in self.ENTITIES:
@@ -822,6 +910,8 @@ class Lookup:
                 entity_dict = self.stories
             if entity_name == self.COMIC_ENTITY:
                 entity_dict = self.comic_books
+            if entity_name == self.VARIANT_ENTITY:
+                entity_dict = self.variants
 
             for entity in entity_dict:
                 print(f"({i})\t{entity}")
