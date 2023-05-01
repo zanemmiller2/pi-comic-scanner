@@ -30,12 +30,14 @@
                         <a href="{{ comic_data.detailURL }}">Detail URL</a>
                     </div>
                 </div>
-                <div class="update-comic-button">
+                <div class="update-comic-button-wrapper">
                     <form method="get"
                           action="/view-comic/{{ comic_data.id }}/update"
                           class="update-comic-button">
-                        <input type="submit" value="UPDATE COMIC BY ID"
-                               name="Update Comic"/>
+                        <input type="submit"
+                               value="Refresh Comic {{ comic_data.id }}"
+                               name="Update Comic"
+                               class="update-comic-button"/>
                     </form>
                 </div>
             </div>

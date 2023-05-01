@@ -8,13 +8,9 @@ import os
 
 from flask import render_template, redirect, request, url_for
 
-from app import app
-from app.frontendDatabase.frontendDB import FrontEndDB
-from backend.backendDatabase.backendDB import BackEndDB
-from backend.classes.lookup_driver import Lookup
+from app import app, f_db, lookup
 
 dirname = os.path.dirname(__file__)
-f_db = FrontEndDB()
 
 
 @app.route('/')
@@ -64,16 +60,13 @@ def view_comic(comic_id):
     )
 
 
-def _update_comic_driver(comic_id):
+def _update_comic_helper(comic_id):
     """
     Driver function for updating a comic and each of its entity dependencies
     :param comic_id: the id of the comic to update
     """
 
-    b_db = BackEndDB()  # BackEndDB object controller passed to Lookup class
-
     # create lookup object Lookup(f_db)
-    lookup = Lookup(b_db)  # lookup controller
     lookup.comic_books[comic_id] = None
 
     # lookup the comic book (lookup.lookup_marvel_comic_by_id(comic_id) and
@@ -129,11 +122,7 @@ def update_comic(comic_id):
     :return:
     """
     if request.method == 'GET':
-        _update_comic_driver(comic_id)
+        _update_comic_helper(comic_id)
 
         return redirect(url_for('view_comic', comic_id=comic_id))
 
-    # show in popup window?
-    # show progress bar
-
-    # return view_comic after update

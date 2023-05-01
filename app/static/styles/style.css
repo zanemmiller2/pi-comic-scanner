@@ -271,10 +271,28 @@ img.comic-thumbnail-responsive {
     border: 5px solid red;
     margin: 0;
     aspect-ratio: 2 / 3;
-    max-height: 85%;
+    max-height: 80%;
     width: 100%;
     height: auto;
 }
+
+.update-comic-button-wrapper {
+    display: flex;
+    border: 5px solid black;
+    justify-content: space-evenly;
+    width: 100%;
+    height: 10%;
+}
+
+.update-comic-button {
+    display: flex;
+    font-size: min(calc(2vw + 2vh + 2vmin), 40px);
+    font-weight: bolder;
+    align-items: center;
+    height: 100%;
+    width: auto;
+}
+
 
 /* ----------------------------------------------------------------------------
 

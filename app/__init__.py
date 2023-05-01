@@ -1,9 +1,12 @@
+import os
+
 from flask import Flask
+from flask_mysqldb import MySQL
 from flask_navigation import Navigation
 
-from config import Config
-
 app = Flask(__name__)
+mysqldb = MySQL(app)
+dirname = os.path.dirname(__file__)
 
 nav = Navigation(app)
 nav.Bar(
@@ -11,8 +14,19 @@ nav.Bar(
         nav.Item('Home', 'index'),
         nav.Item('Comics', 'comics')]
 )
+
+from config import Config
+
 app.config.from_object(Config)
-from app.webapp import *
-from templates import *
+
+from app.frontendDatabase.frontendDB import FrontEndDB
+from backend.backendDatabase.backendDB import BackEndDB
+from backend.classes.lookup_driver import Lookup
+
+f_db = FrontEndDB()
+b_db = BackEndDB()
+lookup = Lookup(b_db)
+
+from app.views import *
 
 app.run(debug=True, host='0.0.0.0', port=5011)

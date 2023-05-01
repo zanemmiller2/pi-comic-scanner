@@ -1,6 +1,4 @@
-from flask_mysqldb import MySQL
-
-from app import app
+from app import mysqldb
 from app.frontendModels.Character import FrontEndCharacter
 from app.frontendModels.Comic import FrontEndComic
 from app.frontendModels.Creator import FrontEndCreator
@@ -28,8 +26,7 @@ class FrontEndDB:
                 SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY)
 
     def __init__(self):
-        self.mysql = MySQL(app)
-        self.DB_DEBUG = False
+        self.mysql = mysqldb
 
     def get_purchased_comics(self) -> list[FrontEndComic]:
         """ Gets list of all purchased comics and their id, title, issue number, thumbnail """
