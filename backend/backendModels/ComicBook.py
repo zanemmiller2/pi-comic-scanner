@@ -7,14 +7,14 @@ Description: Class drivers for looking up marvel comics with marvel public api
 
 import json
 
-from backend.models.Entity import Entity
+from backend.backendModels.Entity import Entity
 
 
 class ComicBook(Entity):
     """
     ComicBook object is a map of the marvel public api /comics endpoint response model. The ComicBook object is
-    responsible for parsing the response data, creating new database records for specific entities and creating a new
-    Comic in the database.
+    responsible for parsing the response data, creating new backendDatabase records for specific entities and creating a new
+    Comic in the backendDatabase.
     """
 
     def __init__(
@@ -101,7 +101,7 @@ class ComicBook(Entity):
 
     def upload_new_records(self):
         """
-        Uploads new records to the database before uploading the entire comic book with relevant foreign keys
+        Uploads new records to the backendDatabase before uploading the entire comic book with relevant foreign keys
         """
         # Unique to ComicBook() class
         self._add_new_variant()
@@ -117,7 +117,7 @@ class ComicBook(Entity):
 
     def upload_comic_book(self):
         """
-        Compiles the comic_book entities into params tuple to pass to database function for uploading complete comic
+        Compiles the comic_book entities into params tuple to pass to backendDatabase function for uploading complete comic
         book
         """
 

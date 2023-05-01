@@ -4,7 +4,7 @@ Email: millerzanem@gmail.com
 Date: 04/17/2023
 Description: Class drivers for looking up marvel comics with marvel public api
 """
-from backend.models.Entity import Entity
+from backend.backendModels.Entity import Entity
 
 
 class Series(Entity):
@@ -54,7 +54,7 @@ class Series(Entity):
 
     def upload_new_records(self):
         """
-        Uploads new records to the database before uploading the entire comic book with relevant foreign keys
+        Uploads new records to the backendDatabase before uploading the entire comic book with relevant foreign keys
         """
         # Unique to Series() class
         self._add_new_series()  # modified for next series and previous series
@@ -70,7 +70,7 @@ class Series(Entity):
 
     def upload_series(self):
         """
-        Compiles the Series() entities into params tuple to pass to database function for uploading
+        Compiles the Series() entities into params tuple to pass to backendDatabase function for uploading
         complete Series()
         """
 

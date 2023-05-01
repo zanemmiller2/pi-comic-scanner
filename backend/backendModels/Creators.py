@@ -5,14 +5,14 @@ Date: 04/17/2023
 Description: Class drivers for looking up marvel comics with marvel public api
 """
 
-from backend.models.Entity import Entity
+from backend.backendModels.Entity import Entity
 
 
 class Creator(Entity):
     """
     Creator object is a map of the marvel public api /creators endpoint response model. The Creator object is
-    responsible for parsing the response data, creating new database records for specific entities and creating or
-    updating a new Creator in the database.
+    responsible for parsing the response data, creating new backendDatabase records for specific entities and creating or
+    updating a new Creator in the backendDatabase.
     """
 
     def __init__(self, db_connection, response_data):
@@ -56,7 +56,7 @@ class Creator(Entity):
 
     def upload_new_records(self):
         """
-        Uploads new records to the database before uploading the entire comic book with relevant foreign keys
+        Uploads new records to the backendDatabase before uploading the entire comic book with relevant foreign keys
         """
 
         # Unique to Creator() class
@@ -71,7 +71,7 @@ class Creator(Entity):
 
     def upload_creator(self):
         """
-        Compiles the Creator entities into params tuple to pass to database function for uploading complete Creator
+        Compiles the Creator entities into params tuple to pass to backendDatabase function for uploading complete Creator
         """
         params = (self.id, self.firstName, self.middleName, self.lastName, self.suffix, self.modified,
                   self.resourceURI, self.thumbnail)

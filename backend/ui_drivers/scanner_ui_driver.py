@@ -6,8 +6,8 @@ Date: 04/15/2023
 Description: Command Line interface driver
 """
 
+from backend.backendDatabase.backendDB import BackEndDB
 from backend.classes.scanner_driver import *
-from backend.database.db_driver import BackEndDB
 
 SCANNER_INPUT_MODE = '1'
 KEYBOARD_INPUT_MODE = '2'
@@ -160,10 +160,10 @@ class ScannerUI:
     '''
     def ask_db_upload(self):
         """
-        Asks the user if they want to upload comics to database.
+        Asks the user if they want to upload comics to backendDatabase.
         """
         if self.scanner.get_num_barcodes() > 0:
-            print("Would you like to upload the scanned barcodes to the database (y/n)? ")
+            print("Would you like to upload the scanned barcodes to the backendDatabase (y/n)? ")
             db_upload_res = input(">>> ").strip()
 
             if db_upload_res == 'N' or db_upload_res == 'n':

@@ -5,14 +5,14 @@ Date: 04/17/2023
 Description: Class drivers for looking up marvel comics with marvel public api
 """
 
-from backend.models.Entity import Entity
+from backend.backendModels.Entity import Entity
 
 
 class Story(Entity):
     """
     Story object is a map of the marvel public api /stories endpoint response model. The Story object is
-    responsible for parsing the response data, creating new database records for specific entities and creating or
-    updating a new Story in the database.
+    responsible for parsing the response data, creating new backendDatabase records for specific entities and creating or
+    updating a new Story in the backendDatabase.
     """
 
     def __init__(self, db_connection, response_data):
@@ -47,7 +47,7 @@ class Story(Entity):
 
     def upload_new_records(self):
         """
-        Uploads new records to the database before uploading the entire comic book with relevant foreign keys
+        Uploads new records to the backendDatabase before uploading the entire comic book with relevant foreign keys
         """
         # From parent class
         self._add_new_character()
@@ -59,7 +59,7 @@ class Story(Entity):
 
     def upload_story(self):
         """
-        Compiles the Creator entities into params tuple to pass to database function for uploading complete Creator
+        Compiles the Creator entities into params tuple to pass to backendDatabase function for uploading complete Creator
         """
         params = (self.id, self.title, self.description, self.resourceURI, self.type, self.modified, self.thumbnail)
 

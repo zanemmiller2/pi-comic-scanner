@@ -11,13 +11,13 @@ import keys.private_keys
 import keys.pub_keys
 import requests
 
-from backend.models.Characters import Character
-from backend.models.ComicBook import ComicBook
-from backend.models.Creators import Creator
-from backend.models.Events import Event
-from backend.models.Series import Series
-from backend.models.Stories import Story
-from backend.models.Variants import Variant
+from backend.backendModels.Characters import Character
+from backend.backendModels.ComicBook import ComicBook
+from backend.backendModels.Creators import Creator
+from backend.backendModels.Events import Event
+from backend.backendModels.Series import Series
+from backend.backendModels.Stories import Story
+from backend.backendModels.Variants import Variant
 
 
 class Lookup:
@@ -143,7 +143,7 @@ class Lookup:
                 else:
                     self._make_comic_book_object_byID(data['data']['results'][0], comic_id)
             elif data['code'] == 404:
-                print(data['status'])
+                print(data['status'], data['code'])
             else:
                 print(f"UNKNOWN ERROR RESPONSE CODE {data['code']}")
 
@@ -297,7 +297,7 @@ class Lookup:
         :param character_id: id of the character
         """
 
-        # establish a connection with the Character() object and pass database control to the Character() object
+        # establish a connection with the Character() object and pass backendDatabase control to the Character() object
         characterObj = Character(self.db, marvel_character_data)
 
         # Saves the character objects to its member variables
@@ -308,14 +308,14 @@ class Lookup:
 
     def update_complete_character(self, character_id: int):
         """
-        Create a new database record for the looked up Character() Object. First uploads any non-existent foreign key
+        Create a new backendDatabase record for the looked up Character() Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Character object.
         :param character_id: character's identification number
         """
 
         # Valid creator id
         if character_id in self.characters:
-            # Create new records for the different member variables that also represent database entities.
+            # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Story() storyId
             # foreign key dependency can be established.
             self.characters[character_id].upload_new_records()
@@ -389,7 +389,7 @@ class Lookup:
             purchasedDate, purchasedPrice, purchasedType = self.get_purchased_details(marvel_comic_data)
             isPurchased = True
 
-        # establish a connection with the ComicBook object Pass database control to the comic book object
+        # establish a connection with the ComicBook object Pass backendDatabase control to the comic book object
         cbObj = ComicBook(self.db, marvel_comic_data, purchasedDate, purchasedPrice, purchasedType, isPurchased)
 
         # Saves the comic book objects to its member variables
@@ -407,14 +407,14 @@ class Lookup:
 
     def upload_complete_comic_book_byUPC(self, barcode: str):
         """
-        Create a new database record for the looked up comic book. First uploads any non-existent foreign key
+        Create a new backendDatabase record for the looked up comic book. First uploads any non-existent foreign key
         dependencies and then uploads the entire comic_book object.
         :param barcode: barcode key identifier
         """
 
-        # barcode has not already been lookedUp AND committed to database
+        # barcode has not already been lookedUp AND committed to backendDatabase
         if barcode not in self.committed_barcodes:
-            # Create new records for the different member variables that also represent database entities.
+            # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Comics seriesId
             # foreign key dependency can be established.
             self.comic_books[barcode].upload_new_records()
@@ -442,7 +442,7 @@ class Lookup:
         :param comic_id: id of the comic
         """
 
-        # establish a connection with the ComicBook object and pass database control to the ComicBook object
+        # establish a connection with the ComicBook object and pass backendDatabase control to the ComicBook object
         comicObj = ComicBook(self.db, marvel_comic_data)
 
         # Saves the ComicBook objects to its member variables
@@ -453,14 +453,14 @@ class Lookup:
 
     def update_complete_comic_book_byID(self, comic_id: int):
         """
-        Update/Create a new database record for the looked up Comic Object. First uploads any non-existent foreign key
+        Update/Create a new backendDatabase record for the looked up Comic Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Comic object.
         :param comic_id: comic's identification number
         """
 
         # Valid creator id
         if comic_id in self.comic_books:
-            # Create new records for the different member variables that also represent database entities.
+            # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Creators seriesId
             # foreign key dependency can be established.
             self.comic_books[comic_id].upload_new_records()
@@ -485,7 +485,7 @@ class Lookup:
         :param creator_id: id of the creator
         """
 
-        # establish a connection with the Creator object and pass database control to the Creator object
+        # establish a connection with the Creator object and pass backendDatabase control to the Creator object
         creatorObj = Creator(self.db, marvel_creator_data)
 
         # Saves the creator objects to its member variables
@@ -496,14 +496,14 @@ class Lookup:
 
     def update_complete_creator(self, creator_id: int):
         """
-        Create a new database record for the looked up Creator Object. First uploads any non-existent foreign key
+        Create a new backendDatabase record for the looked up Creator Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Creator object.
         :param creator_id: creator's identification number
         """
 
         # Valid creator id
         if creator_id in self.creators:
-            # Create new records for the different member variables that also represent database entities.
+            # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Creators seriesId
             # foreign key dependency can be established.
             self.creators[creator_id].upload_new_records()
@@ -528,7 +528,7 @@ class Lookup:
         :param event_id: id of the event
         """
 
-        # establish a connection with the Event() object and pass database control to the Event() object
+        # establish a connection with the Event() object and pass backendDatabase control to the Event() object
         eventObj = Event(self.db, marvel_event_data)
 
         # Saves the event objects to its member variables
@@ -539,14 +539,14 @@ class Lookup:
 
     def update_complete_event(self, event_id: int):
         """
-        Create a new database record for the looked up Event() Object. First uploads any non-existent foreign key
+        Create a new backendDatabase record for the looked up Event() Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Event object.
         :param event_id: event's identification number
         """
 
         # Valid event id
         if event_id in self.events:
-            # Create new records for the different member variables that also represent database entities.
+            # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Story() storyId
             # foreign key dependency can be established.
             self.events[event_id].upload_new_records()
@@ -571,7 +571,7 @@ class Lookup:
         :param series_id: id of the series
         """
 
-        # establish a connection with the Series() object and pass database control to the Series() object
+        # establish a connection with the Series() object and pass backendDatabase control to the Series() object
         seriesObj = Series(self.db, marvel_series_data)
 
         # Saves the series objects to its member variables
@@ -582,14 +582,14 @@ class Lookup:
 
     def update_complete_series(self, series_id: int):
         """
-        Create a new database record for the looked up Series() Object. First uploads any non-existent foreign key
+        Create a new backendDatabase record for the looked up Series() Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Series object.
         :param series_id: series's identification number
         """
 
         # Valid creator id
         if series_id in self.series:
-            # Create new records for the different member variables that also represent database entities.
+            # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Series() seriesId
             # foreign key dependency can be established.
             self.series[series_id].upload_new_records()
@@ -614,7 +614,7 @@ class Lookup:
         :param story_id: id of the story
         """
 
-        # establish a connection with the Story() object and pass database control to the Story() object
+        # establish a connection with the Story() object and pass backendDatabase control to the Story() object
         storyObj = Story(self.db, marvel_story_data)
 
         # Saves the story objects to its member variables
@@ -625,14 +625,14 @@ class Lookup:
 
     def update_complete_story(self, story_id: int):
         """
-        Create a new database record for the looked up Story() Object. First uploads any non-existent foreign key
+        Create a new backendDatabase record for the looked up Story() Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Story object.
         :param story_id: story's identification number
         """
 
         # Valid creator id
         if story_id in self.stories:
-            # Create new records for the different member variables that also represent database entities.
+            # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Story() storyId
             # foreign key dependency can be established.
             self.stories[story_id].upload_new_records()
@@ -652,14 +652,14 @@ class Lookup:
     ################################################################
     def update_complete_variant(self, variant_id: int):
         """
-        Update/Create a new database record for the looked up Comic Object. First uploads any non-existent foreign key
+        Update/Create a new backendDatabase record for the looked up Comic Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Comic object.
         :param variant_id: comic's identification number
         """
 
         # Valid creator id
         if variant_id in self.variants:
-            # Create new records for the different member variables that also represent database entities.
+            # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Creators seriesId
             # foreign key dependency can be established.
             self.variants[variant_id].upload_new_records()
@@ -681,7 +681,7 @@ class Lookup:
         :param variant_id: id of the comic
         """
 
-        # establish a connection with the ComicBook object and pass database control to the ComicBook object
+        # establish a connection with the ComicBook object and pass backendDatabase control to the ComicBook object
         variantObj = Variant(self.db, marvel_variant_data)
 
         # Saves the ComicBook objects to its member variables
@@ -697,7 +697,7 @@ class Lookup:
     ####################################################################################################################
     def get_barcodes_from_db(self):
         """
-        Queries the database for any queued_barcodes in the scanned_upc_codes table.
+        Queries the backendDatabase for any queued_barcodes in the scanned_upc_codes table.
         """
 
         res_data = self.db.get_upcs_from_buffer()
@@ -722,7 +722,7 @@ class Lookup:
 
     def get_stale_entity_from_db(self, entity: str):
         """
-        Queries the database for any stale entity. A stale entity is one with a modified date more than a year
+        Queries the backendDatabase for any stale entity. A stale entity is one with a modified date more than a year
         old or no modified date. No modified date is usually a result of uploading a entity to satisfy a foreign key
         dependency for some other entity.
         """
@@ -800,7 +800,7 @@ class Lookup:
 
     def remove_committed_from_buffer_db(self):
         """
-        Deletes the barcodes that have been committed to the database from the scanned_upc_codes table
+        Deletes the barcodes that have been committed to the backendDatabase from the scanned_upc_codes table
         """
 
         for committed_barcode in self.committed_barcodes:
@@ -826,16 +826,16 @@ class Lookup:
     def get_num_lookedUp_barcodes(self) -> int:
         """
         Gets the number of barcodes that have already been queried and stored as a comic book object.
-        These barcodes are waiting to be committed to the comic book database.
+        These barcodes are waiting to be committed to the comic book backendDatabase.
         :return: integer number of barcodes that have been looked up and have a comic book object
         """
         return len(self.lookedUp_barcodes)
 
     def get_num_committed_barcodes(self) -> int:
         """
-        Gets the number of barcodes that have already been queried, stored, and committed to the database.
-        These barcodes are completely done and can be deleted from the scanned_upc_codes database.
-        :return: integer number of barcodes that have been committed to the comic_books database
+        Gets the number of barcodes that have already been queried, stored, and committed to the backendDatabase.
+        These barcodes are completely done and can be deleted from the scanned_upc_codes backendDatabase.
+        :return: integer number of barcodes that have been committed to the comic_books backendDatabase
         """
         return len(self.committed_barcodes)
 
@@ -859,7 +859,7 @@ class Lookup:
 
     def print_committed_barcodes(self):
         """
-        Print the barcodes committed to the database
+        Print the barcodes committed to the backendDatabase
         """
         i = 1
         for committed_barcode in self.committed_barcodes:

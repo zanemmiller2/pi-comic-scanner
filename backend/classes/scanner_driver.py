@@ -155,10 +155,10 @@ class Scanner:
 
     def upload_db(self):
         """
-        asks the user if they wish to continue with uploading scanned upcs to database buffer
+        asks the user if they wish to continue with uploading scanned upcs to backendDatabase buffer
         :return: true if upcs uploaded, false otherwise
         """
-        # ask the user if they want to upload the list of _barcodes to the database
+        # ask the user if they want to upload the list of _barcodes to the backendDatabase
         self._print_list_barcodes()
         upload_confirm = input(
             "These are the barcodes you scanned. Would you like the upload these barcodes (y/n)? "

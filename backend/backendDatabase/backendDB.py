@@ -2,7 +2,7 @@
 Author: Zane Miller
 Email: millerzanem@gmail.com
 Date: 04/21/2023
-Description: Class drivers for database functions
+Description: Class drivers for backendDatabase functions
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ class InvalidCursorExecute(Exception):
 
 class BackEndDB:
     """
-    BackEndDB Object that represents a connection and cursor for the provided database and credentials
+    BackEndDB Object that represents a connection and cursor for the provided backendDatabase and credentials
     """
     CHARACTER_ENTITY = "Characters"
     COMIC_ENTITY = "Comics"
@@ -34,7 +34,7 @@ class BackEndDB:
 
     def __init__(self):
         """
-        Represents a BackEndDB object with username, hostname, password, database name, cursor, and connection
+        Represents a BackEndDB object with username, hostname, password, backendDatabase name, cursor, and connection
         """
         # self._host = input("BackEndDB Host: ")
         # self._user = input("BackEndDB User: ")
@@ -58,12 +58,12 @@ class BackEndDB:
     ####################################################################################################################
     def get_upcs_from_buffer(self):
         """
-        Selects all entries from scanned_upc_codes from comic_books database
+        Selects all entries from scanned_upc_codes from comic_books backendDatabase
         :return: db cursor
         """
         if self._connection is None:
             print(
-                    "No connection to the database found! Have you called connect_to_database() first?"
+                "No connection to the backendDatabase found! Have you called connect_to_database() first?"
             )
             return None
 
@@ -150,7 +150,7 @@ class BackEndDB:
 
     def upload_upc_to_buffer(self, params: tuple[str, str]):
         """
-        Uploads a tuple of strings (upc and YYYY-MM-DD) to the scanned_upc_codes table in the comic_books database
+        Uploads a tuple of strings (upc and YYYY-MM-DD) to the scanned_upc_codes table in the comic_books backendDatabase
         :param params: (upc: str, YYYY-MM-DD: str)
         :return: cursor object from connection
         """
@@ -357,7 +357,7 @@ class BackEndDB:
 
     def upload_new_image_record(self, image_path: str, image_extension: str):
         """
-        Uploads a new image path to comic_books.image_paths if image path does not already exist in database
+        Uploads a new image path to comic_books.image_paths if image path does not already exist in backendDatabase
         :param image_path: string of the full image path to upload
         :param image_extension: extension for the image path
         """
@@ -379,7 +379,7 @@ class BackEndDB:
 
     def upload_new_url_record(self, url_type: str, url_path: str):
         """
-        Uploads a new url record to comic_books.URLs if URL does not already exist in database
+        Uploads a new url record to comic_books.URLs if URL does not already exist in backendDatabase
         :param url_type: string of the url type description
         :param url_path: string of the full url to upload
         """
@@ -402,7 +402,7 @@ class BackEndDB:
     def upload_new_creator_record(self, creator_id: int, first_name: str, middle_name: str,
                                   last_name: str, resource_uri: str):
         """
-        Uploads a new creator record to comic_books.creators if Creator does not already exist in database
+        Uploads a new creator record to comic_books.creators if Creator does not already exist in backendDatabase
         :param creator_id: The unique ID of the creator resource.
         :param first_name: The first name of the creator.
         :param middle_name: The middle name of the creator.
@@ -430,7 +430,7 @@ class BackEndDB:
 
     def upload_new_character_record(self, character_id: int, character_name: str, character_uri: str):
         """
-        Uploads a new character record to comic_books.characters if URL does not already exist in database
+        Uploads a new character record to comic_books.characters if URL does not already exist in backendDatabase
         :param character_id: The unique ID of the character resource.
         :param character_name: The name of the character.
         :param character_uri: The canonical URL identifier for this resource.
@@ -454,7 +454,7 @@ class BackEndDB:
 
     def upload_new_story_record(self, story_id: int, story_title: str, story_uri: str, story_type: str):
         """
-        Uploads a new story record to comic_books.stories if story does not already exist in database
+        Uploads a new story record to comic_books.stories if story does not already exist in backendDatabase
         :param story_id: The unique ID of the story resource.
         :param story_title: The story title.
         :param story_uri: The canonical URL identifier for this resource.
@@ -481,7 +481,7 @@ class BackEndDB:
     def upload_new_variants_record(self, variant_id: int, variant_title: str, variant_uri: str, issue_number: float,
                                    is_variant: bool):
         """
-        Uploads a new story record to comic_books.stories if story does not already exist in database
+        Uploads a new story record to comic_books.stories if story does not already exist in backendDatabase
         :param variant_id: The unique ID of the comic resource.
         :param variant_title: The variant comic title.
         :param variant_uri: The canonical URL identifier for this resource.
@@ -536,8 +536,8 @@ class BackEndDB:
     def upload_new_record_by_table(self, table_name: str, entity_id: str, entity_title: str, entity_uri: str):
         """
         Uploads a new record to comic_books.table_name (Events, Series)
-        if record does not already exist in database using id, title, and uri
-        :param table_name: the name of the table in the comic_books database
+        if record does not already exist in backendDatabase using id, title, and uri
+        :param table_name: the name of the table in the comic_books backendDatabase
         :param entity_id: The unique ID of the resource.
         :param entity_title: The title of the entity.
         :param entity_uri: The canonical URL identifier for this resource.
@@ -839,13 +839,13 @@ class BackEndDB:
 
     def _commit_to_db(self):
         """
-        Commits changes to database
+        Commits changes to backendDatabase
         """
         self._connection.commit()
 
     def _connect_to_database(self):
         """
-        manages connecting to the database
+        manages connecting to the backendDatabase
         :return: the MySQLdb.connect() object
         """
         db_connection = MySQLdb.connect(self._host, self._user, self._passwd, self._db)

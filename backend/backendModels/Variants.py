@@ -1,11 +1,11 @@
-from backend.models.ComicBook import ComicBook
+from backend.backendModels.ComicBook import ComicBook
 
 
 class Variant(ComicBook):
     """
     ComicBook object is a map of the marvel public api /comics endpoint response model. The ComicBook object is
-    responsible for parsing the response data, creating new database records for specific entities and creating a new
-    Comic in the database.
+    responsible for parsing the response data, creating new backendDatabase records for specific entities and creating a new
+    Comic in the backendDatabase.
     """
 
     def __init__(self, db_connection, response_data):

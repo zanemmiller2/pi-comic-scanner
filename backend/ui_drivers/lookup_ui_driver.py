@@ -5,8 +5,8 @@ Date: 04/15/2023
 Description: Command Line interface driver
 """
 
+from backend.backendDatabase.backendDB import BackEndDB
 from backend.classes.lookup_driver import Lookup
-from backend.database.db_driver import BackEndDB
 
 
 class LookupUI:
@@ -41,7 +41,7 @@ class LookupUI:
 
     def start_menu(self):
         """
-        Initial start up menu asks user if they want to get the barcodes from the database to lookup
+        Initial start up menu asks user if they want to get the barcodes from the backendDatabase to lookup
         """
         start_res = input(
             "Would you like to:\n"
@@ -110,8 +110,8 @@ class LookupUI:
         for barcode in self.lookup.queued_barcodes:
             self.lookup.lookup_marvel_comic_by_upc(barcode)
 
-        # 2) Upload each ComicBook() to database
-        print("Uploading ComicBook()s to database")
+        # 2) Upload each ComicBook() to backendDatabase
+        print("Uploading ComicBook()s to backendDatabase")
         for barcode in self.lookup.lookedUp_barcodes:
             self.lookup.upload_complete_comic_book_byUPC(barcode)
 
@@ -123,7 +123,7 @@ class LookupUI:
 
     def lookup_existing_comics_by_id(self):
         """
-        Updates the Comic records that already exist in the database
+        Updates the Comic records that already exist in the backendDatabase
         """
         self.lookup.get_stale_entity_from_db(self.COMIC_ENTITY)
 
@@ -143,8 +143,8 @@ class LookupUI:
         for comic in self.lookup.comic_books:
             self.lookup.lookup_marvel_comic_by_id(comic)
 
-        # 2) Upload each COmic() to database
-        print("Uploading Comic()s to database")
+        # 2) Upload each COmic() to backendDatabase
+        print("Uploading Comic()s to backendDatabase")
         for comic in self.lookup.comic_books:
             if self.lookup.comic_books[comic] is not None:
                 self.lookup.update_complete_comic_book_byID(comic)
@@ -161,7 +161,7 @@ class LookupUI:
     ####################################################################################################################
     def lookup_existing_creators(self):
         """
-        Updates the creator records that already exist in the database
+        Updates the creator records that already exist in the backendDatabase
         """
         self.lookup.get_stale_entity_from_db(self.CREATOR_ENTITY)
 
@@ -181,8 +181,8 @@ class LookupUI:
         for creator in self.lookup.creators:
             self.lookup.lookup_marvel_creator_by_id(creator)
 
-        # 2) Upload each Creator() to database
-        print("Uploading Creators()s to database")
+        # 2) Upload each Creator() to backendDatabase
+        print("Uploading Creators()s to backendDatabase")
         for creator in self.lookup.creators:
             if self.lookup.creators[creator] is not None:
                 self.lookup.update_complete_creator(creator)
@@ -199,7 +199,7 @@ class LookupUI:
     ####################################################################################################################
     def lookup_existing_series(self):
         """
-        Updates the series records that already exist in the database
+        Updates the series records that already exist in the backendDatabase
         """
         self.lookup.get_stale_entity_from_db(self.SERIES_ENTITY)
 
@@ -219,8 +219,8 @@ class LookupUI:
         for series in self.lookup.series:
             self.lookup.lookup_marvel_series_by_id(series)
 
-        # 2) Upload each Series() to database
-        print("Uploading Series() to database")
+        # 2) Upload each Series() to backendDatabase
+        print("Uploading Series() to backendDatabase")
         for series in self.lookup.series:
             if self.lookup.series[series] is not None:
                 self.lookup.update_complete_series(series)
@@ -237,7 +237,7 @@ class LookupUI:
     ####################################################################################################################
     def lookup_existing_stories(self):
         """
-        Updates the Stories records that already exist in the database
+        Updates the Stories records that already exist in the backendDatabase
         """
         self.lookup.get_stale_entity_from_db(self.STORY_ENTITY)
 
@@ -257,8 +257,8 @@ class LookupUI:
         for story in self.lookup.stories:
             self.lookup.lookup_marvel_story_by_id(story)
 
-        # 2) Upload each Story() to database
-        print("Uploading Story() to database")
+        # 2) Upload each Story() to backendDatabase
+        print("Uploading Story() to backendDatabase")
         for story in self.lookup.stories:
             if self.lookup.stories[story] is not None:
                 self.lookup.update_complete_story(story)
@@ -275,7 +275,7 @@ class LookupUI:
     ####################################################################################################################
     def lookup_existing_characters(self):
         """
-        Updates the Characters records that already exist in the database
+        Updates the Characters records that already exist in the backendDatabase
         """
         self.lookup.get_stale_entity_from_db(self.CHARACTER_ENTITY)
 
@@ -295,8 +295,8 @@ class LookupUI:
         for character in self.lookup.characters:
             self.lookup.lookup_marvel_character_by_id(character)
 
-        # 2) Upload each Character() to database
-        print("Uploading Character() to database")
+        # 2) Upload each Character() to backendDatabase
+        print("Uploading Character() to backendDatabase")
         for character in self.lookup.characters:
             if self.lookup.characters[character] is not None:
                 self.lookup.update_complete_character(character)
@@ -313,7 +313,7 @@ class LookupUI:
     ####################################################################################################################
     def lookup_existing_events(self):
         """
-        Updates the Events records that already exist in the database
+        Updates the Events records that already exist in the backendDatabase
         """
         self.lookup.get_stale_entity_from_db(self.EVENT_ENTITY)
 
@@ -333,8 +333,8 @@ class LookupUI:
         for event in self.lookup.events:
             self.lookup.lookup_marvel_event_by_id(event)
 
-        # 2) Upload each Event() to database
-        print("Uploading Event() to database")
+        # 2) Upload each Event() to backendDatabase
+        print("Uploading Event() to backendDatabase")
         for event in self.lookup.events:
             if self.lookup.events[event] is not None:
                 self.lookup.update_complete_event(event)
@@ -359,8 +359,8 @@ class LookupUI:
         for variant in self.lookup.variants:
             self.lookup.lookup_marvel_variant_by_id(variant)
 
-        # 2) Upload each COmic() to database
-        print("Uploading Comic()s Variants to database")
+        # 2) Upload each COmic() to backendDatabase
+        print("Uploading Comic()s Variants to backendDatabase")
         for variant in self.lookup.variants:
             if self.lookup.variants[variant] is not None:
                 self.lookup.update_complete_variant(variant)
@@ -377,7 +377,7 @@ class LookupUI:
     ####################################################################################################################
     def lookup_purchased_comics_dependencies(self):
         """
-        Updates the Purchased Comics records that already exist in the database and all its dependencies
+        Updates the Purchased Comics records that already exist in the backendDatabase and all its dependencies
         """
 
         print(f"GETTING PURCHASED COMIC IDS FROM BackendDb")

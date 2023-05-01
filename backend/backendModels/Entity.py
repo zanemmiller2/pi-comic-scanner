@@ -71,13 +71,13 @@ class Entity:
 
     def upload_new_records(self):
         """
-        Uploads new records to the database before uploading the entire comic book with relevant foreign keys
+        Uploads new records to the backendDatabase before uploading the entire comic book with relevant foreign keys
         """
         pass
 
     def upload_entity(self):
         """
-        Compiles the Entity() entities into params tuple to pass to database function for uploading
+        Compiles the Entity() entities into params tuple to pass to backendDatabase function for uploading
         complete Entity()
         """
         pass
@@ -346,7 +346,7 @@ class Entity:
 
     def _add_new_image(self):
         """
-        Adds any image urls to the database that are not currently in the comic_books.Images table
+        Adds any image urls to the backendDatabase that are not currently in the comic_books.Images table
         """
 
         for image, image_extension in self.image_paths:
@@ -491,7 +491,7 @@ class Entity:
     @staticmethod
     def convert_to_SQL_date(date_string: str) -> Date | None:
         """
-        Converts Date string formatted "%Y-%m-%dT%H:%M:%S%z" to datetime object compatible with SQL database
+        Converts Date string formatted "%Y-%m-%dT%H:%M:%S%z" to datetime object compatible with SQL backendDatabase
         """
 
         try:
@@ -504,7 +504,7 @@ class Entity:
     @staticmethod
     def convert_eventStartEndDate_to_SQL_date(date_string: str) -> Date | None:
         """
-        Converts Date string formatted "%Y-%m-%d %H:%M:%S" to datetime object compatible with SQL database
+        Converts Date string formatted "%Y-%m-%d %H:%M:%S" to datetime object compatible with SQL backendDatabase
         """
 
         try:

@@ -5,14 +5,14 @@ Date: 04/25/2023
 Description: Class drivers for looking up marvel comics with marvel public api
 """
 
-from backend.models.Entity import Entity
+from backend.backendModels.Entity import Entity
 
 
 class Character(Entity):
     """
     Character object is a map of the marvel public api /characters endpoint response model. The Character object is
-    responsible for parsing the response data, creating new database records for specific entities and creating a new
-    Character in the database.
+    responsible for parsing the response data, creating new backendDatabase records for specific entities and creating a new
+    Character in the backendDatabase.
     """
 
     def __init__(self, db_connection, response_data):
@@ -49,7 +49,7 @@ class Character(Entity):
 
     def upload_new_records(self):
         """
-        Uploads new records to the database before uploading the entire Character with relevant foreign keys
+        Uploads new records to the backendDatabase before uploading the entire Character with relevant foreign keys
         """
         self._add_new_comic()
         self._add_new_event()
@@ -60,7 +60,7 @@ class Character(Entity):
 
     def upload_character(self):
         """
-        Compiles the character entities into params tuple to pass to database function for uploading complete character
+        Compiles the character entities into params tuple to pass to backendDatabase function for uploading complete character
         """
 
         params = (self.id, self.name, self.description, self.modified, self.resourceURI, self.thumbnail)

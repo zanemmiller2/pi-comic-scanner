@@ -6,27 +6,15 @@ Description: Frontend driver for web ui
 """
 import os
 
-from flask import render_template
+from flask import render_template, redirect, request, url_for
 
 from app import app
-from app.database.db import FrontEndDB
+from app.frontendDatabase.frontendDB import FrontEndDB
+from backend.backendDatabase.backendDB import BackEndDB
+from backend.classes.lookup_driver import Lookup
 
 dirname = os.path.dirname(__file__)
 f_db = FrontEndDB()
-
-
-#########################################################################################################
-#
-#                                       DATABASE CONFIGURATION
-#
-#########################################################################################################
-
-
-#########################################################################################################
-#
-#                                       NAVBAR CONFIGURATION
-#
-#########################################################################################################
 
 
 @app.route('/')
@@ -37,7 +25,7 @@ def index():
 
 @app.route('/comics', methods=['GET'])
 def comics():
-    """ Browse a list of all comics currently in the database """
+    """ Browse a list of all comics currently in the frontendDatabase """
     comics_data = f_db.get_purchased_comics()
     return render_template("comics.html", comics_data=comics_data)
 
@@ -56,7 +44,7 @@ def view_comic(comic_id):
     series_detail = {}
     if series_id is not None:
         series_detail = f_db.get_single_series_detail(series_id)
-    story_detail = f_db.get_comic_stories(comic_id)
+    story_detail = f_db.get_comic_stories(comic_id)[0]
     creators_list = f_db.get_comic_creators(comic_id)
     events_list = f_db.get_comic_events(comic_id)
     character_list = f_db.get_comic_characters(comic_id)
@@ -76,6 +64,63 @@ def view_comic(comic_id):
     )
 
 
+def _update_comic_driver(comic_id):
+    """
+    Driver function for updating a comic and each of its entity dependencies
+    :param comic_id: the id of the comic to update
+    """
+
+    b_db = BackEndDB()  # BackEndDB object controller passed to Lookup class
+
+    # create lookup object Lookup(f_db)
+    lookup = Lookup(b_db)  # lookup controller
+    lookup.comic_books[comic_id] = None
+
+    # lookup the comic book (lookup.lookup_marvel_comic_by_id(comic_id) and
+    lookup.lookup_marvel_comic_by_id(comic_id)
+    # store complete comic book in backend db (lookup.update_complete_comic_book_byID(comic_id)
+    lookup.update_complete_comic_book_byID(comic_id)
+
+    # get comic_has_entity ids from backend db
+    lookup.get_comic_has_entity_ids_from_db(lookup.CHARACTER_ENTITY, comic_id)
+    lookup.get_comic_has_entity_ids_from_db(lookup.CREATOR_ENTITY, comic_id)
+    lookup.get_comic_has_entity_ids_from_db(lookup.EVENT_ENTITY, comic_id)
+    lookup.get_comic_has_entity_ids_from_db(lookup.SERIES_ENTITY, comic_id)
+    lookup.get_comic_has_entity_ids_from_db(lookup.STORY_ENTITY, comic_id)
+    lookup.get_comic_has_entity_ids_from_db(lookup.VARIANT_ENTITY, comic_id)
+
+    # process each entity
+    for character_id in lookup.characters:
+        lookup.lookup_marvel_character_by_id(character_id)
+    for character_id in lookup.characters:
+        lookup.update_complete_character(character_id)
+
+    for creator_id in lookup.creators:
+        lookup.lookup_marvel_creator_by_id(creator_id)
+    for creator_id in lookup.creators:
+        lookup.update_complete_creator(creator_id)
+
+    for event_id in lookup.events:
+        lookup.lookup_marvel_event_by_id(event_id)
+    for event_id in lookup.events:
+        lookup.update_complete_event(event_id)
+
+    for series_id in lookup.series:
+        lookup.lookup_marvel_series_by_id(series_id)
+    for series_id in lookup.series:
+        lookup.update_complete_series(series_id)
+
+    for story_id in lookup.stories:
+        lookup.lookup_marvel_story_by_id(story_id)
+    for story_id in lookup.stories:
+        lookup.update_complete_story(story_id)
+
+    for variant_id in lookup.variants:
+        lookup.lookup_marvel_variant_by_id(variant_id)
+    for variant_id in lookup.variants:
+        lookup.update_complete_variant(variant_id)
+
+
 @app.route('/view-comic/<int:comic_id>/update', methods=["GET"])
 def update_comic(comic_id):
     """
@@ -83,56 +128,12 @@ def update_comic(comic_id):
     :param comic_id: the id of the comic to update
     :return:
     """
+    if request.method == 'GET':
+        _update_comic_driver(comic_id)
 
-    # create lookup object Lookup(f_db)
+        return redirect(url_for('view_comic', comic_id=comic_id))
 
-    # lookup the comic book (lookup.lookup_marvel_comic_by_id(comic_id) and
-    # store complete comic book in backend db (lookup.update_complete_comic_book_byID(comic_id)
+    # show in popup window?
+    # show progress bar
 
-    # get comic_has_character ids from backend db
-    # lookup.get_comic_has_entity_ids_from_db(lookup.CHARACTER_ENTITY, comic_id)
-
-    # get comic_has_creators ids from backend db
-    # lookup.get_comic_has_entity_ids_from_db(lookup.CREATOR_ENTITY, comic_id)
-
-    # get comic_has_events ids from backend db
-    # lookup.get_comic_has_entity_ids_from_db(lookup.EVENT_ENTITY, comic_id)
-
-    # get comic_has_series ids from backend db
-    # lookup.get_comic_has_entity_ids_from_db(lookup.SERIES_ENTITY, comic_id)
-
-    # get comic_has_stories ids from backend db
-    # lookup.get_comic_has_entity_ids_from_db(lookup.STORIES_ENTITY, comic_id)
-
-    # get comic_has_variants ids from backend db
-    # lookup.get_comic_has_entity_ids_from_db(lookup.VARIANTS, comic_id)
-
-    # process characters
-    # For character in lookup.characters:
-    # lookup.lookup_marvel_character_by_id(character)
-    # lookup.update_complete_character(character)
-
-    # process creators
-    # For creator in lookup.creators:
-    # lookup.lookup_marvel_creator_by_id(creator)
-    # lookup.update_complete_creator(creator)
-
-    # process events
-    # For event in lookup.events:
-    # lookup.lookup_marvel_event_by_id(event)
-    # lookup.update_complete_event(event)
-
-    # process series
-    # For series in lookup.series:
-    # lookup.lookup_marvel_series_by_id(series)
-    # lookup.update_complete_series(series)
-
-    # process stories
-    # For story in lookup.stories:
-    # lookup.lookup_marvel_story_by_id(story)
-    # lookup.update_complete_story(story)
-
-    # process variants
-    # For variant in lookup.variants:
-    # lookup.lookup_marvel_variant_by_id(variant)
-    # lookup.update_complete_variant(variant)
+    # return view_comic after update

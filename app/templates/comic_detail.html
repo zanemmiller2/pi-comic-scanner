@@ -30,6 +30,14 @@
                         <a href="{{ comic_data.detailURL }}">Detail URL</a>
                     </div>
                 </div>
+                <div class="update-comic-button">
+                    <form method="get"
+                          action="/view-comic/{{ comic_data.id }}/update"
+                          class="update-comic-button">
+                        <input type="submit" value="UPDATE COMIC BY ID"
+                               name="Update Comic"/>
+                    </form>
+                </div>
             </div>
 
             <!-- ROW 1, COL 2 -->
@@ -541,7 +549,7 @@
                             </h6>
                             <p class="comic-entity-card-text">
                                 {% if variant.description %}
-                                    {{ 'Variant Description: ' + variant.description }}
+                                    {{ 'Variant Description: ' + variant.description.decode() }}
                                 {% elif variant.variantDescription %}
                                     {{ 'Variant Description: ' + variant.variantDescription.decode() }}
                                 {% else %}

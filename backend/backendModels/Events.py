@@ -4,14 +4,14 @@ Email: millerzanem@gmail.com
 Date: 04/17/2023
 Description: Class drivers for looking up marvel comics with marvel public api
 """
-from backend.models.Entity import Entity
+from backend.backendModels.Entity import Entity
 
 
 class Event(Entity):
     """
     Event object is a map of the marvel public api /events endpoint response model. The Event object is
-    responsible for parsing the response data, creating new database records for specific entities and creating a new
-    Event in the database.
+    responsible for parsing the response data, creating new backendDatabase records for specific entities and creating a new
+    Event in the backendDatabase.
     """
 
     def __init__(self, db_connection, response_data):
@@ -57,7 +57,7 @@ class Event(Entity):
 
     def upload_new_records(self):
         """
-        Uploads new records to the database before uploading the entire comic book with relevant foreign keys
+        Uploads new records to the backendDatabase before uploading the entire comic book with relevant foreign keys
         """
         # Unique to Event() class
         self._add_new_event()  # modified for next event and previous event
@@ -73,7 +73,7 @@ class Event(Entity):
 
     def upload_event(self):
         """
-        Compiles the Event() entities into params tuple to pass to database function for uploading
+        Compiles the Event() entities into params tuple to pass to backendDatabase function for uploading
         complete Event()
         """
         params = (self.id, self.title, self.description, self.resourceURI, self.modified, self.eventStart,

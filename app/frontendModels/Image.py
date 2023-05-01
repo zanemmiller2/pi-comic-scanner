@@ -1,4 +1,4 @@
-from app.models.FrontEndEntity import FrontEndEntity
+from app.frontendModels.FrontEndEntity import FrontEndEntity
 
 
 class FrontEndImage(FrontEndEntity):

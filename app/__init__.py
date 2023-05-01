@@ -12,7 +12,6 @@ nav.Bar(
         nav.Item('Comics', 'comics')]
 )
 app.config.from_object(Config)
-from app.webapp import index, comics, view_comic
 from app.webapp import *
 from templates import *
 

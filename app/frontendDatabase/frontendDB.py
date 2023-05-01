@@ -1,22 +1,35 @@
 from flask_mysqldb import MySQL
 
 from app import app
-from app.models.Character import FrontEndCharacter
-from app.models.Comic import FrontEndComic
-from app.models.Creator import FrontEndCreator
-from app.models.Event import FrontEndEvent
-from app.models.Image import FrontEndImage
-from app.models.Series import FrontEndSeries
-from app.models.Story import FrontEndStory
+from app.frontendModels.Character import FrontEndCharacter
+from app.frontendModels.Comic import FrontEndComic
+from app.frontendModels.Creator import FrontEndCreator
+from app.frontendModels.Event import FrontEndEvent
+from app.frontendModels.Image import FrontEndImage
+from app.frontendModels.Series import FrontEndSeries
+from app.frontendModels.Story import FrontEndStory
 
 
 class FrontEndDB:
     """
     Database Control Class
     """
+    CHARACTER_ENTITY = "Characters"
+    COMIC_ENTITY = "Comics"
+    CREATOR_ENTITY = "Creators"
+    EVENT_ENTITY = "Events"
+    IMAGE_ENTITY = "Images"
+    SERIES_ENTITY = "Series"
+    STORY_ENTITY = "Stories"
+    URL_ENTITY = "URLs"
+    VARIANT_ENTITY = "Variants"
+    PURCHASED_COMICS_ENTITY = 'PurchasedComics'
+    ENTITIES = (CHARACTER_ENTITY, COMIC_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, IMAGE_ENTITY,
+                SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY)
 
     def __init__(self):
         self.mysql = MySQL(app)
+        self.DB_DEBUG = False
 
     def get_purchased_comics(self) -> list[FrontEndComic]:
         """ Gets list of all purchased comics and their id, title, issue number, thumbnail """
@@ -436,3 +449,4 @@ class FrontEndDB:
                     variant.update_attributes(url)
 
         return variant_details
+
