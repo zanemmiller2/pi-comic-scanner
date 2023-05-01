@@ -28,5 +28,3 @@ b_db = BackEndDB()
 lookup = Lookup(b_db)
 
 from app.views import *
-
-app.run(debug=True, host='0.0.0.0', port=5011)

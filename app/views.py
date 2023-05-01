@@ -26,7 +26,7 @@ def comics():
     return render_template("comics.html", comics_data=comics_data)
 
 
-@app.route('/view-comic/<int:comic_id>', methods=["GET"])
+@app.route('/view/<int:comic_id>', methods=["GET"])
 def view_comic(comic_id):
     """
     View individual comic by id
@@ -114,7 +114,7 @@ def _update_comic_helper(comic_id):
         lookup.update_complete_variant(variant_id)
 
 
-@app.route('/view-comic/<int:comic_id>/update', methods=["GET"])
+@app.route('/refresh/<int:comic_id>', methods=["GET"])
 def update_comic(comic_id):
     """
     Update the comic and its dependencies
