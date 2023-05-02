@@ -9,6 +9,7 @@ import os
 from flask import render_template, redirect, request, url_for
 
 from app import app, f_db, lookup
+from app.forms import EditComicForm
 
 dirname = os.path.dirname(__file__)
 
@@ -26,7 +27,7 @@ def comics():
     return render_template("comics.html", comics_data=comics_data)
 
 
-@app.route('/view/<int:comic_id>', methods=["GET"])
+@app.route('/view/comic/<int:comic_id>', methods=["GET"])
 def view_comic(comic_id):
     """
     View individual comic by id
@@ -114,8 +115,8 @@ def _update_comic_helper(comic_id):
         lookup.update_complete_variant(variant_id)
 
 
-@app.route('/refresh/<int:comic_id>', methods=["GET"])
-def update_comic(comic_id):
+@app.route('/refresh/comic/<int:comic_id>', methods=["GET"])
+def refresh_comic(comic_id):
     """
     Update the comic and its dependencies
     :param comic_id: the id of the comic to update
@@ -126,3 +127,23 @@ def update_comic(comic_id):
 
         return redirect(url_for('view_comic', comic_id=comic_id))
 
+
+@app.route('/edit/comic/<int:comic_id>', methods=["GET", "POST"])
+def edit_comic(comic_id):
+    """
+    Edit the individual comic details
+    :param comic_id: the id of the comic to update
+    :return:
+    """
+    if request.method == 'GET':
+        # display editable form
+        edit_comic_data = f_db.get_single_comic_detail(comic_id)
+        form = EditComicForm(obj=edit_comic_data)
+
+        print(edit_comic_data)
+        return render_template("edit_comic.html", form=form)
+
+    elif request.method == "POST":
+        # save changes to database
+        # Return to referring route (detail page or list view page)
+        pass

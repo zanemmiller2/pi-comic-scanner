@@ -31,12 +31,22 @@
                     </div>
                 </div>
                 <div class="update-comic-button-wrapper">
-                    <form method="get"
-                          action="/refresh/{{ comic_data.id }}"
+                    <form method="GET"
+                          action="/refresh/comic/{{ comic_data.id }}"
                           class="update-comic-button">
                         <input type="submit"
                                value="Refresh Comic {{ comic_data.id }}"
-                               name="Update Comic"
+                               name="Refresh Comic"
+                               class="update-comic-button"/>
+                    </form>
+                </div>
+                <div class="update-comic-button-wrapper">
+                    <form method="GET"
+                          action="/edit/comic/{{ comic_data.id }}"
+                          class="update-comic-button">
+                        <input type="submit"
+                               value="Edit Comic {{ comic_data.id }}"
+                               name="Edit Comic"
                                class="update-comic-button"/>
                     </form>
                 </div>

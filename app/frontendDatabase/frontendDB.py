@@ -175,10 +175,12 @@ class FrontEndDB:
         params = (comic_id,)
 
         detail_query = \
-            "SELECT Comics.*, Images.pathExtension AS thumbnailExtension " \
+            "SELECT Comics.*, PurchasedComics.*, Images.pathExtension AS thumbnailExtension " \
             "FROM Comics " \
             "LEFT JOIN Images " \
             "ON Comics.thumbnail = Images.path " \
+            "LEFT JOIN PurchasedComics " \
+            "ON Comics.id = PurchasedComics.comicId " \
             "WHERE Comics.id=%s;"
 
         cursor.execute(detail_query, params)

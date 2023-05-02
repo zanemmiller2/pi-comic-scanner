@@ -3,3 +3,5 @@ mysqlclient~=2.1.1
 requests~=2.20.0
 pyserial~=3.5
 setuptools~=56.0.0
+WTForms~=3.0.1
+MyApplication~=0.1.0

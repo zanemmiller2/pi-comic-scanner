@@ -1,4 +1,5 @@
 import keys.db_credentials
+import keys.private_keys
 
 
 class Config:
@@ -7,3 +8,4 @@ class Config:
     MYSQL_PASSWORD = keys.db_credentials.passwd
     MYSQL_DB = keys.db_credentials.db
     MYSQL_CURSORCLASS = 'DictCursor'
+    SECRET_KEY = keys.private_keys.secret_key
