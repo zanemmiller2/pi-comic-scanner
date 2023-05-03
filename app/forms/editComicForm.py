@@ -1,6 +1,22 @@
 from flask_wtf import FlaskForm
-from wtforms import (StringField, TextAreaField, IntegerField, DateField, DecimalField, SelectField)
+from wtforms import (StringField, TextAreaField, IntegerField, DateField, DecimalField, SelectField, HiddenField,
+                     FieldList, FormField, Form, SubmitField)
 from wtforms.validators import InputRequired, Length, NumberRange, Optional
+
+
+class TextObjectForm(Form):
+    description = StringField('Description', render_kw={'readonly': True})
+
+    text = TextAreaField(
+        'Text',
+        validators=[Optional()],
+        render_kw={'rows': 10, 'cols': 75}
+    )
+
+    language = StringField(
+        'Language',
+        validators=[Optional()]
+    )
 
 
 class EditComicForm(FlaskForm):
@@ -33,13 +49,15 @@ class EditComicForm(FlaskForm):
     variantDescription = TextAreaField(
         'Comic Variant Description',
         validators=[Length(max=2147483647),
-                    Optional(strip_whitespace=True)]
+                    Optional(strip_whitespace=True)],
+        render_kw={'rows': 10, 'cols': 75}
     )
 
     description = TextAreaField(
         'Comic Description',
         validators=[Length(max=2147483647),
-                    Optional(strip_whitespace=True)]
+                    Optional(strip_whitespace=True)],
+        render_kw={'rows': 10, 'cols': 75}
     )
 
     modified = DateField(
@@ -89,6 +107,14 @@ class EditComicForm(FlaskForm):
                     Optional()]
     )
 
+    textObjects = FieldList(
+        FormField(TextObjectForm),
+        'Text Object',
+        validators=[Optional()],
+        min_entries=0,
+        max_entries=5
+    )
+
     resourceURI = StringField(
         'Resource URI',
         validators=[Length(max=255),
@@ -118,18 +144,22 @@ class EditComicForm(FlaskForm):
     printPrice = DecimalField(
         'Print Price',
         places=2,
-        validators=[NumberRange(min=0)]
+        validators=[NumberRange(min=0), Optional()]
     )
 
     digitalPurchasePrice = DecimalField(
         'Digital Purchase Price',
         places=2,
-        validators=[NumberRange(min=0)]
+        validators=[NumberRange(min=0), Optional()]
     )
+
+    seriesId = IntegerField('Series ID', render_kw={'readonly': True})
+    thumbnail = StringField('Thumbnail', render_kw={'readonly': True})
+    originalIssue = IntegerField('Original Issue ID', render_kw={'readonly': True})
 
     isVariant = SelectField(
         'Is this comic a variant?',
-        choices=[(True, "Yes"), (False, "No")],
+        choices=[("Yes", "Yes"), ("No", "No")],
         validators=[Optional()]
     )
 
@@ -140,19 +170,23 @@ class EditComicForm(FlaskForm):
         render_kw={'onchange': "isPurchasedChanged()"}
     )
 
+    comicId = HiddenField()
+
     purchaseDate = DateField(
         'Purchased Date',
-        validators=[Optional()]
+        validators=[InputRequired()]
     )
 
     purchasePrice = DecimalField(
         'Purchased Price',
         places=2,
-        validators=[NumberRange(min=0), Optional()]
+        validators=[NumberRange(min=0), InputRequired()]
     )
 
     purchaseType = SelectField(
         'Purchase Format',
         choices=[('Comic', "Comic"), ('Digital', "Digital")],
-        validators=[Optional()]
+        validators=[InputRequired()]
     )
+
+    submitBtn = SubmitField('Submit')

@@ -28,6 +28,9 @@ class FrontEndDB:
     def __init__(self):
         self.mysql = mysqldb
 
+        if self.mysql:
+            print("FrontEndDB CONNECTED...")
+
     def get_purchased_comics(self) -> list[FrontEndComic]:
         """ Gets list of all purchased comics and their id, title, issue number, thumbnail """
         cursor = self.mysql.connection.cursor()

@@ -2,21 +2,6 @@
 <html lang="en">
 <head>
     <title>Edit Comic Detail</title>
-    <script>
-        function isPurchasedChanged() {
-            let box_value = document.getElementById("isPurchased").value;
-            console.log(box_value)
-            if (box_value === 'Yes') {
-                document.getElementById("purchaseDate").style.display = "initial"
-                document.getElementById("purchasePrice").style.display = "initial"
-                document.getElementById("purchaseType").style.display = "initial"
-            } else {
-                document.getElementById("purchaseDate").style.display = "none"
-                document.getElementById("purchasePrice").style.display = "none"
-                document.getElementById("purchaseType").style.display = "none"
-            }
-        }
-    </script>
 </head>
 
 <body>
@@ -26,323 +11,468 @@
 
     <form method="POST" action="/edit/comic/{{ form.id.data }}">
         {{ form.csrf_token }}
-        <p>
-            <strong>{{ form.title.label }}</strong>
-            {{ form.title(size=form.title.data|length) }}
-        </p>
-        {% if form.title.errors %}
-            <ul class="errors">
-                {% for error in form.title.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
 
-        <p>
-            <strong>{{ form.issueNumber.label }}</strong>
-            {{ form.issueNumber(size=5) }}
-        </p>
-        {% if form.issueNumber.errors %}
-            <ul class="errors">
-                {% for error in form.issueNumber.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- TITLE -->
+        <div>
+            <p>
+                <strong>{{ form.title.label }}</strong>
+                {{ form.title(size=form.title.data|length) }}
+            </p>
+            {% if form.title.errors %}
+                <ul class="errors">
+                    {% for error in form.title.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.id.label }}</strong>
-            {{ form.id(size=10) }}
-        </p>
-        {% if form.id.errors %}
-            <ul class="errors">
-                {% for error in form.id.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- ISSUE NUMBER -->
+        <div>
+            <p>
+                <strong>{{ form.issueNumber.label }}</strong>
+                {{ form.issueNumber(size=5) }}
+            </p>
+            {% if form.issueNumber.errors %}
+                <ul class="errors">
+                    {% for error in form.issueNumber.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.digitalId.label }}</strong>
-            {{ form.digitalId(size=10) }}
-        </p>
-        {% if form.digitalId.errors %}
-            <ul class="errors">
-                {% for error in form.id.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- ID -->
+        <div>
+            <p>
+                <strong>{{ form.id.label }}</strong>
+                {{ form.id(size=10) }}
+            </p>
+            {% if form.id.errors %}
+                <ul class="errors">
+                    {% for error in form.id.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.variantDescription.label }} </strong>
-        </p>
-        {{ form.description(rows=5, cols=75) }}
-        {% if form.variantDescription.errors %}
-            <ul class="errors">
-                {% for error in form.variantDescription.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- DIGITAL ID -->
+        <div>
+            <p>
+                <strong>{{ form.digitalId.label }}</strong>
+                {{ form.digitalId(size=10) }}
+            </p>
+            {% if form.digitalId.errors %}
+                <ul class="errors">
+                    {% for error in form.id.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.description.label }} </strong>
-        </p>
-        {{ form.description(rows=10, cols=75) }}
-        {% if form.description.errors %}
-            <ul class="errors">
-                {% for error in form.description.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- VARIANT DESCRIPTION -->
+        <div>
+            <p>
+                <strong>{{ form.variantDescription.label }} </strong>
+            </p>
+            {{ form.description() }}
+            {% if form.variantDescription.errors %}
+                <ul class="errors">
+                    {% for error in form.variantDescription.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.modified.label }} </strong>
-            {{ form.modified() }}
-        </p>
-        {% if form.modified.errors %}
-            <ul class="errors">
-                {% for error in form.modified.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- DESCRIPTION -->
+        <div>
+            <p>
+                <strong>{{ form.description.label }} </strong>
+            </p>
+            {{ form.description() }}
+            {% if form.description.errors %}
+                <ul class="errors">
+                    {% for error in form.description.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.isbn.label }} </strong>
-            {{ form.isbn() }}
-        </p>
-        {% if form.isbn.errors %}
-            <ul class="errors">
-                {% for error in form.isbn.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- MODIFIED -->
+        <div>
+            <p>
+                <strong>{{ form.modified.label }} </strong>
+                {{ form.modified() }}
+            </p>
+            {% if form.modified.errors %}
+                <ul class="errors">
+                    {% for error in form.modified.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.upc.label }} </strong>
-            {{ form.upc() }}
-        </p>
-        {% if form.upc.errors %}
-            <ul class="errors">
-                {% for error in form.upc.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- ISBN -->
+        <div>
+            <p>
+                <strong>{{ form.isbn.label }} </strong>
+                {{ form.isbn() }}
+            </p>
+            {% if form.isbn.errors %}
+                <ul class="errors">
+                    {% for error in form.isbn.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.diamondCode.label }} </strong>
-            {{ form.diamondCode() }}
-        </p>
-        {% if form.diamondCode.errors %}
-            <ul class="errors">
-                {% for error in form.diamondCode.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- UPC -->
+        <div>
+            <p>
+                <strong>{{ form.upc.label }} </strong>
+                {{ form.upc() }}
+            </p>
+            {% if form.upc.errors %}
+                <ul class="errors">
+                    {% for error in form.upc.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.ean.label }} </strong>
-            {{ form.ean() }}
-        </p>
-        {% if form.ean.errors %}
-            <ul class="errors">
-                {% for error in form.ean.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- DIAMOND CODE -->
+        <div>
+            <p>
+                <strong>{{ form.diamondCode.label }} </strong>
+                {{ form.diamondCode() }}
+            </p>
+            {% if form.diamondCode.errors %}
+                <ul class="errors">
+                    {% for error in form.diamondCode.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.issn.label }} </strong>
-            {{ form.issn() }}
-        </p>
-        {% if form.issn.errors %}
-            <ul class="errors">
-                {% for error in form.issn.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- EAN -->
+        <div>
+            <p>
+                <strong>{{ form.ean.label }} </strong>
+                {{ form.ean() }}
+            </p>
+            {% if form.ean.errors %}
+                <ul class="errors">
+                    {% for error in form.ean.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.format.label }} </strong>
-            {{ form.format(size=form.format.data|length + 2) }}
-        </p>
-        {% if form.format.errors %}
-            <ul class="errors">
-                {% for error in form.format.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- ISSN -->
+        <div>
+            <p>
+                <strong>{{ form.issn.label }} </strong>
+                {{ form.issn() }}
+            </p>
+            {% if form.issn.errors %}
+                <ul class="errors">
+                    {% for error in form.issn.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.pageCount.label }} </strong>
-            {{ form.pageCount() }}
-        </p>
-        {% if form.pageCount.errors %}
-            <ul class="errors">
-                {% for error in form.pageCount.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- FORMAT -->
+        <div>
+            <p>
+                <strong>{{ form.format.label }} </strong>
+                {{ form.format(size=form.format.data|length + 2) }}
+            </p>
+            {% if form.format.errors %}
+                <ul class="errors">
+                    {% for error in form.format.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.resourceURI.label }} </strong>
-            {{ form.resourceURI(size=form.resourceURI.data|length) }}
-        </p>
-        {% if form.resourceURI.errors %}
-            <ul class="errors">
-                {% for error in form.resourceURI.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- PAGE COUNT -->
+        <div>
+            <p>
+                <strong>{{ form.pageCount.label }} </strong>
+                {{ form.pageCount() }}
+            </p>
+            {% if form.pageCount.errors %}
+                <ul class="errors">
+                    {% for error in form.pageCount.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <br>
+        </div>
 
-        <p>
-            <strong>{{ form.onSaleDate.label }} </strong>
-            {{ form.onSaleDate() }}
-        </p>
-        {% if form.onSaleDate.errors %}
-            <ul class="errors">
-                {% for error in form.onSaleDate.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- TEXT OBJECTS -->
+        <div>
+            <p>
+                <strong>{{ form.textObjects.label }} </strong>
+            </p>
+            {% for textObj in form.textObjects %}
+                {{ textObj }}
+                {% if textObj.errors %}
+                    <ul class="errors">
+                        {% for error in textObj.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <br>
+            {% endfor %}
+        </div>
 
-        <p>
-            <strong>{{ form.focDate.label }} </strong>
-            {{ form.focDate() }}
-        </p>
-        {% if form.focDate.errors %}
-            <ul class="errors">
-                {% for error in form.focDate.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- RESOURCE URI -->
+        <div>
+            <p>
+                <strong>{{ form.resourceURI.label }} </strong>
+                {{ form.resourceURI(size=form.resourceURI.data|length) }}
+            </p>
+            {% if form.resourceURI.errors %}
+                <ul class="errors">
+                    {% for error in form.resourceURI.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.unlimitedDate.label }} </strong>
-            {{ form.unlimitedDate() }}
-        </p>
-        {% if form.unlimitedDate.errors %}
-            <ul class="errors">
-                {% for error in form.unlimitedDate.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- ON SALE DATE -->
+        <div>
+            <p>
+                <strong>{{ form.onSaleDate.label }} </strong>
+                {{ form.onSaleDate() }}
+            </p>
+            {% if form.onSaleDate.errors %}
+                <ul class="errors">
+                    {% for error in form.onSaleDate.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.digitalPurchaseDate.label }} </strong>
-            {{ form.digitalPurchaseDate() }}
-        </p>
-        {% if form.digitalPurchaseDate.errors %}
-            <ul class="errors">
-                {% for error in form.digitalPurchaseDate.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- FOC DATE -->
+        <div>
+            <p>
+                <strong>{{ form.focDate.label }} </strong>
+                {{ form.focDate() }}
+            </p>
+            {% if form.focDate.errors %}
+                <ul class="errors">
+                    {% for error in form.focDate.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.printPrice.label }} </strong>
-            {{ form.printPrice() }}
-        </p>
-        {% if form.printPrice.errors %}
-            <ul class="errors">
-                {% for error in form.printPrice.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- UNLIMITED DATE -->
+        <div>
+            <p>
+                <strong>{{ form.unlimitedDate.label }} </strong>
+                {{ form.unlimitedDate() }}
+            </p>
+            {% if form.unlimitedDate.errors %}
+                <ul class="errors">
+                    {% for error in form.unlimitedDate.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.digitalPurchasePrice.label }} </strong>
-            {{ form.digitalPurchasePrice() }}
-        </p>
-        {% if form.digitalPurchasePrice.errors %}
-            <ul class="errors">
-                {% for error in form.digitalPurchasePrice.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- DIGITAL PURCHASE DATE -->
+        <div>
+            <p>
+                <strong>{{ form.digitalPurchaseDate.label }} </strong>
+                {{ form.digitalPurchaseDate() }}
+            </p>
+            {% if form.digitalPurchaseDate.errors %}
+                <ul class="errors">
+                    {% for error in form.digitalPurchaseDate.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.isVariant.label }} </strong>
-            {{ form.isVariant }}
-        </p>
-        {% if form.isVariant.errors %}
-            <ul class="errors">
-                {% for error in form.isVariant.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- PRINT PRICE -->
+        <div>
+            <p>
+                <strong>{{ form.printPrice.label }} </strong>
+                {{ form.printPrice() }}
+            </p>
+            {% if form.printPrice.errors %}
+                <ul class="errors">
+                    {% for error in form.printPrice.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.isPurchased.label }} </strong>
-            {{ form.isPurchased }}
-        </p>
-        {% if form.isPurchased.errors %}
-            <ul class="errors">
-                {% for error in form.isPurchased.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- DIGITAL PURCHASE PRICE -->
+        <div>
+            <p>
+                <strong>{{ form.digitalPurchasePrice.label }} </strong>
+                {{ form.digitalPurchasePrice() }}
+            </p>
+            {% if form.digitalPurchasePrice.errors %}
+                <ul class="errors">
+                    {% for error in form.digitalPurchasePrice.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.purchaseDate.label }} </strong>
-            {{ form.purchaseDate }}
-        </p>
-        {% if form.purchaseDate.errors %}
-            <ul class="errors">
-                {% for error in form.purchaseDate.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- SERIES ID -->
+        <div>
+            <p>
+                <strong>{{ form.seriesId.label }} </strong>
+                {{ form.seriesId() }}
+            </p>
+            {% if form.seriesId.errors %}
+                <ul class="errors">
+                    {% for error in form.seriesId.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.purchasePrice.label }} </strong>
-            {{ form.purchasePrice }}
-        </p>
-        {% if form.purchasePrice.errors %}
-            <ul class="errors">
-                {% for error in form.purchasePrice.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- THUMBNAIL -->
+        <div>
+            <p>
+                <strong>{{ form.thumbnail.label }} </strong>
+                {{ form.thumbnail(size=form.thumbnail.data|length) }}
+            </p>
+            {% if form.thumbnail.errors %}
+                <ul class="errors">
+                    {% for error in form.thumbnail.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <strong>{{ form.purchaseType.label }} </strong>
-            {{ form.purchaseType }}
-        </p>
-        {% if form.purchaseType.errors %}
-            <ul class="errors">
-                {% for error in form.purchaseType.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <!-- ORIGINAL ISSUE ID -->
+        <div>
+            <p>
+                <strong>{{ form.originalIssue.label }} </strong>
+                {{ form.originalIssue() }}
+            </p>
+            {% if form.originalIssue.errors %}
+                <ul class="errors">
+                    {% for error in form.originalIssue.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
+        <!-- IS VARIANT -->
+        <div>
+            <p>
+                <strong>{{ form.isVariant.label }} </strong>
+                {{ form.isVariant }}
+            </p>
+            {% if form.isVariant.errors %}
+                <ul class="errors">
+                    {% for error in form.isVariant.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
+        <!-- IS PURCHASED -->
+        <div>
+            <p>
+                <strong>{{ form.isPurchased.label }} </strong>
+                {{ form.isPurchased }}
+            </p>
+            {% if form.isPurchased.errors %}
+                <ul class="errors">
+                    {% for error in form.isPurchased.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
 
-        <p>
-            <input type="submit" value="Add">
-        </p>
+        <!-- IS PURCHASED DATE -->
+        <div>
+            <p>
+                <strong>{{ form.purchaseDate.label }} </strong>
+                {{ form.purchaseDate }}
+            </p>
+            {% if form.purchaseDate.errors %}
+                <ul class="errors">
+                    {% for error in form.purchaseDate.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- IS PURCHASED PRICE -->
+        <div>
+            <p>
+                <strong>{{ form.purchasePrice.label }} </strong>
+                {{ form.purchasePrice }}
+            </p>
+            {% if form.purchasePrice.errors %}
+                <ul class="errors">
+                    {% for error in form.purchasePrice.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- IS PURCHASED TYPE -->
+        <div>
+            <p>
+                <strong>{{ form.purchaseType.label }} </strong>
+                {{ form.purchaseType }}
+            </p>
+            {% if form.purchaseType.errors %}
+                <ul class="errors">
+                    {% for error in form.purchaseType.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- SAVE BUTTON -->
+        <div>
+            <p>
+                {{ form.submitBtn }}
+            </p>
+        </div>
+
     </form>
 
 {% endblock %}

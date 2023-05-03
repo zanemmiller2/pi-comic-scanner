@@ -6,11 +6,25 @@ class FrontEndEntity:
         self.title = None
         self.description = None
         self.seriesId = None
+        self.variantDescription = None
+        self.purchaseDate = None
+        self.purchaseType = None
+        self.purchasePrice = None
+        self.isPurchased = None
+        self.textObjects = {}
 
         self.ENTITY = None
 
         for key in entity_detail_dict:
             setattr(self, key, entity_detail_dict[key])
+
+        if self.description:
+            self.description = self.description.decode()
+        if self.variantDescription:
+            self.variantDescription = self.variantDescription.decode()
+
+        if self.purchaseDate and self.purchaseType and self.purchasePrice:
+            self.isPurchased = True
 
     def update_attributes(self, attributes, qualifier: str = None):
         """

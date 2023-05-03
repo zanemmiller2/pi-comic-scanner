@@ -25,12 +25,12 @@
                          alt="Comic thumbnail N/A"
                          class="comic-thumbnail-responsive">
                 {% endif %}
-                <div class="detail-url">
+                <div class="comic-button-wrapper">
                     <div>
                         <a href="{{ comic_data.detailURL }}">Detail URL</a>
                     </div>
                 </div>
-                <div class="update-comic-button-wrapper">
+                <div class="comic-button-wrapper">
                     <form method="GET"
                           action="/refresh/comic/{{ comic_data.id }}"
                           class="update-comic-button">
@@ -40,7 +40,7 @@
                                class="update-comic-button"/>
                     </form>
                 </div>
-                <div class="update-comic-button-wrapper">
+                <div class="comic-button-wrapper">
                     <form method="GET"
                           action="/edit/comic/{{ comic_data.id }}"
                           class="update-comic-button">
@@ -60,7 +60,7 @@
                     <h1 class="comic-title-text">{{ comic_data.title }}</h1>
                 </div>
 
-                <!-- COL2, ROW 2 - FORMAT, PAGE COUNT, VARIANT DESCRIPTION -->
+                <!-- FORMAT, PAGE COUNT, VARIANT DESCRIPTION -->
                 <div class="comic-detail-basic comic-detail-basic-text">
                     <div>
                         <strong>Format:</strong>
@@ -83,6 +83,28 @@
                         {% endif %}
                     </div>
                 </div>
+
+                <!-- PURCHASE DETAILS -->
+                {% if comic_data.isPurchased %}
+                    <div class="comic-purchase-detail">
+                        <div>
+                            <strong>Purchase Date:</strong>
+                            {{ comic_data.purchaseDate }}
+                        </div>
+                        <div>
+                            <strong>Purchase Price:</strong>
+                            ${{ comic_data.purchasePrice }}
+                        </div>
+                        <div>
+                            <strong>Purchase Type:</strong>
+                            {{ comic_data.purchaseType }}
+                        </div>
+                        <div>
+                            <strong>User Updated:</strong>
+                            {{ comic_data['PurchasedComics.updated'] }}
+                        </div>
+                    </div>
+                {% endif %}
 
                 <!-- COL2, ROW 3 - PRINT AND DIGITAL DETAILS -->
                 <div class="comic-print-digital-detail">
@@ -144,7 +166,7 @@
             <div class="comic-details2">
                 <div>
                     <!-- COL3, ROW 1 - ISSUE NUMBER -->
-                    {% if comic_data.description and comic_data.description.decode() != "None" %}
+                    {% if comic_data.description and comic_data.description != "None" %}
                         <div>
                             <div class="issue-number-box">
                                 <div class="issue-number-box-text">
@@ -158,7 +180,7 @@
                         </div>
                         <!-- COL3, ROW 2 - COMIC DESCRIPTION -->
                         <div class="comic-description">
-                            {{ comic_data.description.decode() }}
+                            {{ comic_data.description }}
                         </div>
 
                     {% else %}
@@ -249,7 +271,7 @@
                         </h6>
                         <p class="comic-entity-card-text">
                             {% if series_data.description %}
-                                {{ 'Series Description: ' + series_data.description.decode() }}
+                                {{ 'Series Description: ' + series_data.description }}
                             {% else %}
                                 Series Description: N/A
                             {% endif %}
@@ -288,7 +310,7 @@
                         </h6>
                         <p class="comic-entity-card-text">
                             {% if story_data.description %}
-                                {{ 'Cover Story Description: ' + story_data.description.decode() }}
+                                {{ 'Cover Story Description: ' + story_data.description }}
                             {% else %}
                                 Cover Story Description: N/A
                             {% endif %}
@@ -358,7 +380,7 @@
                             </h6>
                             <p class="comic-entity-card-text">
                                 {% if character.description %}
-                                    {{ 'Character Description: ' + character.description.decode() }}
+                                    {{ 'Character Description: ' + character.description }}
                                 {% else %}
                                     Character Description: N/A
                                 {% endif %}
@@ -392,7 +414,6 @@
                     </div>
                 {% endfor %}
             </div>
-
         </div>
 
         <!-- ROW 4 EVENTS -->
@@ -435,7 +456,7 @@
                             </h6>
                             <p class="comic-entity-card-text">
                                 {% if event.description %}
-                                    {{ 'Event Description: ' + event.description.decode() }}
+                                    {{ 'Event Description: ' + event.description }}
                                 {% else %}
                                     Event Description: N/A
                                 {% endif %}
@@ -468,7 +489,6 @@
                     </div>
                 {% endfor %}
             </div>
-
         </div>
 
         <!-- ROW 5 - CREATORS -->
@@ -531,7 +551,6 @@
                     </div>
                 {% endfor %}
             </div>
-
         </div>
 
         <!-- ROW 6 - VARIANTS -->
@@ -561,9 +580,9 @@
                             </h6>
                             <p class="comic-entity-card-text">
                                 {% if variant.description %}
-                                    {{ 'Variant Description: ' + variant.description.decode() }}
+                                    {{ 'Variant Description: ' + variant.description }}
                                 {% elif variant.variantDescription %}
-                                    {{ 'Variant Description: ' + variant.variantDescription.decode() }}
+                                    {{ 'Variant Description: ' + variant.variantDescription }}
                                 {% else %}
                                     Variant Description: N/A
                                 {% endif %}
@@ -596,7 +615,6 @@
                     </div>
                 {% endfor %}
             </div>
-
         </div>
 
         <!-- ROW 7 - IMAGES -->

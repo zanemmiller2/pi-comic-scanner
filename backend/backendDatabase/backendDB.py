@@ -244,7 +244,7 @@ class BackEndDB:
                 f"VALUES " \
                 f"(%s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
-                f"purchasedDate = COALESCE (VALUES(purchasedDate), purchasedDate)," \
+                f"purchaseDate = COALESCE (VALUES(purchaseDate), purchaseDate)," \
                 f"purchasePrice = COALESCE (VALUES(purchasePrice), purchasePrice)," \
                 f"purchaseType = COALESCE (VALUES(purchaseType), purchaseType), " \
                 f"updated = CURRENT_TIMESTAMP;"

@@ -4,12 +4,14 @@ Email: millerzanem@gmail.com
 Date: 04/20/2023
 Description: Frontend driver for web ui
 """
+import json
 import os
+from collections import namedtuple
 
 from flask import render_template, redirect, request, url_for
 
-from app import app, f_db, lookup
-from app.forms import EditComicForm
+from app import app, f_db, lookup, b_db
+from app.forms.editComicForm import EditComicForm
 
 dirname = os.path.dirname(__file__)
 
@@ -135,15 +137,74 @@ def edit_comic(comic_id):
     :param comic_id: the id of the comic to update
     :return:
     """
+    edit_comic_data = f_db.get_single_comic_detail(comic_id)
+    edit_comic_data.textObjects = json.loads(edit_comic_data.textObjects)
+
+    textObj = namedtuple('textobjs', ['description', 'text', 'language'])
+    textObjList = []
+    for textObject in edit_comic_data.textObjects:
+        for textObjectDetails in edit_comic_data.textObjects[textObject]:
+            textObjList.append(
+                textObj(
+                    textObject, textObjectDetails['text'], textObjectDetails['language']
+                )
+            )
+    edit_comic_data.textObjects = textObjList
+    form = EditComicForm(obj=edit_comic_data)
+    print(edit_comic_data)
+
     if request.method == 'GET':
         # display editable form
-        edit_comic_data = f_db.get_single_comic_detail(comic_id)
-        form = EditComicForm(obj=edit_comic_data)
-
-        print(edit_comic_data)
         return render_template("edit_comic.html", form=form)
 
     elif request.method == "POST":
         # save changes to database
         # Return to referring route (detail page or list view page)
-        pass
+
+        if form.validate_on_submit():
+
+            textObjs = {}
+            for obj in form.textObjects.data:
+                if obj['description'] not in textObjs:
+                    textObjs[obj['description']] = [{'text': obj['text'], 'language': obj['language']}]
+                else:
+                    textObjs[obj['description']].append({'text': obj['text'], 'language': obj['language']})
+
+            comicParams = (int(form.id.data),
+                           int(form.digitalId.data),
+                           str(form.title.data),
+                           float(form.issueNumber.data),
+                           str(form.variantDescription.data),
+                           str(form.description.data),
+                           form.modified.data,
+                           str(form.isbn.data),
+                           str(form.upc.data),
+                           str(form.diamondCode.data),
+                           str(form.ean.data),
+                           str(form.issn.data),
+                           str(form.format.data),
+                           int(form.pageCount.data),
+                           textObjs,
+                           str(form.resourceURI.data),
+                           form.onSaleDate.data,
+                           form.focDate.data,
+                           form.unlimitedDate.data,
+                           form.digitalPurchaseDate.data,
+                           float(form.printPrice.data),
+                           float(form.digitalPurchasePrice.data),
+                           int(form.data.seriesId),
+                           str(form.thumbnail.data),
+                           int(form.originalIssue.data))
+
+            if form.isPurchased.data.lower() == 'yes':
+
+                if not form.comicId.data:
+                    form.comicId.data = form.id.data
+
+                purchasedComicParams = (int(form.comicId.data),
+                                        form.purchaseDate.data,
+                                        float(form.purchasePrice.data),
+                                        str(form.purchaseType.data)
+                                        )
+
+                b_db.upload_complete_purchased_comic(purchasedComicParams)
