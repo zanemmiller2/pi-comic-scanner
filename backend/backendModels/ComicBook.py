@@ -48,6 +48,8 @@ class ComicBook(Entity):
         self.digitalPurchasePrice = None
         self.variantDetail = {}  # (variantDetail[variant_id] = {title: '', uri: ''})
 
+        self.isVariant = False
+
         self.isPurchased = is_purchased
         if self.isPurchased is True:
             self.isPurchasedDate = self.convert_to_SQL_date(is_purchased_date)
@@ -120,12 +122,14 @@ class ComicBook(Entity):
         Compiles the comic_book entities into params tuple to pass to backendDatabase function for uploading complete comic
         book
         """
+        if self.isVariant is None:
+            self.isVariant = 0
 
         params = (self.id, self.digitalId, self.title, self.issueNumber, self.variantDescription, self.description,
                   self.modified, self.isbn, self.upc, self.diamondCode, self.ean, self.issn, self.format,
                   self.pageCount, json.dumps(self.textObjects), self.resourceURI, self.onSaleDate, self.focDate,
                   self.unlimitedDate, self.digitalPurchaseDate, self.printPrice, self.digitalPurchasePrice,
-                  self.seriesId, self.thumbnail, self.originalIssueId)
+                  self.seriesId, self.thumbnail, self.originalIssueId, self.isVariant)
 
         self.db.upload_complete_comic_book(params)
 
@@ -309,13 +313,20 @@ class ComicBook(Entity):
             variant_title = variant['name']
             variant_id = self.get_id_from_resourceURI(variant_uri)
 
-            if "Variant" in variant_title:
-                isVariant = True
+            variant_terms = {"Variant", "Director's Cut", "2nd Printing", "3rd Printing"}
+            isVariant = False
+            for term in variant_terms:
+                if term.lower() in variant_title.lower():
+                    isVariant = True
+                    break
 
             if variant_id != -1:
                 # used for creating new comic book record for variant
                 if variant_id not in self.variantDetail and variant_id != self.id:
-                    self.variantDetail[variant_id] = {'title': variant_title, 'uri': variant_uri, 'isVariant': True}
+                    print(variant_id, isVariant)
+                    self.variantDetail[variant_id] = {
+                        'title': variant_title, 'uri': variant_uri, 'isVariant': isVariant
+                    }
 
     ####################################################################################################################
     #

@@ -101,6 +101,8 @@ class FrontEndDB:
             "WHERE ChhUrl.characterId = ChCha.characterId AND UL.type = 'wiki') as wiki " \
             "FROM Comics_has_Characters ChCha " \
             "WHERE ChCha.comicId=%s;"
+
+        cursor = self.mysql.connection.cursor()
         cursor.execute(url_query, params)
 
         for url in cursor:

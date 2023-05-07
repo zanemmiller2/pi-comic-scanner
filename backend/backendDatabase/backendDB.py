@@ -168,14 +168,15 @@ class BackEndDB:
         Inserts a new comic book record in the comic_books.comics table
         :param params: a tuple of comic book column values
         """
+
         query = f"INSERT INTO Comics " \
                 f"(id, digitalId, title, issueNumber, variantDescription, description, modified, isbn, upc, diamondCode, " \
                 f"ean, issn, format, pageCount, textObjects, resourceURI, onSaleDate, focDate, unlimitedDate, " \
                 f"digitalPurchaseDate, printPrice, digitalPurchasePrice, seriesId, " \
-                f"thumbnail, originalIssue, updated) " \
+                f"thumbnail, originalIssue, isVariant, updated) " \
                 f"VALUES " \
                 f"(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, " \
-                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) " \
+                f"%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP) " \
                 f"ON DUPLICATE KEY UPDATE " \
                 f"digitalId = COALESCE (VALUES(digitalId), digitalId), " \
                 f"title = COALESCE (VALUES(title), title), " \
@@ -201,6 +202,7 @@ class BackEndDB:
                 f"seriesId = COALESCE (VALUES(seriesId), seriesId), " \
                 f"thumbnail = COALESCE (VALUES(thumbnail), thumbnail), " \
                 f"originalIssue = COALESCE (VALUES(originalIssue), originalIssue), " \
+                f"isVariant = COALESCE (VALUES(isVariant), isVariant), " \
                 f"updated = CURRENT_TIMESTAMP;"
 
         try:
@@ -795,6 +797,16 @@ class BackEndDB:
             self._execute_commit(query, params)
         except InvalidCursorExecute:
             print(f"DELETE {upc_code} NOT DELETED FROM scanned_upc_codes TABLE")
+            self._connection.rollback()
+
+    def delete_from_purchased_comics(self, comic_id: int):
+        query = "DELETE FROM PurchasedComics WHERE comicId=%s;"
+        params = (comic_id,)
+
+        try:
+            self._execute_commit(query, params)
+        except InvalidCursorExecute:
+            print(f"DELETE {comic_id} NOT DELETED FROM PurchasedComics TABLE")
             self._connection.rollback()
 
     ####################################################################################################################

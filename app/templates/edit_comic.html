@@ -4,7 +4,7 @@
     <title>Edit Comic Detail</title>
 </head>
 
-<body>
+<body onload="isPurchasedChanged()">
 <h1>Edit Comic</h1>
 {% extends "base.html" %}
 {% block content %}
@@ -77,7 +77,7 @@
             <p>
                 <strong>{{ form.variantDescription.label }} </strong>
             </p>
-            {{ form.description() }}
+            {{ form.variantDescription() }}
             {% if form.variantDescription.errors %}
                 <ul class="errors">
                     {% for error in form.variantDescription.errors %}
@@ -465,11 +465,12 @@
                 </ul>
             {% endif %}
         </div>
-
         <!-- SAVE BUTTON -->
         <div>
             <p>
-                {{ form.submitBtn }}
+                <input type="submit"
+                       value="Save"
+                       name="edit-comic">
             </p>
         </div>
 

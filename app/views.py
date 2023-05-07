@@ -130,14 +130,9 @@ def refresh_comic(comic_id):
         return redirect(url_for('view_comic', comic_id=comic_id))
 
 
-@app.route('/edit/comic/<int:comic_id>', methods=["GET", "POST"])
-def edit_comic(comic_id):
-    """
-    Edit the individual comic details
-    :param comic_id: the id of the comic to update
-    :return:
-    """
+def _edit_comic_helper(comic_id):
     edit_comic_data = f_db.get_single_comic_detail(comic_id)
+
     edit_comic_data.textObjects = json.loads(edit_comic_data.textObjects)
 
     textObj = namedtuple('textobjs', ['description', 'text', 'language'])
@@ -149,9 +144,21 @@ def edit_comic(comic_id):
                     textObject, textObjectDetails['text'], textObjectDetails['language']
                 )
             )
+
     edit_comic_data.textObjects = textObjList
-    form = EditComicForm(obj=edit_comic_data)
-    print(edit_comic_data)
+    edit_comic_data.isPurchased = '1' if edit_comic_data.purchaseDate is not None else '0'
+    return EditComicForm(obj=edit_comic_data)
+
+
+@app.route('/edit/comic/<int:comic_id>', methods=["GET", "POST"])
+def edit_comic(comic_id):
+    """
+    Edit the individual comic details
+    :param comic_id: the id of the comic to update
+    :return:
+    """
+
+    form = _edit_comic_helper(comic_id)
 
     if request.method == 'GET':
         # display editable form
@@ -160,9 +167,7 @@ def edit_comic(comic_id):
     elif request.method == "POST":
         # save changes to database
         # Return to referring route (detail page or list view page)
-
         if form.validate_on_submit():
-
             textObjs = {}
             for obj in form.textObjects.data:
                 if obj['description'] not in textObjs:
@@ -174,8 +179,8 @@ def edit_comic(comic_id):
                            int(form.digitalId.data),
                            str(form.title.data),
                            float(form.issueNumber.data),
-                           str(form.variantDescription.data),
-                           str(form.description.data),
+                           form.variantDescription.data,
+                           form.description.data,
                            form.modified.data,
                            str(form.isbn.data),
                            str(form.upc.data),
@@ -184,7 +189,7 @@ def edit_comic(comic_id):
                            str(form.issn.data),
                            str(form.format.data),
                            int(form.pageCount.data),
-                           textObjs,
+                           json.dumps(textObjs),
                            str(form.resourceURI.data),
                            form.onSaleDate.data,
                            form.focDate.data,
@@ -192,12 +197,15 @@ def edit_comic(comic_id):
                            form.digitalPurchaseDate.data,
                            float(form.printPrice.data),
                            float(form.digitalPurchasePrice.data),
-                           int(form.data.seriesId),
+                           int(form.seriesId.data),
                            str(form.thumbnail.data),
-                           int(form.originalIssue.data))
+                           form.originalIssue.data,
+                           form.isVariant.data)
 
-            if form.isPurchased.data.lower() == 'yes':
+            b_db.upload_complete_comic_book(comicParams)
 
+            # add it to purchased
+            if form.isPurchased.data == 1:
                 if not form.comicId.data:
                     form.comicId.data = form.id.data
 
@@ -208,3 +216,9 @@ def edit_comic(comic_id):
                                         )
 
                 b_db.upload_complete_purchased_comic(purchasedComicParams)
+
+            # remove it from purchased if exists
+            else:
+                b_db.delete_from_purchased_comics(int(form.id.data))
+
+        return redirect(url_for('view_comic', comic_id=comic_id))

@@ -1,11 +1,35 @@
 from flask_wtf import FlaskForm
 from wtforms import (StringField, TextAreaField, IntegerField, DateField, DecimalField, SelectField, HiddenField,
-                     FieldList, FormField, Form, SubmitField)
+                     FieldList, FormField, Form)
 from wtforms.validators import InputRequired, Length, NumberRange, Optional
 
 
+class RequiredIf(InputRequired):
+    # a validator which makes a field required if
+    # another field is set and has a truthy value
+
+    def __init__(self, other_field_name):
+        super(RequiredIf).__init__()
+        self.other_field_name = other_field_name
+
+    def __call__(self, form, field):
+        other_field = form[self.other_field_name]
+        if other_field is None:
+            raise Exception('no field named "%s" in form' % self.other_field_name)
+        if other_field.data == 1:
+            super(RequiredIf, self).__call__(form, field)
+        else:
+            Optional()(form, field)
+
+
 class TextObjectForm(Form):
-    description = StringField('Description', render_kw={'readonly': True})
+    """
+    DOCSTRING
+    """
+    description = StringField(
+        'Description (Read Only)',
+        render_kw={'readonly': True}
+        )
 
     text = TextAreaField(
         'Text',
@@ -22,7 +46,7 @@ class TextObjectForm(Form):
 class EditComicForm(FlaskForm):
     """ Form class for editing comic details """
     id = IntegerField(
-        'Comic ID',
+        'Comic ID (Read Only)',
         validators=[NumberRange(min=0, max=9999999999),
                     InputRequired()],
         render_kw={'readonly': True},
@@ -153,20 +177,33 @@ class EditComicForm(FlaskForm):
         validators=[NumberRange(min=0), Optional()]
     )
 
-    seriesId = IntegerField('Series ID', render_kw={'readonly': True})
-    thumbnail = StringField('Thumbnail', render_kw={'readonly': True})
-    originalIssue = IntegerField('Original Issue ID', render_kw={'readonly': True})
+    seriesId = IntegerField(
+        'Series ID (Read Only)',
+        validators=[Optional()],
+        render_kw={'readonly': True}
+        )
+
+    thumbnail = StringField(
+        'Thumbnail (Read Only)',
+        validators=[Optional()],
+        render_kw={'readonly': True}
+        )
+    originalIssue = IntegerField(
+        'Original Issue ID (Read Only)',
+        validators=[Optional()],
+        render_kw={'readonly': True}
+        )
 
     isVariant = SelectField(
         'Is this comic a variant?',
-        choices=[("Yes", "Yes"), ("No", "No")],
-        validators=[Optional()]
+        choices=[(1, "Yes"), (0, "No")],
+        validators=[InputRequired()]
     )
 
     isPurchased = SelectField(
         'Do you own this comic?',
-        choices=[('Yes', "Yes"), ('No', "No")],
-        validators=[Optional()],
+        choices=[(1, "Yes"), (0, "No")],
+        validators=[InputRequired()],
         render_kw={'onchange': "isPurchasedChanged()"}
     )
 
@@ -174,19 +211,17 @@ class EditComicForm(FlaskForm):
 
     purchaseDate = DateField(
         'Purchased Date',
-        validators=[InputRequired()]
+        validators=[RequiredIf('isPurchased')]
     )
 
     purchasePrice = DecimalField(
         'Purchased Price',
         places=2,
-        validators=[NumberRange(min=0), InputRequired()]
+        validators=[NumberRange(min=0), RequiredIf('isPurchased')]
     )
 
     purchaseType = SelectField(
         'Purchase Format',
         choices=[('Comic', "Comic"), ('Digital', "Digital")],
-        validators=[InputRequired()]
+        validators=[RequiredIf('isPurchased')]
     )
-
-    submitBtn = SubmitField('Submit')
