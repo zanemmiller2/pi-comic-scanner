@@ -224,12 +224,12 @@ ul ol {
                                 BROWSE COMICS PAGE
 
 ---------------------------------------------------------------------------- */
-.all-comics-table {
+.all-list-table {
     text-align: center;
     width: 100%;
 }
 
-.all-comics-table > tr {
+.all-list-table > tr {
     text-align: center;
 }
 

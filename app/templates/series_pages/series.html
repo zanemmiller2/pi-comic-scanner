@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Series</title>
+</head>
+
+<body>
+{% extends "base.html" %}
+<h1>Comics</h1>
+
+{% block content %}
+
+    <div>
+        <table class="all-list-table">
+            <!-- Check that there is series data to display  -->
+            {% if series_data %}
+
+                <!-- Display the header rows -->
+                <thead class="all-comics-table">
+                <tr class="all-comics-table">
+                    <th>Thumbnail</th>
+                    <th>Series ID</th>
+                    <th>Title</th>
+                    <th>View Detail</th>
+                </tr>
+                </thead>
+
+                <!-- Display the row of content for each comic book in
+                the appropriate column -->
+                <tbody>
+                {% for series in series_data %}
+
+                    <tr>
+                        {% if series['thumbnail'] %}
+                            <td><img
+                                    src="{{ series['thumbnail'] + '/' + 'portrait_medium' + series['thumbnailExtension'] }}"
+                                    alt="medium portrait thumbnail"></td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+                        <td> {{ series['id'] }}</td>
+                        <td> {{ series['title'] }}</td>
+                        <td><a href="view/series/{{ series['id'] }}">VIEW</a>
+                        </td>
+                    </tr>
+
+                {% endfor %}
+                </tbody>
+
+            {% endif %}
+        </table>
+
+    </div>
+
+{% endblock %}
+
+</body>
+
+</html>

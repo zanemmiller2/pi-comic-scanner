@@ -4,6 +4,8 @@ Email: millerzanem@gmail.com
 Date: 04/20/2023
 Description: Frontend driver for web ui
 """
+from __future__ import annotations
+
 import json
 import os
 from collections import namedtuple
@@ -22,11 +24,16 @@ def index():
     return render_template("home.html")
 
 
+########################################################################################################################
+#
+#                           COMICS
+#
+########################################################################################################################
 @app.route('/comics', methods=['GET'])
 def comics():
-    """ Browse a list of all comics currently in the frontendDatabase """
+    """ Browse a list of all purchased comics currently in the frontendDatabase """
     comics_data = f_db.get_purchased_comics()
-    return render_template("comics.html", comics_data=comics_data)
+    return render_template("comic_pages/comics.html", comics_data=comics_data)
 
 
 @app.route('/view/comic/<int:comic_id>', methods=["GET"])
@@ -51,7 +58,7 @@ def view_comic(comic_id):
     image_list = f_db.get_comic_images(comic_id)
 
     return render_template(
-        "comic_detail.html",
+        "comic_pages/comic_detail.html",
         comic_data=comic_detail,
         series_data=series_detail,
         story_data=story_detail,
@@ -130,7 +137,12 @@ def refresh_comic(comic_id):
         return redirect(url_for('view_comic', comic_id=comic_id))
 
 
-def _edit_comic_helper(comic_id):
+def _edit_comic_helper(comic_id) -> EditComicForm:
+    """
+    get the current comic details by id from database and populate the editComic form
+    :param comic_id: the id of the comic to edit
+    :return: prepopulated EditComicForm object
+    """
     edit_comic_data = f_db.get_single_comic_detail(comic_id)
 
     edit_comic_data.textObjects = json.loads(edit_comic_data.textObjects)
@@ -151,7 +163,7 @@ def _edit_comic_helper(comic_id):
 
 
 @app.route('/edit/comic/<int:comic_id>', methods=["GET", "POST"])
-def edit_comic(comic_id):
+def edit_comic(comic_id) -> redirect or render_template:
     """
     Edit the individual comic details
     :param comic_id: the id of the comic to update
@@ -162,7 +174,7 @@ def edit_comic(comic_id):
 
     if request.method == 'GET':
         # display editable form
-        return render_template("edit_comic.html", form=form)
+        return render_template("comic_pages/edit_comic.html", form=form)
 
     elif request.method == "POST":
         # save changes to database
@@ -222,3 +234,32 @@ def edit_comic(comic_id):
                 b_db.delete_from_purchased_comics(int(form.id.data))
 
         return redirect(url_for('view_comic', comic_id=comic_id))
+
+
+########################################################################################################################
+#
+#                           SERIES
+#
+########################################################################################################################
+
+@app.route('/series', methods=['GET'])
+def series():
+    """ Browse a list of all series related to purchased comics currently in the frontendDatabase """
+    series_data = f_db.get_purchased_comics_related_series()
+    return render_template("series_pages/series.html", series_data=series_data)
+
+
+@app.route('/view/series/<int:series_id>', methods=["GET"])
+def view_series(series_id) -> render_template:
+    """
+    View individual series by id
+    :param series_id: the id of the series to view details
+    :return: render_template("comic_detail.html", comic_data, series_data, story_data, creator_data, event_data,
+    character_data, image_data, variant_data)
+    """
+    series_detail = f_db.get_single_series_detail(series_id)
+    character_detail = f_db.get_series_characters(series_id)
+
+    return render_template(
+        "series_pages/series_detail.html", series_data=series_detail, character_data=character_detail
+        )

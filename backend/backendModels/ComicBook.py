@@ -323,7 +323,6 @@ class ComicBook(Entity):
             if variant_id != -1:
                 # used for creating new comic book record for variant
                 if variant_id not in self.variantDetail and variant_id != self.id:
-                    print(variant_id, isVariant)
                     self.variantDetail[variant_id] = {
                         'title': variant_title, 'uri': variant_uri, 'isVariant': isVariant
                     }

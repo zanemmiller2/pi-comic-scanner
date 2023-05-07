@@ -32,7 +32,9 @@ class FrontEndDB:
             print("FrontEndDB CONNECTED...")
 
     def get_purchased_comics(self) -> list[FrontEndComic]:
-        """ Gets list of all purchased comics and their id, title, issue number, thumbnail """
+        """
+        Gets list of all purchased comics and their id, title, issue number, thumbnail
+        """
         cursor = self.mysql.connection.cursor()
         query = \
             "SELECT PC.*, C.*, I.pathExtension as thumbnailExtension " \
@@ -44,7 +46,25 @@ class FrontEndDB:
 
         params = ()
         cursor.execute(query, params)
-        return [FrontEndComic(item) for item in cursor]
+        return [FrontEndComic(comic) for comic in cursor]
+
+    def get_purchased_comics_related_series(self) -> list[FrontEndSeries]:
+        """
+        Gets list of all series related to purchased comics and their id, title, thumbnail
+        """
+        cursor = self.mysql.connection.cursor()
+        query = \
+            "SELECT DISTINCT S.*, I.pathExtension as thumbnailExtension " \
+            "FROM PurchasedComics PC " \
+            "INNER JOIN Comics C " \
+            "on PC.comicId = C.id " \
+            "LEFT JOIN Series S " \
+            "on C.seriesId = S.id " \
+            "LEFT JOIN Images I " \
+            "on S.thumbnail = I.path;"
+        params = ()
+        cursor.execute(query, params)
+        return [FrontEndSeries(series) for series in cursor]
 
     ##################################################################################################
     #
@@ -56,19 +76,7 @@ class FrontEndDB:
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
         characters_query = \
-            "SELECT Cha.*, I.pathExtension as thumbnailExtension " \
-            "FROM Comics_has_Characters ChCha " \
-            "INNER JOIN Characters Cha " \
-            "ON ChCha.characterId = Cha.id " \
-            "LEFT JOIN Images I " \
-            "ON Cha.thumbnail = I.path " \
-            "WHERE ChCha.comicId=%s;"
-
-        cursor.execute(characters_query, params)
-        character_details = [FrontEndCharacter(item) for item in cursor]
-
-        url_query = \
-            "SELECT ChCha.characterId, " \
+            "SELECT Cha.*, I.pathExtension as thumbnailExtension, " \
             "(SELECT ChhUrl.url " \
             "FROM Characters_has_URLs ChhUrl " \
             "LEFT JOIN URLs UL " \
@@ -100,18 +108,14 @@ class FrontEndDB:
             "ON ChhUrl.url = UL.url " \
             "WHERE ChhUrl.characterId = ChCha.characterId AND UL.type = 'wiki') as wiki " \
             "FROM Comics_has_Characters ChCha " \
+            "LEFT JOIN Characters Cha " \
+            "on ChCha.characterId = Cha.id " \
+            "LEFT JOIN Images I " \
+            "on Cha.thumbnail = I.path " \
             "WHERE ChCha.comicId=%s;"
 
-        cursor = self.mysql.connection.cursor()
-        cursor.execute(url_query, params)
-
-        for url in cursor:
-            for character in character_details:
-
-                if character.id == url['characterId']:
-                    character.update_attributes(url)
-
-        return character_details
+        cursor.execute(characters_query, params)
+        return [FrontEndCharacter(item) for item in cursor]
 
     def get_comic_creators(self, comic_id: int) -> list[FrontEndCreator]:
         """ Get the creator records for the related comic """
@@ -171,6 +175,7 @@ class FrontEndDB:
 
                 if creator.id == url['creatorId']:
                     creator.update_attributes(url)
+                    break
 
         return creator_details
 
@@ -237,19 +242,7 @@ class FrontEndDB:
         cursor = self.mysql.connection.cursor()
         params = (comic_id,)
         events_query = \
-            "SELECT E.*, I.pathExtension as thumbnailExtension " \
-            "FROM Comics_has_Events ChE " \
-            "INNER JOIN Events E " \
-            "ON ChE.eventId = E.id " \
-            "LEFT JOIN Images I " \
-            "ON E.thumbnail = I.path " \
-            "WHERE ChE.comicId=%s;"
-
-        cursor.execute(events_query, params)
-        event_details = [FrontEndEvent(item) for item in cursor]
-
-        url_query = \
-            "SELECT ChE.eventId, " \
+            "SELECT E.*, I.pathExtension as thumbnailExtension, " \
             "(SELECT EhUrl.url " \
             "FROM Events_has_URLs EhUrl " \
             "LEFT JOIN URLs UL " \
@@ -281,17 +274,14 @@ class FrontEndDB:
             "ON EhUrl.url = UL.url " \
             "WHERE EhUrl.eventId = ChE.eventId AND UL.type = 'wiki') as wiki " \
             "FROM Comics_has_Events ChE " \
+            "LEFT JOIN Events E " \
+            "on ChE.eventId = E.id " \
+            "LEFT JOIN Images I " \
+            "on E.thumbnail = I.path " \
             "WHERE ChE.comicId=%s;"
 
-        cursor.execute(url_query, params)
-
-        for url in cursor:
-            for event in event_details:
-
-                if event.id == url['eventId']:
-                    event.update_attributes(url)
-
-        return event_details
+        cursor.execute(events_query, params)
+        return [FrontEndEvent(event) for event in cursor]
 
     def get_comic_images(self, comic_id: int) -> list[FrontEndImage]:
         """ Get the current comics variant comics """
@@ -306,62 +296,6 @@ class FrontEndDB:
 
         cursor.execute(images_query, params)
         return [FrontEndImage(item) for item in cursor]
-
-    def get_single_series_detail(self, series_id: int) -> FrontEndSeries:
-        """ Gets the comics related Series's details """
-        cursor = self.mysql.connection.cursor()
-        params = (series_id,)
-
-        detail_query = \
-            "SELECT Series.*, Images.pathExtension AS thumbnailExtension " \
-            "FROM Series " \
-            "LEFT JOIN Images " \
-            "ON Series.thumbnail = Images.path " \
-            "WHERE Series.id=%s;"
-        cursor.execute(detail_query, params)
-
-        series_details = [FrontEndSeries(item) for item in cursor]
-
-        url_query = \
-            "SELECT " \
-            "(SELECT ShUL.url " \
-            "FROM Series_has_URLs ShUL " \
-            "LEFT JOIN URLs UL " \
-            "ON ShUL.url = UL.url " \
-            "WHERE ShUL.seriesId = S.id AND UL.type = 'purchase') as purchaseURL, " \
-            "(SELECT ShUL.url " \
-            "FROM Series_has_URLs ShUL " \
-            "LEFT JOIN URLs UL " \
-            "ON ShUL.url = UL.url " \
-            "WHERE ShUL.seriesId = S.id AND UL.type = 'detail') as detailURL, " \
-            "(SELECT ShUL.url " \
-            "FROM Series_has_URLs ShUL " \
-            "LEFT JOIN URLs UL " \
-            "ON ShUL.url = UL.url " \
-            "WHERE ShUL.seriesId = S.id AND UL.type = 'comiclink') as comicLink, " \
-            "(SELECT ShUL.url " \
-            "FROM Series_has_URLs ShUL " \
-            "LEFT JOIN URLs UL " \
-            "ON ShUL.url = UL.url " \
-            "WHERE ShUL.seriesId = S.id AND UL.type = 'reader') as readerURL, " \
-            "(SELECT ShUL.url " \
-            "FROM Series_has_URLs ShUL " \
-            "LEFT JOIN URLs UL " \
-            "ON ShUL.url = UL.url " \
-            "WHERE ShUL.seriesId = S.id AND UL.type = 'inAppLink') as inAppLink, " \
-            "(SELECT ShUL.url " \
-            "FROM Series_has_URLs ShUL " \
-            "LEFT JOIN URLs UL " \
-            "ON ShUL.url = UL.url " \
-            "WHERE ShUL.seriesId = S.id AND UL.type = 'wiki') as wiki " \
-            "FROM Series S " \
-            "WHERE S.id=%s;"
-        cursor.execute(url_query, params)
-
-        for url in cursor:
-            series_details[0].update_attributes(url)
-
-        return series_details[0]
 
     def get_comic_stories(self, comic_id: int) -> list[FrontEndStory]:
         """ Get the stories for a specific comic """
@@ -389,7 +323,7 @@ class FrontEndDB:
 
         cursor.execute(interior_story_query, params)
         for interiorStory in cursor:
-            story_details[0].update_attributes(interiorStory, 'interiorStory')
+            story_details[0].update_attributes(attributes=interiorStory, qualifier='interiorStory')
 
         return story_details
 
@@ -451,6 +385,156 @@ class FrontEndDB:
 
                 if variant.id == url['variantId']:
                     variant.update_attributes(url)
+                    break
 
         return variant_details
 
+    ##################################################################################################
+    #
+    #           SERIES DETAIL PAGE
+    #
+    ##################################################################################################
+
+    def get_single_series_detail(self, series_id: int) -> FrontEndSeries:
+        """ Gets the comics related Series's details """
+        cursor = self.mysql.connection.cursor()
+        params = (series_id,)
+
+        detail_query = \
+            "SELECT S.*, " \
+            "Images.pathExtension AS thumbnailExtension, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S.id AND UL.type = 'purchase') as purchaseURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S.id AND UL.type = 'detail') as detailURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S.id AND UL.type = 'comiclink') as comicLink, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S.id AND UL.type = 'reader') as readerURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S.id AND UL.type = 'inAppLink') as inAppLink, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S.id AND UL.type = 'wiki') as wiki " \
+            "FROM Series S " \
+            "LEFT JOIN Images " \
+            "ON S.thumbnail = Images.path " \
+            "WHERE S.id=%s;"
+        cursor.execute(detail_query, params)
+
+        return [FrontEndSeries(series) for series in cursor][0]
+
+    def get_series_characters(self, series_id: int) -> list[FrontEndCharacter]:
+        """
+        Get the Character records for the related series
+        :param series_id: the id of the individual series
+        """
+        cursor = self.mysql.connection.cursor()
+        params = (series_id,)
+        characters_query = \
+            "SELECT Cha.*, I.pathExtension as thumbnailExtension, " \
+            "(SELECT ChhUrl.url " \
+            "FROM Characters_has_URLs ChhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON ChhUrl.url = UL.url " \
+            "WHERE ChhUrl.characterId = ShCha.characterId AND UL.type = 'purchase') as purchaseURL, " \
+            "(SELECT ChhUrl.url " \
+            "FROM Characters_has_URLs ChhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON ChhUrl.url = UL.url " \
+            "WHERE ChhUrl.characterId = ShCha.characterId AND UL.type = 'detail') as detailURL, " \
+            "(SELECT ChhUrl.url " \
+            "FROM Characters_has_URLs ChhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON ChhUrl.url = UL.url " \
+            "WHERE ChhUrl.characterId = ShCha.characterId AND UL.type = 'comiclink') as comicLink, " \
+            "(SELECT ChhUrl.url " \
+            "FROM Characters_has_URLs ChhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON ChhUrl.url = UL.url " \
+            "WHERE ChhUrl.characterId = ShCha.characterId AND UL.type = 'reader') as readerURL, " \
+            "(SELECT ChhUrl.url " \
+            "FROM Characters_has_URLs ChhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON ChhUrl.url = UL.url " \
+            "WHERE ChhUrl.characterId = ShCha.characterId AND UL.type = 'inAppLink') as inAppLink, " \
+            "(SELECT ChhUrl.url " \
+            "FROM Characters_has_URLs ChhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON ChhUrl.url = UL.url " \
+            "WHERE ChhUrl.characterId = ShCha.characterId AND UL.type = 'wiki') as wiki " \
+            "FROM Series_has_Characters ShCha " \
+            "LEFT JOIN Characters Cha " \
+            "on ShCha.characterId = Cha.id " \
+            "LEFT JOIN Images I " \
+            "on Cha.thumbnail = I.path " \
+            "WHERE ShCha.seriesId=%s;"
+
+        cursor.execute(characters_query, params)
+        return [FrontEndCharacter(character) for character in cursor]
+
+    def get_series_events(self, series_id: int) -> list[FrontEndEvent]:
+        """
+        Get the Event records for the related series
+        :param series_id: the id of the individual series
+        """
+        cursor = self.mysql.connection.cursor()
+        params = (series_id,)
+        events_query = \
+            "SELECT E.*, I.pathExtension as thumbnailExtension, " \
+            "(SELECT EhUrl.url " \
+            "FROM Events_has_URLs EhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON EhUrl.url = UL.url " \
+            "WHERE EhUrl.eventId = ShE.eventId AND UL.type = 'purchase') as purchaseURL, " \
+            "(SELECT EhUrl.url " \
+            "FROM Events_has_URLs EhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON EhUrl.url = UL.url " \
+            "WHERE EhUrl.eventId = ShE.eventId AND UL.type = 'detail') as detailURL, " \
+            "(SELECT EhUrl.url " \
+            "FROM Events_has_URLs EhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON EhUrl.url = UL.url " \
+            "WHERE EhUrl.eventId = ShE.eventId AND UL.type = 'comiclink') as comicLink, " \
+            "(SELECT EhUrl.url " \
+            "FROM Events_has_URLs EhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON EhUrl.url = UL.url " \
+            "WHERE EhUrl.eventId = ShE.eventId AND UL.type = 'reader') as readerURL, " \
+            "(SELECT EhUrl.url " \
+            "FROM Events_has_URLs EhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON EhUrl.url = UL.url " \
+            "WHERE EhUrl.eventId = ShE.eventId AND UL.type = 'inAppLink') as inAppLink, " \
+            "(SELECT EhUrl.url " \
+            "FROM Events_has_URLs EhUrl " \
+            "LEFT JOIN URLs UL " \
+            "ON EhUrl.url = UL.url " \
+            "WHERE EhUrl.eventId = ShE.eventId AND UL.type = 'wiki') as wiki " \
+            "FROM Series_has_Events ShE " \
+            "LEFT JOIN Events E " \
+            "on ShE.eventId = E.id " \
+            "LEFT JOIN Images I " \
+            "on E.thumbnail = I.path " \
+            "WHERE ShE.seriesId=%s;"
+
+        cursor.execute(events_query, params)
+        return [FrontEndEvent(event) for event in cursor]

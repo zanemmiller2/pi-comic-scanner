@@ -12,7 +12,8 @@ nav = Navigation(app)
 nav.Bar(
     'top', [
         nav.Item('Home', 'index'),
-        nav.Item('Comics', 'comics')]
+        nav.Item('Comics', 'comics'),
+        nav.Item('Series', 'series')]
 )
 
 from config import Config
