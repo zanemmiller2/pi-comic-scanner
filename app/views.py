@@ -45,6 +45,10 @@ def view_comic(comic_id):
     character_data, image_data, variant_data)
     """
     comic_detail = f_db.get_single_comic_detail(comic_id)
+    if comic_detail:
+        comic_detail = comic_detail[0]
+    else:
+        return redirect(url_for('comics'))
 
     series_id = comic_detail.seriesId
     series_detail = {}
@@ -258,8 +262,20 @@ def view_series(series_id) -> render_template:
     character_data, image_data, variant_data)
     """
     series_detail = f_db.get_single_series_detail(series_id)
+    if series_detail:
+        series_detail = series_detail[0]
+    else:
+        return redirect(url_for('series'))
+
     character_detail = f_db.get_series_characters(series_id)
+    event_detail = f_db.get_series_events(series_id)
+    creator_detail = f_db.get_series_creators(series_id)
+    storiesGallery_detail = f_db.get_series_stories(series_id)
 
     return render_template(
-        "series_pages/series_detail.html", series_data=series_detail, character_data=character_detail
-        )
+        "series_pages/series_detail.html",
+        series_data=series_detail,
+        character_data=character_detail,
+        event_data=event_detail,
+        creator_data=creator_detail, storiesGallery_data=storiesGallery_detail
+    )

@@ -1,0 +1,380 @@
+{% block entity_gallery %}
+    <!-- ROW CHARACTERS -->
+    {% if character_data %}
+        <div>
+            <h5>Characters</h5>
+            <div class="comic-entity-row">
+                {% for character in character_data %}
+                    <div class="comic-entity-card">
+                        <img class="comic-entity-thumbnail"
+                                {% if character.thumbnail %}
+                             src="{{ character.thumbnail + character.thumbnailExtension }}"
+                                {% else %}
+                             src=""
+                                {% endif %}
+                             alt="Character Thumbnail">
+                        <div class="comic-entity-body">
+                            <h6 class="comic-entity-card-text">
+                                {{ 'Name: ' + character.name }}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if character.id %}
+                                    {{ 'Character ID: (' ~character.id + ')' }}
+                                {% else %}
+                                    Character ID: N/A
+                                {% endif %}
+                            </h6>
+                            <p class="comic-entity-card-text">
+                                {% if character.description %}
+                                    {{ 'Character Description: ' + character.description }}
+                                {% else %}
+                                    Character Description: N/A
+                                {% endif %}
+                            </p>
+
+                            <div class="comic-entity-detail-url">
+                                {% if character.detailURL %}
+                                    <a href="{{ character.detailURL }}">Character
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if character.wiki %}
+                                    <a href="{{ character.wiki }}">Character
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if character.comicLink %}
+                                    <a href="{{ character.comicLink }}">Character
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if storiesGallery_data %}
+        <div>
+            <h5>Stories</h5>
+            <div class="comic-entity-row">
+                {% for story in storiesGallery_data %}
+                    <div class="comic-entity-card">
+                        <img class="comic-entity-thumbnail"
+                                {% if story.thumbnail %}
+                             src="{{ story.thumbnail + story.thumbnailExtension }}"
+                                {% else %}
+                             src=""
+                                {% endif %}
+                             alt="Story Thumbnail">
+                        <div class="comic-entity-body">
+                            <h6 class="comic-entity-card-text">
+                                {{ 'Story Title: ' + story.title }}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if story.id %}
+                                    {{ 'Story ID: (' ~story.id + ')' }}
+                                {% else %}
+                                    Story ID: N/A
+                                {% endif %}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if story.comicId %}
+                                    {{ 'Story Comic ID: (' ~story.comicId + ')' }}
+                                {% else %}
+                                    Story Comic ID: N/A
+                                {% endif %}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if story.type %}
+                                    {{ 'Story Type: ' + story.type }}
+                                {% else %}
+                                    Story Type: N/A
+                                {% endif %}
+                            </h6>
+                            <p class="comic-entity-card-text">
+                                {% if story.description %}
+                                    {{ 'Story Description: ' + story.description }}
+                                {% else %}
+                                    Story Description: N/A
+                                {% endif %}
+                            </p>
+
+                            <div class="comic-entity-detail-url">
+                                {% if story.detailURL %}
+                                    <a href="{{ story.detailURL }}">Story
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if story.wiki %}
+                                    <a href="{{ story.wiki }}">Story
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if story.comicLink %}
+                                    <a href="{{ story.comicLink }}">Story
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ROW EVENTS -->
+    {% if event_data %}
+        <div>
+            <h5>Events</h5>
+            <div class="comic-entity-row">
+                {% for event in event_data %}
+                    <div class="comic-entity-card">
+                        <img class="comic-entity-thumbnail"
+                                {% if event.thumbnail %}
+                             src="{{ event.thumbnail + event.thumbnailExtension }}"
+                                {% else %}
+                             src=""
+                                {% endif %}
+                             alt="Event Thumbnail">
+                        <div class="comic-entity-body">
+                            <h6 class="comic-entity-card-text">
+                                {{ 'Title: ' + event.title }}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if event.id %}
+                                    {{ 'Event ID: (' ~event.id + ')' }}
+                                {% else %}
+                                    Event ID: N/A
+                                {% endif %}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if event.start %}
+                                    {{ 'Event Start: ' ~event.start }}
+                                {% else %}
+                                    Event Start: N/A
+                                {% endif %}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if event.end %}
+                                    {{ 'Event End: ' ~event.end }}
+                                {% else %}
+                                    Event End: N/A
+                                {% endif %}
+                            </h6>
+                            <p class="comic-entity-card-text">
+                                {% if event.description %}
+                                    {{ 'Event Description: ' + event.description }}
+                                {% else %}
+                                    Event Description: N/A
+                                {% endif %}
+                            </p>
+                            <div class="comic-entity-detail-url">
+                                {% if event.detailURL %}
+                                    <a href="{{ event.detailURL }}">Event
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if event.wiki %}
+                                    <a href="{{ event.wiki }}">Event
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if event.comicLink %}
+                                    <a href="{{ event.comicLink }}">Event
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ROW CREATORS -->
+    {% if creator_data %}
+        <div>
+            <h5>Creators</h5>
+            <div class="comic-entity-row">
+
+                {% for creator in creator_data %}
+                    <div class="comic-entity-card">
+                        <img class="comic-entity-thumbnail"
+                                {% if creator.thumbnail %}
+                             src="{{ creator.thumbnail + creator.thumbnailExtension }}"
+                                {% else %}
+                             src=""
+                                {% endif %}
+                             alt="Creator Thumbnail">
+                        <div class="comic-entity-body">
+                            <h6 class="comic-entity-card-text">
+                                {{ 'Name: ' + creator.firstName.strip() + ' ' + creator.middleName.strip() + ' ' + creator.lastName.strip() }}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if creator.id %}
+                                    {{ 'Creator ID: (' ~creator.id + ')' }}
+                                {% else %}
+                                    ID: N/A
+                                {% endif %}
+                            </h6>
+                            <p class="comic-entity-card-text">
+                                {% if creator.role %}
+                                    {{ 'Creator Role: ' + creator.role }}
+                                {% else %}
+                                    Role: N/A
+                                {% endif %}
+                            </p>
+                            <div class="comic-entity-detail-url">
+                                {% if creator.detailURL %}
+                                    <a href="{{ creator.detailURL }}">Creator
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if creator.wiki %}
+                                    <a href="{{ creator.wiki }}">Creator
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if creator.comicLink %}
+                                    <a href="{{ creator.comicLink }}">Creator
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ROW VARIANTS -->
+    {% if variant_data %}
+        <div>
+            <h5>Variants</h5>
+            <div class="comic-entity-row">
+
+                {% for variant in variant_data %}
+                    <div class="comic-entity-card">
+                        <img class="comic-entity-thumbnail"
+                                {% if variant.thumbnail %}
+                             src="{{ variant.thumbnail + variant.thumbnailExtension }}"
+                                {% else %}
+                             src=""
+                                {% endif %}
+                             alt="Variant Thumbnail">
+                        <div class="comic-entity-body">
+                            <h6 class="comic-entity-card-text">
+                                {{ 'Variant Title: ' + variant.title }}
+                            </h6>
+                            <h6 class="comic-entity-card-text">
+                                {% if variant.id %}
+                                    {{ 'Variant ID: (' ~variant.id + ')' }}
+                                {% else %}
+                                    Variant ID: N/A
+                                {% endif %}
+                            </h6>
+                            <p class="comic-entity-card-text">
+                                {% if variant.description %}
+                                    {{ 'Variant Description: ' + variant.description }}
+                                {% elif variant.variantDescription %}
+                                    {{ 'Variant Description: ' + variant.variantDescription }}
+                                {% else %}
+                                    Variant Description: N/A
+                                {% endif %}
+                            </p>
+                            <div class="comic-entity-detail-url">
+                                {% if variant.detailURL %}
+                                    <a href="{{ variant.detailURL }}">Variant
+                                        Detail URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if variant.wiki %}
+                                    <a href="{{ variant.wiki }}">Variant
+                                        Wiki URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                            <div class="comic-entity-detail-url">
+                                {% if variant.comicLink %}
+                                    <a href="{{ variant.comicLink }}">Variant
+                                        ComicLink URL</a>
+                                {% else %}
+                                    <a></a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- ROW IMAGES -->
+    {% if image_data %}
+        <div>
+            <h5>Images</h5>
+            <div class="comic-entity-row">
+
+                {% for image in image_data %}
+                    <div class="comic-entity-card">
+                        <img class="comic-entity-thumbnail"
+                                {% if image.thumbnail %}
+                             src="{{ image.thumbnail + image.thumbnailExtension }}"
+                                {% else %}
+                             src=""
+                                {% endif %}
+                             alt="Comic Image Thumbnail">
+                        <div class="comic-entity-detail-url">
+                            {% if image.thumbnail and image.thumbnailExtension %}
+                                <a href="{{ image.thumbnail + image.thumbnailExtension }}">Image
+                                    URL</a>
+                            {% else %}
+                                <a></a>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
