@@ -29,16 +29,16 @@
                         <a href="{{ series_data.detailURL }}">Detail URL</a>
                     </div>
                 </div>
-                {#                <div class="comic-button-wrapper">#}
-                {#                    <form method="GET"#}
-                {#                          action="/refresh/comic/{{ comic_data.id }}"#}
-                {#                          class="update-comic-button">#}
-                {#                        <input type="submit"#}
-                {#                               value="Refresh Comic {{ comic_data.id }}"#}
-                {#                               name="Refresh Comic"#}
-                {#                               class="update-comic-button"/>#}
-                {#                    </form>#}
-                {#                </div>#}
+                <div class="comic-button-wrapper">
+                    <form method="GET"
+                          action="/refresh/series/{{ series_data.id }}"
+                          class="update-comic-button">
+                        <input type="submit"
+                               value="Refresh Series {{ series_data.id }}"
+                               name="Refresh Series"
+                               class="update-comic-button"/>
+                    </form>
+                </div>
                 {#                <div class="comic-button-wrapper">#}
                 {#                    <form method="GET"#}
                 {#                          action="/edit/comic/{{ comic_data.id }}"#}
@@ -93,6 +93,7 @@
         </div>
 
         <!-- PREVIOUS AND NEXT SERIES-->
+        {% if previous_series_data or next_series_data %}
         <div>
             <h5>Series - Previous and Next</h5>
             <div class="comic-entity-row">
@@ -184,6 +185,7 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
 
         {% include "base_gallery.html" %}
 

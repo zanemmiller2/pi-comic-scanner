@@ -37,7 +37,7 @@ def comics():
 
 
 @app.route('/view/comic/<int:comic_id>', methods=["GET"])
-def view_comic(comic_id):
+def view_comic(comic_id: int):
     """
     View individual comic by id
     :param comic_id: the id of the comic to view details
@@ -51,9 +51,14 @@ def view_comic(comic_id):
         return redirect(url_for('comics'))
 
     series_id = comic_detail.seriesId
+
     series_detail = {}
     if series_id is not None:
         series_detail = f_db.get_single_series_detail(series_id)
+
+    if series_detail:
+        series_detail = series_detail[0]
+
     story_detail = f_db.get_comic_stories(comic_id)[0]
     creators_list = f_db.get_comic_creators(comic_id)
     events_list = f_db.get_comic_events(comic_id)
@@ -74,7 +79,7 @@ def view_comic(comic_id):
     )
 
 
-def _update_comic_helper(comic_id):
+def _refresh_comic_helper(comic_id: int):
     """
     Driver function for updating a comic and each of its entity dependencies
     :param comic_id: the id of the comic to update
@@ -129,19 +134,19 @@ def _update_comic_helper(comic_id):
 
 
 @app.route('/refresh/comic/<int:comic_id>', methods=["GET"])
-def refresh_comic(comic_id):
+def refresh_comic(comic_id: int):
     """
     Update the comic and its dependencies
     :param comic_id: the id of the comic to update
     :return:
     """
     if request.method == 'GET':
-        _update_comic_helper(comic_id)
+        _refresh_comic_helper(comic_id)
 
         return redirect(url_for('view_comic', comic_id=comic_id))
 
 
-def _edit_comic_helper(comic_id) -> EditComicForm:
+def _edit_comic_helper(comic_id: int) -> EditComicForm:
     """
     get the current comic details by id from database and populate the editComic form
     :param comic_id: the id of the comic to edit
@@ -167,7 +172,7 @@ def _edit_comic_helper(comic_id) -> EditComicForm:
 
 
 @app.route('/edit/comic/<int:comic_id>', methods=["GET", "POST"])
-def edit_comic(comic_id) -> redirect or render_template:
+def edit_comic(comic_id: int) -> redirect or render_template:
     """
     Edit the individual comic details
     :param comic_id: the id of the comic to update
@@ -254,7 +259,7 @@ def series():
 
 
 @app.route('/view/series/<int:series_id>', methods=["GET"])
-def view_series(series_id) -> render_template:
+def view_series(series_id: int) -> render_template:
     """
     View individual series by id
     :param series_id: the id of the series to view details
@@ -272,11 +277,13 @@ def view_series(series_id) -> render_template:
     creator_detail = f_db.get_series_creators(series_id)
     storiesGallery_detail = f_db.get_series_stories(series_id)
     prev_series_detail = f_db.get_prev_series_detail(series_id)
-    if prev_series_detail:
-        prev_series_detail = prev_series_detail[0]
     next_series_detail = f_db.get_next_series_detail(series_id)
+    comics_gallery_detail = f_db.get_series_comics(series_id)
+
     if next_series_detail:
         next_series_detail = next_series_detail[0]
+    if prev_series_detail:
+        prev_series_detail = prev_series_detail[0]
 
     return render_template(
         "series_pages/series_detail.html",
@@ -286,5 +293,74 @@ def view_series(series_id) -> render_template:
         creator_data=creator_detail,
         storiesGallery_data=storiesGallery_detail,
         previous_series_data=prev_series_detail,
-        next_series_data=next_series_detail
+        next_series_data=next_series_detail,
+        comicsGallery_data=comics_gallery_detail
     )
+
+
+def _refresh_series_helper(series_id: int):
+    """
+    Driver function for refreshing a series and each of its entity dependencies
+    :param series_id: the id of the series to refresh
+    """
+
+    # create lookup object Lookup(f_db)
+    lookup.series[series_id] = None
+
+    # lookup the comic book (lookup.lookup_marvel_comic_by_id(comic_id) and
+    lookup.lookup_marvel_series_by_id(series_id)
+    # store complete comic book in backend db (lookup.update_complete_comic_book_byID(comic_id)
+    lookup.update_complete_series(series_id)
+
+    # get comic_has_entity ids from backend db
+    lookup.get_series_has_entity_ids_from_db(lookup.CHARACTER_ENTITY, series_id)
+    lookup.get_series_has_entity_ids_from_db(lookup.CREATOR_ENTITY, series_id)
+    lookup.get_series_has_entity_ids_from_db(lookup.EVENT_ENTITY, series_id)
+    lookup.get_series_has_entity_ids_from_db(lookup.STORY_ENTITY, series_id)
+    lookup.get_series_has_entity_ids_from_db(lookup.PREVIOUS_SERIES_ENTITY, series_id)
+    lookup.get_series_has_entity_ids_from_db(lookup.NEXT_SERIES_ENTITY, series_id)
+    lookup.get_series_has_entity_ids_from_db(lookup.COMIC_ENTITY, series_id)
+
+    # process each entity
+    for character_id in lookup.characters:
+        lookup.lookup_marvel_character_by_id(character_id)
+    for character_id in lookup.characters:
+        lookup.update_complete_character(character_id)
+
+    for creator_id in lookup.creators:
+        lookup.lookup_marvel_creator_by_id(creator_id)
+    for creator_id in lookup.creators:
+        lookup.update_complete_creator(creator_id)
+
+    for event_id in lookup.events:
+        lookup.lookup_marvel_event_by_id(event_id)
+    for event_id in lookup.events:
+        lookup.update_complete_event(event_id)
+
+    for series_id in lookup.series:
+        lookup.lookup_marvel_series_by_id(series_id)
+    for series_id in lookup.series:
+        lookup.update_complete_series(series_id)
+
+    for story_id in lookup.stories:
+        lookup.lookup_marvel_story_by_id(story_id)
+    for story_id in lookup.stories:
+        lookup.update_complete_story(story_id)
+
+    for comic_id in lookup.comic_books:
+        lookup.lookup_marvel_comic_by_id(comic_id)
+    for comic_id in lookup.comic_books:
+        lookup.update_complete_comic_book_byID(comic_id)
+
+
+@app.route('/refresh/series/<int:series_id>', methods=["GET"])
+def refresh_series(series_id: int):
+    """
+    Update the comic and its dependencies
+    :param series_id: the id of the series to refresh
+    :return: redirect to view_series detail page for the current series
+    """
+    if request.method == 'GET':
+        _refresh_series_helper(series_id)
+
+        return redirect(url_for('view_series', series_id=series_id))

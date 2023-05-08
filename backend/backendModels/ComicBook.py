@@ -57,6 +57,7 @@ class ComicBook(Entity):
             self.isPurchasedType = is_purchased_type.title()
 
         self.ENTITY_NAME = self.COMIC_ENTITY
+        self.variant_terms = {"Variant", "Director's Cut", "2nd Printing", "3rd Printing"}
 
     ####################################################################################################################
     #
@@ -122,8 +123,11 @@ class ComicBook(Entity):
         Compiles the comic_book entities into params tuple to pass to backendDatabase function for uploading complete comic
         book
         """
-        if self.isVariant is None:
-            self.isVariant = 0
+
+        for term in self.variant_terms:
+            if term.lower() in self.title.lower():
+                self.isVariant = True
+                break
 
         params = (self.id, self.digitalId, self.title, self.issueNumber, self.variantDescription, self.description,
                   self.modified, self.isbn, self.upc, self.diamondCode, self.ean, self.issn, self.format,
@@ -313,10 +317,9 @@ class ComicBook(Entity):
             variant_title = variant['name']
             variant_id = self.get_id_from_resourceURI(variant_uri)
 
-            variant_terms = {"Variant", "Director's Cut", "2nd Printing", "3rd Printing"}
             isVariant = False
-            for term in variant_terms:
-                if term.lower() in variant_title.lower():
+            for term in self.variant_terms:
+                if term in variant_title:
                     isVariant = True
                     break
 

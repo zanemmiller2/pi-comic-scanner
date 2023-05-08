@@ -28,6 +28,8 @@ class BackEndDB:
     STORY_ENTITY = "Stories"
     URL_ENTITY = "URLs"
     VARIANT_ENTITY = "Variants"
+    PREVIOUS_SERIES_ENTITY = "PreviousSeries"
+    NEXT_SERIES_ENTITY = "NextSeries"
     PURCHASED_COMICS_ENTITY = 'PurchasedComics'
     ENTITIES = (CHARACTER_ENTITY, COMIC_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, IMAGE_ENTITY,
                 SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY)
@@ -136,6 +138,38 @@ class BackEndDB:
             return self.cursor.fetchall()
         except InvalidCursorExecute:
             print(f"GET {entity} IDS FROM {table_name} ERROR WITH COMIC ID: {comic_id}")
+            self._connection.rollback()
+
+    def get_series_has_entity_ids(self, entity: str, series_id: int):
+        """
+        Get the entity Ids related to the given comic
+        :param entity: the name of the dependent entity
+        :param series_id: the id of the related series
+        :return: the entity ids
+        """
+        entity_id_name = self.get_parent_id_name(entity)
+
+        if entity == self.PREVIOUS_SERIES_ENTITY or entity == self.NEXT_SERIES_ENTITY:
+            table_name = 'Series'
+            series_id_name = 'id'
+        elif entity == self.COMIC_ENTITY:
+            table_name = 'Comics'
+            series_id_name = 'seriesId'
+            entity_id_name = 'id as comicId'
+        else:
+            table_name = f"Series_has_{entity}"
+            series_id_name = 'seriesId'
+
+        query = f"SELECT {entity_id_name} " \
+                f"FROM {table_name} " \
+                f"WHERE {series_id_name}=%s;"
+        params = (series_id,)
+
+        try:
+            self._execute_commit(query, params)
+            return self.cursor.fetchall()
+        except InvalidCursorExecute:
+            print(f"GET {entity} IDS FROM {table_name} ERROR WITH SERIES ID: {series_id}")
             self._connection.rollback()
 
     ####################################################################################################################
@@ -834,6 +868,10 @@ class BackEndDB:
             return "storyId"
         elif parent_entity == self.VARIANT_ENTITY:
             return "variantId"
+        elif parent_entity == self.PREVIOUS_SERIES_ENTITY:
+            return "previousSeriesId"
+        elif parent_entity == self.NEXT_SERIES_ENTITY:
+            return 'nextSeriesId'
         else:
             print(f"{parent_entity} HAS NO RELATION... ") if self.DB_DEBUG else 0
             return None

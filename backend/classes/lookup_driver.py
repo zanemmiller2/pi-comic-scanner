@@ -33,9 +33,13 @@ class Lookup:
     URL_ENTITY = "URLs"
     VARIANT_ENTITY = "Variants"
     PURCHASED_COMICS_ENTITY = 'PurchasedComics'
+    PREVIOUS_SERIES_ENTITY = 'PreviousSeries'
+    NEXT_SERIES_ENTITY = 'NextSeries'
     ENTITIES = {CHARACTER_ENTITY, COMIC_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, IMAGE_ENTITY,
                 SERIES_ENTITY, STORY_ENTITY, URL_ENTITY, PURCHASED_COMICS_ENTITY, VARIANT_ENTITY}
     COMIC_DEPENDENCIES = {CHARACTER_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, SERIES_ENTITY, STORY_ENTITY, VARIANT_ENTITY}
+    SERIES_DEPENDENCIES = {CHARACTER_ENTITY, CREATOR_ENTITY, EVENT_ENTITY, STORY_ENTITY, COMIC_ENTITY,
+                           PREVIOUS_SERIES_ENTITY, NEXT_SERIES_ENTITY}
     COMICS_URL = "https://gateway.marvel.com/v1/public/comics"
     CHARACTERS_URL = "https://gateway.marvel.com/v1/public/characters"
     CREATORS_URL = "https://gateway.marvel.com/v1/public/creators"
@@ -74,7 +78,7 @@ class Lookup:
         :param character_id: the integer id of the character resource
         """
 
-        if character_id in self.characters:
+        if character_id in self.characters and character_id is not None:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
@@ -102,11 +106,11 @@ class Lookup:
         """
 
         # barcode has not already been lookedUp
-        if barcode not in self.lookedUp_barcodes:
+        if barcode not in self.lookedUp_barcodes and barcode is not None:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {
-                    'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str, 'upc': barcode
+                'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str, 'upc': barcode
             }
             request = requests.get(self.COMICS_URL, PARAMS)
             data = request.json()
@@ -126,7 +130,7 @@ class Lookup:
         :param comic_id: the integer id of the comic resource
         """
 
-        if comic_id in self.comic_books:
+        if comic_id in self.comic_books and comic_id is not None:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
@@ -153,7 +157,7 @@ class Lookup:
         :param creator_id: the integer id of the creator resource
         """
 
-        if creator_id in self.creators:
+        if creator_id in self.creators and creator_id is not None:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
@@ -180,7 +184,7 @@ class Lookup:
         :param event_id: the integer id of the event resource
         """
 
-        if event_id in self.events:
+        if event_id in self.events and event_id is not None:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
@@ -206,7 +210,7 @@ class Lookup:
         :param series_id: the integer id of the series resource
         """
 
-        if series_id in self.series:
+        if series_id in self.series and series_id is not None:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
@@ -233,7 +237,7 @@ class Lookup:
         :param story_id: the integer id of the story resource
         """
 
-        if story_id in self.stories:
+        if story_id in self.stories and story_id is not None:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
@@ -260,7 +264,7 @@ class Lookup:
         :param variant_id: the integer id of the comic resource
         """
 
-        if variant_id in self.variants:
+        if variant_id in self.variants and variant_id is not None:
             hash_str, timestamp = self._get_marvel_api_hash()
 
             PARAMS = {'apikey': keys.pub_keys.marvel_developer_pub_key, 'ts': timestamp, 'hash': hash_str}
@@ -314,7 +318,7 @@ class Lookup:
         """
 
         # Valid creator id
-        if character_id in self.characters:
+        if character_id in self.characters and character_id is not None:
             # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Story() storyId
             # foreign key dependency can be established.
@@ -413,7 +417,7 @@ class Lookup:
         """
 
         # barcode has not already been lookedUp AND committed to backendDatabase
-        if barcode not in self.committed_barcodes:
+        if barcode not in self.committed_barcodes and barcode is not None:
             # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Comics seriesId
             # foreign key dependency can be established.
@@ -459,7 +463,7 @@ class Lookup:
         """
 
         # Valid creator id
-        if comic_id in self.comic_books:
+        if comic_id in self.comic_books and comic_id is not None:
             # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Creators seriesId
             # foreign key dependency can be established.
@@ -502,7 +506,7 @@ class Lookup:
         """
 
         # Valid creator id
-        if creator_id in self.creators:
+        if creator_id in self.creators and creator_id is not None:
             # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Creators seriesId
             # foreign key dependency can be established.
@@ -545,7 +549,7 @@ class Lookup:
         """
 
         # Valid event id
-        if event_id in self.events:
+        if event_id in self.events and event_id is not None:
             # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Story() storyId
             # foreign key dependency can be established.
@@ -584,11 +588,11 @@ class Lookup:
         """
         Create a new backendDatabase record for the looked up Series() Object. First uploads any non-existent foreign key
         dependencies and then uploads the entire Series object.
-        :param series_id: series's identification number
+        :param series_id: series identification number
         """
 
         # Valid creator id
-        if series_id in self.series:
+        if series_id in self.series and series_id is not None:
             # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Series() seriesId
             # foreign key dependency can be established.
@@ -631,7 +635,7 @@ class Lookup:
         """
 
         # Valid creator id
-        if story_id in self.stories:
+        if story_id in self.stories and story_id is not None:
             # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Story() storyId
             # foreign key dependency can be established.
@@ -658,7 +662,7 @@ class Lookup:
         """
 
         # Valid creator id
-        if variant_id in self.variants:
+        if variant_id in self.variants and variant_id is not None:
             # Create new records for the different member variables that also represent backendDatabase entities.
             # For example, create a new series if it does not already exist so that the Creators seriesId
             # foreign key dependency can be established.
@@ -797,6 +801,44 @@ class Lookup:
 
         else:
             print("NO SUCH COMIC HAS ENTITY...") if self.LOOKUP_DEBUG else 0
+
+    def get_series_has_entity_ids_from_db(self, dependency: str, series_id: int):
+        """
+        Get the given ids of a comic dependent entity
+        """
+        if dependency in self.SERIES_DEPENDENCIES:
+            if dependency == self.CHARACTER_ENTITY:
+                id_name = "characterId"
+                entity_dict = self.characters
+            elif dependency == self.CREATOR_ENTITY:
+                id_name = "creatorId"
+                entity_dict = self.creators
+            elif dependency == self.EVENT_ENTITY:
+                id_name = "eventId"
+                entity_dict = self.events
+            elif dependency == self.PREVIOUS_SERIES_ENTITY:
+                id_name = "previousSeriesId"
+                entity_dict = self.series
+            elif dependency == self.NEXT_SERIES_ENTITY:
+                id_name = "nextSeriesId"
+                entity_dict = self.series
+            elif dependency == self.COMIC_ENTITY:
+                id_name = "comicId"
+                entity_dict = self.comic_books
+            else:
+                id_name = "storyId"
+                entity_dict = self.stories
+
+            res_data = self.db.get_series_has_entity_ids(dependency, series_id)
+            for entity in res_data:
+                entity_id = entity[id_name]
+                if entity_id not in entity_dict:
+                    entity_dict[entity_id] = None
+                else:
+                    print(f"DUPLICATE {entity} FOUND ...") if self.LOOKUP_DEBUG else 0
+
+        else:
+            print("NO SUCH SERIES HAS ENTITY...") if self.LOOKUP_DEBUG else 0
 
     def remove_committed_from_buffer_db(self):
         """
