@@ -271,11 +271,20 @@ def view_series(series_id) -> render_template:
     event_detail = f_db.get_series_events(series_id)
     creator_detail = f_db.get_series_creators(series_id)
     storiesGallery_detail = f_db.get_series_stories(series_id)
+    prev_series_detail = f_db.get_prev_series_detail(series_id)
+    if prev_series_detail:
+        prev_series_detail = prev_series_detail[0]
+    next_series_detail = f_db.get_next_series_detail(series_id)
+    if next_series_detail:
+        next_series_detail = next_series_detail[0]
 
     return render_template(
         "series_pages/series_detail.html",
         series_data=series_detail,
         character_data=character_detail,
         event_data=event_detail,
-        creator_data=creator_detail, storiesGallery_data=storiesGallery_detail
+        creator_data=creator_detail,
+        storiesGallery_data=storiesGallery_detail,
+        previous_series_data=prev_series_detail,
+        next_series_data=next_series_detail
     )

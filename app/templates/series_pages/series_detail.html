@@ -92,6 +92,99 @@
             </div>
         </div>
 
+        <!-- PREVIOUS AND NEXT SERIES-->
+        <div>
+            <h5>Series - Previous and Next</h5>
+            <div class="comic-entity-row">
+
+                <!-- ROW 2, COL 1 SERIES DETAIL -->
+                {% if previous_series_data %}
+                    <div class="comic-entity-card">
+                        <img class="comic-entity-thumbnail"
+                                {% if previous_series_data.thumbnail %}
+                             src="{{ previous_series_data.thumbnail + previous_series_data.thumbnailExtension }}"
+                                {% else %}
+                             src=""
+                                {% endif %}
+                             alt="Previous Series Thumbnail">
+                        <div class="comic-entity-body">
+                            <h5 class="comic-entity-card-text">
+                                {% if previous_series_data.title %}
+                                    {{ 'Prev. Series Title: ' + previous_series_data.title }}
+                                {% else %}
+                                    Prev. Series Title: N/A
+                                {% endif %}
+                            </h5>
+                            <h6 class="comic-entity-card-text">
+                                {% if series_data.id %}
+                                    {{ 'Prev. Series ID: (' ~previous_series_data.id + ')' }}
+                                {% else %}
+                                    ID: N/A
+                                {% endif %}
+                            </h6>
+                            <p class="comic-entity-card-text">
+                                {% if series_data.description %}
+                                    {{ 'Series Description: ' + series_data.description }}
+                                {% else %}
+                                    Series Description: N/A
+                                {% endif %}
+                            </p>
+                            {% if  previous_series_data.detailURL %}
+                                <div class="comic-entity-detail-url">
+                                    <a href="{{ previous_series_data.detailURL }}">Prev
+                                        Series Detail
+                                        URL</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if next_series_data %}
+                    <!-- ROW 2, COL 2 COVER STORY DETAIL -->
+                    <div class="comic-entity-card">
+                        <img class="comic-entity-thumbnail"
+                                {% if next_series_data.thumbnail %}
+                             src="{{ next_series_data.thumbnail + next_series_data.thumbnailExtension }}"
+                                {% else %}
+                             src=""
+                                {% endif %}
+                             alt="Next Series Thumbnail">
+                        <div class="comic-entity-body">
+                            <h5 class="comic-entity-card-text">
+                                {% if next_series_data.title %}
+                                    {{ 'Next Series Title: ' + next_series_data.title }}
+                                {% else %}
+                                    Next Series Title: N/A
+                                {% endif %}
+                            </h5>
+                            <h6 class="comic-entity-story-card-text">
+                                {% if next_series_data.id %}
+                                    {{ 'Next Series ID: (' ~next_series_data.id + ')' }}
+                                {% else %}
+                                    Next Series ID: N/A
+                                {% endif %}
+                            </h6>
+                            <p class="comic-entity-card-text">
+                                {% if next_series_data.description %}
+                                    {{ 'Next Series Description: ' + next_series_data.description }}
+                                {% else %}
+                                    Next Series Description: N/A
+                                {% endif %}
+                            </p>
+                            {% if next_series_data.detailUrl %}
+                                <div class="comic-entity-detail-url">
+                                    <a href="{{ next_series_data.detailURL }}">Next
+                                        Series Detail
+                                        URL</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
         {% include "base_gallery.html" %}
 
     {% else %}

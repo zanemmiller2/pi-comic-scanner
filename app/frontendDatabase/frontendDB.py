@@ -563,14 +563,119 @@ class FrontEndDB:
         cursor = self.mysql.connection.cursor()
         params = (series_id,)
         stories_query = \
-            "SELECT St.*, ChSt.comicId, I.pathExtension as thumbnailExtension " \
+            "SELECT " \
+            "   St.*, " \
+            "   ChSt.comicId, " \
+            "   I.pathExtension as thumbnailExtension " \
             "FROM Series_has_Stories ShSt " \
-            "LEFT JOIN Stories St " \
-            "on ShSt.storyId = St.id " \
-            "LEFT JOIN Comics_has_Stories ChSt on ChSt.storyId = St.id " \
-            "LEFT JOIN Images I " \
-            "on St.thumbnail = I.path " \
+            "   LEFT JOIN Stories St " \
+            "       on ShSt.storyId = St.id " \
+            "   LEFT JOIN Comics_has_Stories ChSt " \
+            "       on ChSt.storyId = St.id " \
+            "   LEFT JOIN Images I " \
+            "       on St.thumbnail = I.path " \
             "WHERE ShSt.seriesId=%s;"
 
         cursor.execute(stories_query, params)
         return [FrontEndStory(story) for story in cursor]
+
+    def get_prev_series_detail(self, series_id: int) -> list[FrontEndSeries]:
+        """
+        Gets the previous series id from Series Table and returns the series detail for each
+        :param series_id: the id of the single series
+        :return: list of series objects for the previous and next series
+        """
+        cursor = self.mysql.connection.cursor()
+        params = (series_id,)
+
+        previous_series_query = \
+            "SELECT S2.*, I.pathExtension as thumbnailExtension, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'purchase') as purchaseURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'detail') as detailURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'comiclink') as comicLink, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'reader') as readerURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'inAppLink') as inAppLink, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'wiki') as wiki " \
+            "FROM Series S1 " \
+            "   INNER JOIN Series S2 " \
+            "       on S1.previousSeriesId = S2.id " \
+            "   LEFT JOIN Images I " \
+            "       on S2.thumbnail = I.path " \
+            "WHERE S1.id=%s;"
+        cursor.execute(previous_series_query, params)
+        return [FrontEndSeries(prevSeries) for prevSeries in cursor]
+
+    def get_next_series_detail(self, series_id: int) -> list[FrontEndSeries]:
+        """
+        Gets the next series ids from Series Table and returns the series detail for each
+        :param series_id: the id of the single series
+        :return: list of series objects for the previous and next series
+        """
+        cursor = self.mysql.connection.cursor()
+        params = (series_id,)
+
+        next_series_query = \
+            "SELECT S2.*, I.pathExtension as thumbnailExtension, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'purchase') as purchaseURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'detail') as detailURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'comiclink') as comicLink, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'reader') as readerURL, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'inAppLink') as inAppLink, " \
+            "(SELECT ShUL.url " \
+            "FROM Series_has_URLs ShUL " \
+            "LEFT JOIN URLs UL " \
+            "ON ShUL.url = UL.url " \
+            "WHERE ShUL.seriesId = S2.id AND UL.type = 'wiki') as wiki " \
+            "FROM Series S1 " \
+            "   INNER JOIN Series S2 " \
+            "       on S1.nextSeriesId = S2.id " \
+            "   LEFT JOIN Images I " \
+            "       on S2.thumbnail = I.path " \
+            "WHERE S1.id=%s;"
+        cursor.execute(next_series_query, params)
+
+        return [FrontEndSeries(nextSeries) for nextSeries in cursor]
